@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #FAF8F5;
+  --foreground: #2A261F;
+  --surface-card: #FFFFFF;
+  --surface-soft: #F4F0E8;
+  --border-subtle: #EAE4D8;
+  --primary: #38614F;
+  --primary-hover: #2F4F41;
+  --ring: #38614F;
+}
+
+body {
+  color: var(--foreground);
+  background-color: var(--background);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Accessible focus ring across keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Soft Calm Glass utilities */
+@layer components {
+  .glass-surface {
+    background-color: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 8px 32px 0 rgba(46, 75, 63, 0.04), 0 1px 2px 0 rgba(255, 255, 255, 0.6) inset;
+  }
+
+  .glass-surface-subtle {
+    background-color: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(234, 228, 216, 0.6);
+  }
+
+  .soft-surface {
+    background-color: #FFFFFF;
+    border: 1px solid #EAE4D8;
+    box-shadow: 0 2px 8px -1px rgba(28, 37, 34, 0.04);
+  }
+
+  .soft-surface-tinted {
+    background-color: #F8FAF9;
+    border: 1px solid #D6E4DC;
+  }
+}

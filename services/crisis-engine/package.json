@@ -1,0 +1,11 @@
+{
+  "name": "@dengarin/crisis-engine",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/crisisDetector.ts",
+  "types": "src/crisisDetector.ts",
+  "private": true,
+  "dependencies": {
+    "@dengarin/types": "*"
+  }
+}

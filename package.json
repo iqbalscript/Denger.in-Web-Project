@@ -1,0 +1,29 @@
+{
+  "name": "dengarin-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dengar.in — Pendamping Mental Well-being Anonim Berbasis AI",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "lint": "npm run lint --workspace=apps/web",
+    "typecheck": "npm run typecheck --workspace=apps/web",
+    "test:crisis": "node --experimental-strip-types tests/crisis/crisisEngine.test.mjs",
+    "test:validator": "node --experimental-strip-types tests/validator/actionValidator.test.mjs",
+    "test": "npm run test:crisis && npm run test:validator"
+  },
+  "keywords": [
+    "mental-health",
+    "well-being",
+    "anonymous",
+    "ai-orchestrator",
+    "crisis-safety"
+  ],
+  "author": "Dengar.in Team",
+  "license": "MIT"
+}

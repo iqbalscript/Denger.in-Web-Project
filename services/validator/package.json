@@ -1,0 +1,11 @@
+{
+  "name": "@dengarin/validator",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/actionValidator.ts",
+  "types": "src/actionValidator.ts",
+  "private": true,
+  "dependencies": {
+    "@dengarin/types": "*"
+  }
+}
