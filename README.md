@@ -184,18 +184,34 @@ Paket `services/crisis-engine` memiliki batasan arsitektur ketat:
 | **Test Runner** | Node.js Test Runner | Native | `node --experimental-strip-types` (Zero external test runner) |
 | **Linter** | ESLint | `8.57.1` | Standalone `@typescript-eslint` dengan 0 error/warning |
 
-### Backend Skeleton (Sprint 2 Foundation)
+### Backend
 
 | Lapisan | Paket | Catatan |
 |---|---|---|
-| **HTTP API** | `apps/web/src/app/api/*` | Route Handlers Next.js (`/api/chat`, `/api/forum`, `/api/forum/[postId]/moderate`, `/api/report/weekly`, `/api/sync`, `/api/health`) |
+| **HTTP API** | `apps/web/src/app/api/*` | Route Handlers Next.js: `/api/chat`, `/api/forum`, `/api/forum/[postId]/moderate`, `/api/report/weekly`, `/api/sync`, `/api/admin/login`, `/api/admin/logout`, `/api/admin/me`, `/api/health` |
 | **AI Orchestrator** | `services/orchestrator` (`@dengarin/orchestrator`) | Pipeline bertingkat Tier 1 (DeepSeek) → Tier 2 (OpenRouter) → Tier 3 (fallback deterministik), lihat `docs/AI_POLICY.md` |
 | **Prompt Templates** | `packages/prompts` (`@dengarin/prompts`) | Sistem prompt & batasan larangan AI, dikonsumsi hanya oleh `services/orchestrator` |
-| **Persistence** | `services/persistence` (`@dengarin/persistence`) | Kontrak repositori forum & sinkronisasi terenkripsi; adapter in-memory untuk pengembangan lokal |
+| **Persistence** | `services/persistence` (`@dengarin/persistence`) | `ForumRepository`, `SyncRepository`, `AdminRepository` — adapter **PostgreSQL sungguhan** (`pg`) teruji integrasi, dengan fallback in-memory otomatis saat `DATABASE_URL` kosong (lihat `src/factory.ts`) |
+| **Auth (Admin/Moderator)** | `services/auth` (`@dengarin/auth`) | Hashing password (`scrypt`, native Node `crypto`) & sesi bertanda tangan HMAC-SHA256 (JWT-lite) untuk gerbang `/api/admin/*` dan moderasi forum |
+
+### Database
+
+Skema PostgreSQL didefinisikan di `services/persistence/migrations/001_init.sql` (tabel `forum_posts`, `synced_sessions`, `admin_users`) dan sudah **diuji terhadap instance PostgreSQL sungguhan** (bukan hanya typecheck) — lihat `tests/persistence-pg/`. Jalankan:
+
+```bash
+# 1. Set DATABASE_URL di .env.local (lihat .env.example)
+# 2. Terapkan skema
+npm run db:migrate
+
+# 3. Buat akun admin/moderator pertama (tidak ada endpoint signup)
+ADMIN_SEED_USERNAME=admin ADMIN_SEED_PASSWORD=ganti-ini-dengan-yang-kuat npm run db:seed-admin
+```
+
+Tanpa `DATABASE_URL`, seluruh API tetap berjalan menggunakan adapter in-memory (data hilang saat proses berhenti) — cocok untuk pengembangan lokal tanpa database.
 
 ### Planned / Future Technologies
-- **LLM Engine**: DeepSeek V4 Flash (Primary) / OpenRouter API (Fallback) — kunci API produksi & pengujian live belum dikonfigurasi.
-- **Database (Sprint 2+)**: PostgreSQL / Supabase — akan diimplementasikan sebagai adapter baru dari `ForumRepository`/`SyncRepository` di `services/persistence`, menggantikan adapter in-memory saat ini.
+- **LLM Engine**: DeepSeek V4 Flash (Primary) / OpenRouter API (Fallback) — pipeline lengkap di `services/orchestrator`, kunci API produksi & pengujian live belum dikonfigurasi.
+- **Supabase-specific features** (auth pengguna akhir, storage, realtime) belum dipakai; adapter saat ini PostgreSQL murni via `pg`.
 
 ---
 
@@ -209,11 +225,11 @@ Denger.in/
 │   └── web/                     # Aplikasi Next.js 15 (Frontend + Backend API)
 │       ├── src/
 │       │   ├── app/             # Rute App Router (/consent, /dashboard, dll.)
-│       │   │   └── api/         # Route Handlers backend (/api/chat, /api/forum, /api/report/weekly, /api/sync, /api/health)
+│       │   │   └── api/         # Route Handlers backend (/api/chat, /api/forum, /api/admin/*, /api/report/weekly, /api/sync, /api/health)
 │       │   ├── components/      # Komponen navigasi, footer, dan UI primitives
 │       │   │   └── ui/          # Primitives: GlassCard, SoftCard, Button, Layout, dll.
 │       │   └── lib/
-│       │       ├── api/         # Crisis gate wrapper, rate limiter, repositori singleton, helper respons JSON
+│       │       ├── api/         # Crisis gate, rate limiter, sesi admin, repositori singleton, helper respons JSON
 │       │       └── storage.ts   # Manajemen sesi anonim & storage peramban
 │       ├── tailwind.config.js   # Konfigurasi token desain visual Soft Calm Glass
 │       └── tsconfig.json
@@ -225,14 +241,19 @@ Denger.in/
 │   ├── crisis-engine/           # Detektor krisis deterministik tanpa AI (@dengarin/crisis-engine)
 │   ├── validator/               # Validator runtime skema aksi AI (@dengarin/validator)
 │   ├── orchestrator/            # Pipeline AI bertingkat: DeepSeek → OpenRouter → fallback deterministik (@dengarin/orchestrator)
-│   └── persistence/             # Kontrak repositori forum & sinkronisasi terenkripsi, adapter in-memory (@dengarin/persistence)
+│   ├── persistence/             # Repositori forum, sinkronisasi & admin — adapter PostgreSQL + in-memory (@dengarin/persistence)
+│   │   ├── migrations/          # Skema SQL (001_init.sql: forum_posts, synced_sessions, admin_users)
+│   │   └── scripts/             # db:migrate, db:seed-admin
+│   └── auth/                    # Hashing password & sesi HMAC untuk admin/moderator (@dengarin/auth)
 ├── tests/
 │   ├── crisis/                  # 33 pengujian unit mesin krisis (normalisasi, false-positive, slang)
 │   ├── validator/               # 24 pengujian unit validator skema aksi kecerdasan buatan
 │   ├── orchestrator/            # Pengujian pipeline tiered fallback AI orchestrator
-│   └── persistence/             # Pengujian repositori forum & sinkronisasi in-memory
+│   ├── persistence/              # Pengujian repositori forum & sinkronisasi in-memory
+│   ├── persistence-pg/           # Pengujian integrasi terhadap PostgreSQL sungguhan (skip otomatis tanpa DATABASE_URL)
+│   └── auth/                     # Pengujian hashing password & sesi admin
 ├── docs/                        # Dokumentasi arsitektur, PRD, kebijakan keselamatan, dan UX
-├── .env.example                 # Contoh variabel lingkungan backend (kunci AI, DATABASE_URL)
+├── .env.example                 # Contoh variabel lingkungan backend (kunci AI, DATABASE_URL, ADMIN_SESSION_SECRET)
 ├── package.json                 # Konfigurasi monorepo root & script eksekusi
 └── tsconfig.base.json           # Konfigurasi TypeScript dasar monorepo
 ```
@@ -260,21 +281,24 @@ Denger.in/
 
 ---
 
-## 9a. Backend HTTP API (Kerangka Sprint 2+)
+## 9a. Backend HTTP API
 
-Permukaan HTTP backend diimplementasikan sebagai Next.js Route Handlers di `apps/web/src/app/api/`, memakai logika dari `services/crisis-engine`, `services/orchestrator`, `services/validator`, dan `services/persistence`. Lihat `docs/API_SPEC.md` Bagian 5 untuk kontrak permintaan/respons lengkap.
+Permukaan HTTP backend diimplementasikan sebagai Next.js Route Handlers di `apps/web/src/app/api/`, memakai logika dari `services/crisis-engine`, `services/orchestrator`, `services/validator`, `services/persistence`, dan `services/auth`. Lihat `docs/API_SPEC.md` Bagian 5 untuk kontrak permintaan/respons lengkap.
 
 | Endpoint | Metode | Tujuan / Fungsi | Status |
 |---|---|---|---|
 | `/api/health` | `GET` | Health check layanan backend | **Implemented** |
-| `/api/chat` | `POST` | Gerbang krisis deterministik → orkestrator AI bertingkat → aksi tervalidasi | **Skeleton** (fallback deterministik aktif; kunci API live belum dikonfigurasi) |
-| `/api/forum` | `GET`, `POST` | Daftar cerita yang disetujui; kirim cerita baru (otomatis `pending_review`, discan gerbang krisis) | **Skeleton** (penyimpanan in-memory) |
-| `/api/forum/[postId]/moderate` | `PATCH` | Setujui/tolak cerita forum | **Skeleton** (belum ada autentikasi moderator) |
+| `/api/chat` | `POST` | Gerbang krisis deterministik → orkestrator AI bertingkat → aksi tervalidasi | **Implemented** (fallback deterministik teruji end-to-end; kunci API live DeepSeek/OpenRouter belum dikonfigurasi) |
+| `/api/forum` | `GET`, `POST` | Daftar cerita yang disetujui; kirim cerita baru (otomatis `pending_review`, discan gerbang krisis) | **Implemented** (PostgreSQL, teruji end-to-end) |
+| `/api/forum/[postId]/moderate` | `PATCH` | Setujui/tolak cerita forum | **Implemented** — dilindungi sesi admin (`/api/admin/login`), teruji end-to-end |
 | `/api/report/weekly` | `POST` | Sintesis ringkasan mingguan stateless dari riwayat check-in/misi lokal klien | **Implemented** |
-| `/api/sync` | `GET`, `PUT` | Simpan/ambil blob terenkripsi klien berdasarkan hash frasa pemulihan 12-kata | **Skeleton** (enkripsi ujung-ke-ujung belum diimplementasikan) |
+| `/api/sync` | `GET`, `PUT` | Simpan/ambil blob terenkripsi klien berdasarkan hash frasa pemulihan 12-kata | **Implemented** (PostgreSQL); enkripsi ujung-ke-ujung sisi klien belum diimplementasikan |
+| `/api/admin/login` | `POST` | Login admin/moderator (username+password → cookie sesi HMAC httpOnly) | **Implemented**, teruji end-to-end |
+| `/api/admin/logout` | `POST` | Hapus cookie sesi admin | **Implemented** |
+| `/api/admin/me` | `GET` | Cek sesi admin aktif saat ini | **Implemented** |
 
 > [!NOTE]
-> Endpoint di atas adalah kerangka arsitektur (scaffolding), bukan layanan produksi. Lihat variabel lingkungan pada `.env.example` (`DEEPSEEK_API_KEY`, `OPENROUTER_API_KEY`, `DATABASE_URL`) sebelum menghubungkan penyedia AI atau basis data sungguhan.
+> Semua endpoint di atas sudah diuji end-to-end terhadap instance PostgreSQL sungguhan (bukan hanya typecheck) selama pengembangan. Belum ada di sini: kunci API AI live (DeepSeek/OpenRouter), rate limiting terdistribusi (saat ini in-memory per-instance), dan enkripsi ujung-ke-ujung sisi klien untuk `/api/sync`. Lihat `.env.example` untuk variabel lingkungan yang dibutuhkan.
 
 ---
 
@@ -310,11 +334,23 @@ npm install
 ```bash
 npm run dev
 ```
-Akses aplikasi melalui peramban di `http://localhost:3000`.
+Akses aplikasi melalui peramban di `http://localhost:3000`. Tanpa `DATABASE_URL`, backend otomatis memakai penyimpanan in-memory (lihat bagian 7 "Database").
+
+### (Opsional) Menyambungkan PostgreSQL Sungguhan
+```bash
+# 1. Salin .env.example -> .env.local, isi DATABASE_URL dan ADMIN_SESSION_SECRET
+cp .env.example .env.local
+
+# 2. Terapkan skema
+npm run db:migrate
+
+# 3. Buat akun admin/moderator pertama
+ADMIN_SEED_USERNAME=admin ADMIN_SEED_PASSWORD=ganti-ini-dengan-yang-kuat npm run db:seed-admin
+```
 
 ### Menjalankan Seluruh Validasi Otomatis
 ```bash
-# 1. Menjalankan rangkaian unit test (crisis engine & validator)
+# 1. Menjalankan seluruh rangkaian unit & integrasi test
 npm run test
 
 # 2. Validasi tipe TypeScript di seluruh monorepo
@@ -326,6 +362,7 @@ npm run lint
 # 4. Kompilasi production bundle Next.js
 npm run build
 ```
+Pengujian integrasi PostgreSQL (`tests/persistence-pg`) otomatis dilewati (exit 0) jika `DATABASE_URL` tidak diset saat menjalankan `npm run test` — jadi validasi tetap hijau di lingkungan tanpa database.
 
 ---
 
@@ -337,9 +374,15 @@ Status validasi otomatis saat ini di repositori:
 |---|---|---|
 | **Crisis Engine Tests** | 33 pengujian (anti-evasi, leetspeak, frasa bunuh diri, false-positive) | **33 / 33 PASS** |
 | **Action Validator Tests** | 24 pengujian (whitelist 6 aksi, sanitasi disclaimer, penolakan tindakan medis) | **24 / 24 PASS** |
+| **Assessment Tests** | 19 pengujian alur asesmen adaptif | **19 / 19 PASS** |
+| **AI Orchestrator Tests** | 6 pengujian tiered fallback (Tier 1/2/3, output tidak valid, timeout) | **6 / 6 PASS** |
+| **Persistence Tests (in-memory)** | 6 pengujian repositori forum & sinkronisasi | **6 / 6 PASS** |
+| **Auth Tests** | 10 pengujian hashing password & sesi admin bertanda tangan | **10 / 10 PASS** |
+| **Persistence Tests (PostgreSQL, integrasi)** | 6 pengujian terhadap database sungguhan (skip otomatis tanpa `DATABASE_URL`) | **6 / 6 PASS** (diverifikasi manual dengan PostgreSQL lokal) |
+| **End-to-End API (manual)** | Alur penuh via `curl`: buat post forum → gerbang krisis → login admin → moderasi → tampil publik | **PASS**, lihat riwayat pengembangan |
 | **Typecheck** | `tsc --noEmit` pada seluruh paket dan aplikasi | **0 Errors** |
 | **Lint** | ESLint pada seluruh komponen dan modul TypeScript | **0 Errors, 0 Warnings** |
-| **Production Build** | `next build` App Router (17 rute statis terkompilasi) | **SUCCESS** |
+| **Production Build** | `next build` App Router + 9 API routes | **SUCCESS** |
 
 *Catatan: Verifikasi otomatis melalui subagent browser Playwright dapat bergantung pada ketersediaan driver biner lokal di lingkungan sistem operasi.*
 
@@ -379,13 +422,17 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
 - [x] Direktori bantuan darurat resmi Indonesia terverifikasi.
 - [x] Redesain sistem visual "Soft Calm Glass" dan restrukturisasi hierarki tata letak 12-kolom responsif.
 - [x] Integrasi penyimpanan lokal aman (*client-side local persistence*).
-- [x] Kerangka backend: HTTP API (`apps/web/src/app/api`), pipeline AI orkestrator bertingkat (`services/orchestrator`), template prompt (`packages/prompts`), dan kontrak persistensi in-memory (`services/persistence`).
+- [x] Kerangka backend: HTTP API (`apps/web/src/app/api`), pipeline AI orkestrator bertingkat (`services/orchestrator`), template prompt (`packages/prompts`).
+- [x] Backend penuh: adapter PostgreSQL sungguhan untuk `services/persistence` (forum, sinkronisasi, admin) dengan fallback in-memory otomatis, diuji integrasi terhadap database nyata (`tests/persistence-pg`).
+- [x] Autentikasi admin/moderator (`services/auth`: hashing password scrypt + sesi bertanda tangan HMAC) yang menggerbangi `/api/forum/[postId]/moderate`, diuji end-to-end.
+- [x] Skema migrasi (`services/persistence/migrations`) & script operasional (`npm run db:migrate`, `npm run db:seed-admin`).
 
 ### Planned (Sprint 2+)
 - [ ] Konfigurasi kunci API produksi & pengujian live model inferensi AI (DeepSeek V4 Flash / OpenRouter) — pipeline dan skema aksi terikat sudah tersedia di `services/orchestrator`.
-- [ ] Adapter PostgreSQL/Supabase untuk `services/persistence` (menggantikan adapter in-memory) dan moderasi keselamatan otomatis untuk Ruang Cerita Anonim (`/forum`).
-- [ ] Autentikasi moderator untuk `/api/forum/[postId]/moderate` dan penyimpanan agregat sisi server untuk Laporan Kemajuan Mingguan (`/report`).
-- [ ] Enkripsi ujung-ke-ujung sungguhan untuk opsi sinkronisasi antarperangkat menggunakan frasa 12-kata — kontrak penyimpanan (`/api/sync`) sudah tersedia sebagai kerangka.
+- [ ] Moderasi keselamatan otomatis (ML/heuristik tambahan) untuk Ruang Cerita Anonim (`/forum`) — saat ini moderasi manual via `/api/admin`.
+- [ ] Penyimpanan agregat sisi server & analitik historis untuk Laporan Kemajuan Mingguan (`/report`) — saat ini stateless dari riwayat lokal klien.
+- [ ] Enkripsi ujung-ke-ujung sungguhan (sisi klien) untuk opsi sinkronisasi antarperangkat menggunakan frasa 12-kata — kontrak penyimpanan (`/api/sync`) dan tabelnya sudah berjalan penuh di PostgreSQL.
+- [ ] Rate limiting terdistribusi (mis. Redis) menggantikan limiter in-memory per-instance saat ini.
 
 ---
 
