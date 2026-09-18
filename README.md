@@ -117,9 +117,9 @@ Jika pada asesmen awal atau input teks bebas terdeteksi indikasi bahaya diri ata
 - **Reusable Primitives**: `PageContainer`, `ContentColumn`, `SplitLayout`, `GlassCard`, `SoftCard`, `Button`, `Input`, `Textarea`, `Chip`, `Badge`, `ProgressBar`, `HelpButton`, `MoodSelector`, `MissionCard`.
 
 ### Current Skeleton / Planned (Belum Diimplementasikan Penuh)
-- **Ruang Cerita Anonim (`/forum`)**: *Route Skeleton* — Pratinjau antarmuka cerita solidaritas pengguna; infrastruktur backend, basis data, dan moderasi otomatis direncanakan untuk sprint lanjutan.
-- **Laporan Mingguan (`/report`)**: *Route Skeleton* — Pratinjau visual ringkasan kemajuan 7 hari; analitik agregat backend direncanakan untuk sprint lanjutan.
-- **AI Provider Live Cloud Orchestrator**: Model LLM live (DeepSeek V4 Flash / OpenRouter) direncanakan terhubung melalui `services/validator`; saat ini antarmuka chat beroperasi secara lokal berbasis simulasi payload tervalidasi.
+- **Ruang Cerita Anonim (`/forum`)**: *Route Skeleton* — Pratinjau antarmuka cerita solidaritas pengguna. Kerangka backend (`/api/forum`, `services/persistence`) sudah tersedia dengan moderasi wajib (`pending_review` default), namun masih memakai penyimpanan in-memory; adapter PostgreSQL/Supabase serta moderasi otomatis direncanakan untuk sprint lanjutan.
+- **Laporan Mingguan (`/report`)**: *Route Skeleton* — Pratinjau visual ringkasan kemajuan 7 hari. Kerangka backend stateless (`/api/report/weekly`) sudah tersedia untuk mensintesis ringkasan dari riwayat lokal klien; penyimpanan agregat sisi server direncanakan untuk sprint lanjutan.
+- **AI Provider Live Cloud Orchestrator**: Kerangka pipeline bertingkat (`services/orchestrator`: Tier 1 DeepSeek V4 Flash → Tier 2 OpenRouter → Tier 3 fallback deterministik) dan endpoint `/api/chat` sudah tersedia, divalidasi via `services/validator`; kunci API produksi dan pengujian model live belum dikonfigurasi.
 
 ---
 
@@ -184,9 +184,18 @@ Paket `services/crisis-engine` memiliki batasan arsitektur ketat:
 | **Test Runner** | Node.js Test Runner | Native | `node --experimental-strip-types` (Zero external test runner) |
 | **Linter** | ESLint | `8.57.1` | Standalone `@typescript-eslint` dengan 0 error/warning |
 
+### Backend Skeleton (Sprint 2 Foundation)
+
+| Lapisan | Paket | Catatan |
+|---|---|---|
+| **HTTP API** | `apps/web/src/app/api/*` | Route Handlers Next.js (`/api/chat`, `/api/forum`, `/api/forum/[postId]/moderate`, `/api/report/weekly`, `/api/sync`, `/api/health`) |
+| **AI Orchestrator** | `services/orchestrator` (`@dengarin/orchestrator`) | Pipeline bertingkat Tier 1 (DeepSeek) → Tier 2 (OpenRouter) → Tier 3 (fallback deterministik), lihat `docs/AI_POLICY.md` |
+| **Prompt Templates** | `packages/prompts` (`@dengarin/prompts`) | Sistem prompt & batasan larangan AI, dikonsumsi hanya oleh `services/orchestrator` |
+| **Persistence** | `services/persistence` (`@dengarin/persistence`) | Kontrak repositori forum & sinkronisasi terenkripsi; adapter in-memory untuk pengembangan lokal |
+
 ### Planned / Future Technologies
-- **LLM Engine**: DeepSeek V4 Flash (Primary) / OpenRouter API (Fallback)
-- **Database (Sprint 2+)**: PostgreSQL / Supabase untuk sinkronisasi anonim opsional dan moderasi forum
+- **LLM Engine**: DeepSeek V4 Flash (Primary) / OpenRouter API (Fallback) — kunci API produksi & pengujian live belum dikonfigurasi.
+- **Database (Sprint 2+)**: PostgreSQL / Supabase — akan diimplementasikan sebagai adapter baru dari `ForumRepository`/`SyncRepository` di `services/persistence`, menggantikan adapter in-memory saat ini.
 
 ---
 
@@ -197,24 +206,33 @@ Repositori menggunakan arsitektur monorepo berbasis npm Workspaces:
 ```
 Denger.in/
 ├── apps/
-│   └── web/                     # Aplikasi Next.js 15 (Frontend Web)
+│   └── web/                     # Aplikasi Next.js 15 (Frontend + Backend API)
 │       ├── src/
 │       │   ├── app/             # Rute App Router (/consent, /dashboard, dll.)
+│       │   │   └── api/         # Route Handlers backend (/api/chat, /api/forum, /api/report/weekly, /api/sync, /api/health)
 │       │   ├── components/      # Komponen navigasi, footer, dan UI primitives
 │       │   │   └── ui/          # Primitives: GlassCard, SoftCard, Button, Layout, dll.
-│       │   └── lib/             # Manajemen sesi anonim & storage peramban
+│       │   └── lib/
+│       │       ├── api/         # Crisis gate wrapper, rate limiter, repositori singleton, helper respons JSON
+│       │       └── storage.ts   # Manajemen sesi anonim & storage peramban
 │       ├── tailwind.config.js   # Konfigurasi token desain visual Soft Calm Glass
 │       └── tsconfig.json
 ├── packages/
 │   ├── types/                   # Definisi tipe data TypeScript global (@dengarin/types)
-│   └── config/                  # Katalog kontak darurat, misi, dan opsi domain (@dengarin/config)
+│   ├── config/                  # Katalog kontak darurat, misi, dan opsi domain (@dengarin/config)
+│   └── prompts/                 # Template & batasan prompt AI, khusus konsumsi services/orchestrator (@dengarin/prompts)
 ├── services/
 │   ├── crisis-engine/           # Detektor krisis deterministik tanpa AI (@dengarin/crisis-engine)
-│   └── validator/               # Validator runtime skema aksi AI (@dengarin/validator)
+│   ├── validator/               # Validator runtime skema aksi AI (@dengarin/validator)
+│   ├── orchestrator/            # Pipeline AI bertingkat: DeepSeek → OpenRouter → fallback deterministik (@dengarin/orchestrator)
+│   └── persistence/             # Kontrak repositori forum & sinkronisasi terenkripsi, adapter in-memory (@dengarin/persistence)
 ├── tests/
 │   ├── crisis/                  # 33 pengujian unit mesin krisis (normalisasi, false-positive, slang)
-│   └── validator/               # 24 pengujian unit validator skema aksi kecerdasan buatan
+│   ├── validator/               # 24 pengujian unit validator skema aksi kecerdasan buatan
+│   ├── orchestrator/            # Pengujian pipeline tiered fallback AI orchestrator
+│   └── persistence/             # Pengujian repositori forum & sinkronisasi in-memory
 ├── docs/                        # Dokumentasi arsitektur, PRD, kebijakan keselamatan, dan UX
+├── .env.example                 # Contoh variabel lingkungan backend (kunci AI, DATABASE_URL)
 ├── package.json                 # Konfigurasi monorepo root & script eksekusi
 └── tsconfig.base.json           # Konfigurasi TypeScript dasar monorepo
 ```
@@ -237,8 +255,26 @@ Denger.in/
 | `/journal` | Jurnal privat lokal bebas jejak di peramban pengguna | **Implemented (Local-First)** |
 | `/chat` | Antarmuka pendamping interaktif berbasis aksi tervalidasi | **Implemented (Local Simulator)** |
 | `/resources` | Direktori layanan bantuan profesional & hotline terverifikasi | **Implemented** |
-| `/forum` | Ruang cerita solidaritas anonim sesama pengguna | **Skeleton (Sprint 0)** |
-| `/report` | Laporan evaluasi sintesis kemajuan mingguan | **Skeleton (Sprint 0)** |
+| `/forum` | Ruang cerita solidaritas anonim sesama pengguna | **Skeleton (Sprint 0)**, backend API tersedia |
+| `/report` | Laporan evaluasi sintesis kemajuan mingguan | **Skeleton (Sprint 0)**, backend API tersedia |
+
+---
+
+## 9a. Backend HTTP API (Kerangka Sprint 2+)
+
+Permukaan HTTP backend diimplementasikan sebagai Next.js Route Handlers di `apps/web/src/app/api/`, memakai logika dari `services/crisis-engine`, `services/orchestrator`, `services/validator`, dan `services/persistence`. Lihat `docs/API_SPEC.md` Bagian 5 untuk kontrak permintaan/respons lengkap.
+
+| Endpoint | Metode | Tujuan / Fungsi | Status |
+|---|---|---|---|
+| `/api/health` | `GET` | Health check layanan backend | **Implemented** |
+| `/api/chat` | `POST` | Gerbang krisis deterministik → orkestrator AI bertingkat → aksi tervalidasi | **Skeleton** (fallback deterministik aktif; kunci API live belum dikonfigurasi) |
+| `/api/forum` | `GET`, `POST` | Daftar cerita yang disetujui; kirim cerita baru (otomatis `pending_review`, discan gerbang krisis) | **Skeleton** (penyimpanan in-memory) |
+| `/api/forum/[postId]/moderate` | `PATCH` | Setujui/tolak cerita forum | **Skeleton** (belum ada autentikasi moderator) |
+| `/api/report/weekly` | `POST` | Sintesis ringkasan mingguan stateless dari riwayat check-in/misi lokal klien | **Implemented** |
+| `/api/sync` | `GET`, `PUT` | Simpan/ambil blob terenkripsi klien berdasarkan hash frasa pemulihan 12-kata | **Skeleton** (enkripsi ujung-ke-ujung belum diimplementasikan) |
+
+> [!NOTE]
+> Endpoint di atas adalah kerangka arsitektur (scaffolding), bukan layanan produksi. Lihat variabel lingkungan pada `.env.example` (`DEEPSEEK_API_KEY`, `OPENROUTER_API_KEY`, `DATABASE_URL`) sebelum menghubungkan penyedia AI atau basis data sungguhan.
 
 ---
 
@@ -343,12 +379,13 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
 - [x] Direktori bantuan darurat resmi Indonesia terverifikasi.
 - [x] Redesain sistem visual "Soft Calm Glass" dan restrukturisasi hierarki tata letak 12-kolom responsif.
 - [x] Integrasi penyimpanan lokal aman (*client-side local persistence*).
+- [x] Kerangka backend: HTTP API (`apps/web/src/app/api`), pipeline AI orkestrator bertingkat (`services/orchestrator`), template prompt (`packages/prompts`), dan kontrak persistensi in-memory (`services/persistence`).
 
 ### Planned (Sprint 2+)
-- [ ] Integrasi live model inferensi AI (DeepSeek V4 Flash / OpenRouter) dengan skema aksi terikat.
-- [ ] Implementasi backend dan moderasi keselamatan otomatis untuk Ruang Cerita Anonim (`/forum`).
-- [ ] Modul analitik agregat untuk Laporan Kemajuan Mingguan (`/report`).
-- [ ] Opsi sinkronisasi antarperangkat terenkripsi menggunakan frasa 12-kata.
+- [ ] Konfigurasi kunci API produksi & pengujian live model inferensi AI (DeepSeek V4 Flash / OpenRouter) — pipeline dan skema aksi terikat sudah tersedia di `services/orchestrator`.
+- [ ] Adapter PostgreSQL/Supabase untuk `services/persistence` (menggantikan adapter in-memory) dan moderasi keselamatan otomatis untuk Ruang Cerita Anonim (`/forum`).
+- [ ] Autentikasi moderator untuk `/api/forum/[postId]/moderate` dan penyimpanan agregat sisi server untuk Laporan Kemajuan Mingguan (`/report`).
+- [ ] Enkripsi ujung-ke-ujung sungguhan untuk opsi sinkronisasi antarperangkat menggunakan frasa 12-kata — kontrak penyimpanan (`/api/sync`) sudah tersedia sebagai kerangka.
 
 ---
 

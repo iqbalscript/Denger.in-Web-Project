@@ -16,7 +16,9 @@
     "test:crisis": "node --experimental-strip-types tests/crisis/crisisEngine.test.mjs",
     "test:validator": "node --experimental-strip-types tests/validator/actionValidator.test.mjs",
     "test:assessment": "node --experimental-strip-types tests/assessment/adaptiveAssessment.test.mjs",
-    "test": "npm run test:crisis && npm run test:validator && npm run test:assessment"
+    "test:orchestrator": "node --experimental-strip-types tests/orchestrator/orchestrator.test.mjs",
+    "test:persistence": "node --experimental-strip-types tests/persistence/forumRepository.test.mjs",
+    "test": "npm run test:crisis && npm run test:validator && npm run test:assessment && npm run test:orchestrator && npm run test:persistence"
   },
   "keywords": [
     "mental-health",
