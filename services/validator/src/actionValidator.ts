@@ -79,15 +79,55 @@ export function validateAIOutput(rawInput: unknown): ValidationResult {
     sanitized = true;
   }
 
-  // 3. Payload-Specific Structural Validations
+  // 3. Payload-Specific Structural Validations & Maximum Guardrails
   let validatedAction: ValidatedAIAction;
 
   switch (action as WhitelistedAIAction) {
     case 'chat': {
-      const message = payload.message as string;
+      let message = payload.message as string;
       if (!message || typeof message !== 'string' || message.trim().length === 0) {
         errors.push('Aksi "chat" membutuhkan properti "message" non-kosong');
+      } else {
+        message = message.trim();
+
+        // Guardrail: Anti-Code & Script Leak Blocker
+        if (/```[\s\S]*?```/.test(message) || /<script[\s\S]*?>[\s\S]*?<\/script>/i.test(message)) {
+          errors.push('Aksi "chat" ditolak: balasan memuat blok kode/skrip pemrograman (melanggar guardrail anti-koding)');
+        }
+
+        // Guardrail: Anti-Diagnostic / Psychiatric Creep Blocker
+        const clinicalPattern = /\b(?:kamu|anda)\s+(?:terdiagnosis|didiagnosis|mengidap|menderita)\s+(?:depresi|bipolar|skizofrenia|gad|anxiety\s*disorder|ocd)\b/i;
+        const medicationPattern = /\b(?:resep|dosis|minum)\s+(?:obat\s*antidepresan|antipsikotik|xanax|sertraline|fluoxetine|alprazolam)\b/i;
+        if (clinicalPattern.test(message) || medicationPattern.test(message)) {
+          errors.push('Aksi "chat" ditolak: balasan memuat klaim diagnosis psikiatris klinis atau anjuran obat medis');
+        }
+
+        // Guardrail: Anti-Toxic Positivity & Invalidation Blocker
+        const toxicPositivityPattern = /\b(?:kamu|anda)\s+(?:harus\s*lebih\s*bersyukur|kurang\s*bersyukur|lebay|cengeng)\b|\b(?:masalahmu\s*belum\s*seberapa|jangan\s*manja)\b/i;
+        if (toxicPositivityPattern.test(message)) {
+          errors.push('Aksi "chat" ditolak: balasan memuat toxic positivity atau meremehkan perasaan pengguna');
+        }
+
+        // Guardrail: PII Auto-Sanitization
+        const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+        const phonePattern = /(?:\+62|62|08)[0-9]{8,12}\b/g;
+        const nikPattern = /\b\d{16}\b/g;
+
+        if (emailPattern.test(message) || phonePattern.test(message) || nikPattern.test(message)) {
+          message = message
+            .replace(emailPattern, '[EMAIL DIRAHASIAKAN]')
+            .replace(phonePattern, '[NOMOR TELEPON DIRAHASIAKAN]')
+            .replace(nikPattern, '[NIK DIRAHASIAKAN]');
+          sanitized = true;
+        }
+
+        // Guardrail: Max Length Enforcer (prevent runaway walls of text)
+        if (message.length > 1500) {
+          message = message.slice(0, 1500).trim() + '...';
+          sanitized = true;
+        }
       }
+
       validatedAction = {
         action: 'chat',
         message: message ? message.trim() : '',

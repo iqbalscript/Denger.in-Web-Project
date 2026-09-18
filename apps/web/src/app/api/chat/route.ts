@@ -9,6 +9,7 @@ import { jsonError, jsonOk } from '@/lib/api/response';
 interface ChatRequestBody {
   sessionId?: string;
   message?: string;
+  history?: Array<{ sender: 'user' | 'assistant'; text: string }>;
   ageBracket?: AgeBracket;
   domain?: InterventionDomain;
 }
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
 
   const result = await runOrchestrator({
     message: body.message,
+    history: body.history,
     ageBracket: body.ageBracket,
     domain: body.domain
   });
