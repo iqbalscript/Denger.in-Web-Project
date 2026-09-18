@@ -11,6 +11,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
@@ -18,8 +19,11 @@
       "@/*": ["./src/*"],
       "@dengarin/types": ["../../packages/types/src/index.ts"],
       "@dengarin/config": ["../../packages/config/src/index.ts"],
+      "@dengarin/prompts": ["../../packages/prompts/src/index.ts"],
       "@dengarin/crisis-engine": ["../../services/crisis-engine/src/crisisDetector.ts"],
-      "@dengarin/validator": ["../../services/validator/src/actionValidator.ts"]
+      "@dengarin/validator": ["../../services/validator/src/actionValidator.ts"],
+      "@dengarin/orchestrator": ["../../services/orchestrator/src/orchestrator.ts"],
+      "@dengarin/persistence": ["../../services/persistence/src/index.ts"]
     },
     "plugins": [
       {

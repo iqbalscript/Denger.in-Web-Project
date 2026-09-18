@@ -1,0 +1,60 @@
+import type { InterventionDomain } from '@dengarin/types';
+
+/**
+ * Every new post starts 'pending_review': there is no automated moderation
+ * model yet (README Roadmap — "moderasi otomatis direncanakan untuk sprint
+ * lanjutan"), so nothing goes public without an explicit approval step.
+ */
+export type ForumModerationStatus = 'pending_review' | 'approved' | 'rejected';
+
+export interface ForumPostRecord {
+  id: string;
+  authorPseudonym: string;
+  domain: InterventionDomain;
+  title: string;
+  body: string;
+  createdAt: string;
+  moderationStatus: ForumModerationStatus;
+  supportCount: number;
+}
+
+export interface CreateForumPostInput {
+  authorPseudonym: string;
+  domain: InterventionDomain;
+  title: string;
+  body: string;
+}
+
+/**
+ * Storage-agnostic contract for the anonymous forum (`/forum`).
+ * TODO(Sprint 2+): implement a PostgreSQL/Supabase-backed adapter against
+ * this same interface (see README Technology Stack — "Database (Sprint 2+)").
+ */
+export interface ForumRepository {
+  create(input: CreateForumPostInput): Promise<ForumPostRecord>;
+  listApproved(limit?: number): Promise<ForumPostRecord[]>;
+  listPendingReview(limit?: number): Promise<ForumPostRecord[]>;
+  moderate(postId: string, status: ForumModerationStatus): Promise<ForumPostRecord | undefined>;
+}
+
+/**
+ * Opaque, client-encrypted blob keyed by a hash of the user's 12-word
+ * recovery mnemonic. The server never sees the mnemonic itself or plaintext
+ * session data — see README Roadmap, "sinkronisasi antarperangkat
+ * terenkripsi menggunakan frasa 12-kata".
+ */
+export interface SyncedSessionRecord {
+  mnemonicHash: string;
+  encryptedBlob: string;
+  updatedAt: string;
+}
+
+/**
+ * Storage-agnostic contract for opt-in encrypted cross-device sync.
+ * TODO(Sprint 2+): implement a PostgreSQL/Supabase-backed adapter against
+ * this same interface.
+ */
+export interface SyncRepository {
+  get(mnemonicHash: string): Promise<SyncedSessionRecord | undefined>;
+  upsert(record: SyncedSessionRecord): Promise<SyncedSessionRecord>;
+}
