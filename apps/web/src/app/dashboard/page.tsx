@@ -51,7 +51,6 @@ export default function DashboardPage() {
     ? OCCUPATION_OPTIONS.find((o) => o.id === session.occupation)?.label
     : null;
 
-  const shortId = session?.userId ? session.userId.slice(0, 8) : '8210-anon';
   const currentDay = session?.currentDay || 1;
   const assessment = session?.assessmentResult;
 
@@ -62,10 +61,10 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-sand-200/80 pb-6">
           <div className="space-y-1.5 text-left">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-calm-700 bg-calm-100 px-2.5 py-0.5 rounded-full">
-                Sesi Terenkripsi Lokal
+              <span className="text-xs font-bold text-terracotta-700 bg-terracotta-100 px-2.5 py-0.5 rounded-full">
+                Identitas Anonim
               </span>
-              <span className="text-xs text-sand-500 font-mono">#{shortId}</span>
+              <span className="text-xs font-semibold text-sand-800">{session?.anonymousAlias || 'Pengguna Anonim'}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-sand-900 tracking-tight">
               Selamat Datang di Ruang Tenangmu
@@ -237,10 +236,10 @@ export default function DashboardPage() {
                 </span>
                 {assessment && (
                   <Badge
-                    variant={assessment.normalizedLevel === 'high' ? 'warm' : 'calm'}
+                    variant={assessment.severityLevel === 'SEVERE' ? 'crisis' : assessment.severityLevel === 'MODERATE' ? 'warm' : 'calm'}
                     size="sm"
                   >
-                    Beban: {assessment.normalizedLevel === 'high' ? 'Tinggi' : assessment.normalizedLevel === 'moderate' ? 'Menengah' : 'Ringan'}
+                    Tingkat Beban: {assessment.severityLevel || (assessment.normalizedLevel === 'high' ? 'Tinggi' : assessment.normalizedLevel === 'moderate' ? 'Menengah' : 'Ringan')}
                   </Badge>
                 )}
               </div>

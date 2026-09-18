@@ -15,7 +15,8 @@
     "typecheck": "npm run typecheck --workspace=apps/web",
     "test:crisis": "node --experimental-strip-types tests/crisis/crisisEngine.test.mjs",
     "test:validator": "node --experimental-strip-types tests/validator/actionValidator.test.mjs",
-    "test": "npm run test:crisis && npm run test:validator"
+    "test:assessment": "node --experimental-strip-types tests/assessment/adaptiveAssessment.test.mjs",
+    "test": "npm run test:crisis && npm run test:validator && npm run test:assessment"
   },
   "keywords": [
     "mental-health",

@@ -1,24 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #FAF8F5;
-  --foreground: #2A261F;
+  /* PRD 2.0 Color Tokens */
+  --primary: #D97A4E;          /* Warm Terracotta */
+  --primary-hover: #C66539;
+  --secondary: #E8B87A;        /* Muted Warm Amber / Honey */
+  --accent: #8FA37E;           /* Gentle Sage Green */
+  --background: #FAF6F1;       /* Warm Cream */
   --surface-card: #FFFFFF;
-  --surface-soft: #F4F0E8;
-  --border-subtle: #EAE4D8;
-  --primary: #38614F;
-  --primary-hover: #2F4F41;
-  --ring: #38614F;
+  --surface-soft: #F3EBE2;     /* Soft Warm Beige */
+  --border-subtle: #E8DED3;
+  --text-primary: #3E332B;     /* Warm Dark Brown */
+  --text-secondary: #7A6E63;   /* Muted Warm Gray */
+  --crisis: #C75B4A;           /* Soft Brick Red */
+  --ring: #D97A4E;
 }
 
 body {
-  color: var(--foreground);
+  color: var(--text-primary);
   background-color: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px; /* Minimum body 16px per PRD 2.0 */
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+}
+
+/* Accessibility Mode: 18px+ base font */
+.accessibility-large-text {
+  font-size: 18px !important;
+  line-height: 1.7 !important;
+}
+
+.accessibility-large-text p,
+.accessibility-large-text span,
+.accessibility-large-text button {
+  font-size: 1.125rem !important; /* 18px */
+}
+
+.accessibility-large-text h1 {
+  font-size: 2.25rem !important;
+}
+
+.accessibility-large-text h2 {
+  font-size: 1.75rem !important;
+}
+
+.accessibility-large-text h3 {
+  font-size: 1.35rem !important;
 }
 
 /* Accessible focus ring across keyboard navigation */
@@ -42,28 +75,39 @@ body {
 /* Soft Calm Glass utilities */
 @layer components {
   .glass-surface {
-    background-color: rgba(255, 255, 255, 0.72);
+    background-color: rgba(255, 255, 255, 0.78);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 8px 32px 0 rgba(46, 75, 63, 0.04), 0 1px 2px 0 rgba(255, 255, 255, 0.6) inset;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 8px 32px 0 rgba(217, 122, 78, 0.05), 0 1px 2px 0 rgba(255, 255, 255, 0.7) inset;
   }
 
   .glass-surface-subtle {
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(234, 228, 216, 0.6);
+    border: 1px solid rgba(232, 222, 211, 0.7);
   }
 
   .soft-surface {
     background-color: #FFFFFF;
-    border: 1px solid #EAE4D8;
-    box-shadow: 0 2px 8px -1px rgba(28, 37, 34, 0.04);
+    border: 1px solid #E8DED3;
+    box-shadow: 0 2px 8px -1px rgba(62, 51, 43, 0.04);
   }
 
   .soft-surface-tinted {
-    background-color: #F8FAF9;
-    border: 1px solid #D6E4DC;
+    background-color: #FDFBF8;
+    border: 1px solid #F3D7C9;
+  }
+
+  /* PRD 2.0 Touch Target Constraints: min 44x44px, prefer 52-56px for primary actions */
+  .touch-target-base {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .touch-target-primary {
+    min-height: 52px;
+    min-width: 52px;
   }
 }

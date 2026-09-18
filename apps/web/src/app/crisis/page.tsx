@@ -19,7 +19,7 @@ export default function CrisisPage() {
   }, []);
 
   const isTeen = ageBracket === '15-17';
-  const primaryContact = EMERGENCY_CONTACTS.find((c) => c.id === 'kemenkes_119') || EMERGENCY_CONTACTS[0];
+  const primaryContact = EMERGENCY_CONTACTS.find((c) => c.id === 'kemenkes-sejiwa' || c.id === 'kemenkes_119') || EMERGENCY_CONTACTS[0];
   const secondaryContacts = EMERGENCY_CONTACTS.filter(
     (c) => c.id !== primaryContact.id && c.targetAgeBrackets.includes(ageBracket)
   );

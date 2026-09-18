@@ -5,8 +5,8 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Dengar.in — Pendamping Mental Well-being Anonim Berbasis AI',
-  description: 'Pendamping kesehatan mental anonim dan bebas registrasi untuk usia 15–54 tahun. Membantu memahami konteks nyata beban hidup, misi harian pemulihan, dan akses bantuan darurat.',
+  title: 'Dengar.in — Ruang Aman, Asesmen Adaptif, & Rujukan Kesehatan Mental',
+  description: 'Ruang aman anonim bebas registrasi untuk usia 15 hingga 50+ tahun. Asesmen adaptif non-diagnostik, pendampingan mandiri terarah, dan akses rujukan krisis terverifikasi.',
 };
 
 export default function RootLayout({
@@ -16,7 +16,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body className="min-h-screen flex flex-col bg-sand-50 text-sand-900 selection:bg-calm-200">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body className="min-h-screen flex flex-col bg-sand-50 text-sand-900 selection:bg-terracotta-200">
         <Navbar />
         <main className="flex-1">
           {children}

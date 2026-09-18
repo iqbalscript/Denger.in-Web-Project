@@ -95,7 +95,7 @@ const STATIC_EMERGENCY_CONTACTS: EmergencyContact[] = [
     availableHours: '24 Jam / 7 Hari',
     cost: 'gratis',
     description: 'Layanan darurat kesehatan jiwa resmi Kementerian Kesehatan RI.',
-    targetAgeBrackets: ['15-17', '18-24', '25-34', '35-54'],
+    targetAgeBrackets: ['15-17', '18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
     verificationStatus: 'verified_official'
   },
   {
@@ -108,7 +108,7 @@ const STATIC_EMERGENCY_CONTACTS: EmergencyContact[] = [
     availableHours: '24 Jam / 7 Hari',
     cost: 'tarif_standar',
     description: 'Pendampingan krisis emosional dan pencegahan bunuh diri.',
-    targetAgeBrackets: ['15-17', '18-24', '25-34', '35-54'],
+    targetAgeBrackets: ['15-17', '18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
     verificationStatus: 'verified_official'
   },
   {
@@ -134,7 +134,7 @@ const STATIC_EMERGENCY_CONTACTS: EmergencyContact[] = [
     availableHours: 'Senin–Jumat (09:00–17:00 WIB)',
     cost: 'tarif_standar',
     description: 'Konseling trauma dan pemulihan psikologis.',
-    targetAgeBrackets: ['18-24', '25-34', '35-54'],
+    targetAgeBrackets: ['18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
     verificationStatus: 'verified_official'
   }
 ];

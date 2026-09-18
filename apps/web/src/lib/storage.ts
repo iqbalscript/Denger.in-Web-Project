@@ -2,7 +2,9 @@ import type {
   AnonymousUserSession, 
   AgeBracket, 
   InterventionDomain,
+  TopicPillarId,
   AssessmentEvaluation,
+  AssessmentDraft,
   DailyCheckin,
   DailyMission
 } from '@dengarin/types';
@@ -10,15 +12,39 @@ import { DOMAIN_MISSION_TEMPLATES } from '@dengarin/config';
 
 const STORAGE_KEY = 'dengarin_anonymous_session';
 const CHECKINS_KEY = 'dengarin_checkins';
+const DRAFT_STORAGE_KEY = 'dengarin_assessment_draft';
 const MISSION_KEY_PREFIX = 'dengarin_mission_';
 
 // Curated calm wordlist for 12-word recovery mnemonics
 const MNEMONIC_WORDS = [
   'samudra', 'lentera', 'harmoni', 'fajar', 'damai', 'teduh',
   'kelana', 'mentari', 'rimba', 'saujana', 'hening', 'aksara',
-  'melati', 'swara', 'embun', 'cakrawala', 'sejuk', 'lentera',
-  'cahaya', 'senja', 'kidung', 'nirmala', 'pelita', 'bumi'
+  'melati', 'swara', 'embun', 'cakrawala', 'sejuk', 'cahaya',
+  'senja', 'kidung', 'nirmala', 'pelita', 'bumi', 'lestari'
 ];
+
+// Curated non-PII words for anonymous identity generation (e.g. "Bunga Tenang #2481")
+const ALIAS_NOUNS = [
+  'Bunga', 'Embun', 'Lentera', 'Samudra', 'Fajar', 'Senja',
+  'Cakrawala', 'Rimba', 'Awan', 'Kidung', 'Pelita', 'Bintang',
+  'Pohon', 'Hujan', 'Mentari', 'Sungai', 'Angin', 'Daun'
+];
+
+const ALIAS_ADJECTIVES = [
+  'Tenang', 'Damai', 'Teduh', 'Hening', 'Sejuk', 'Hangat',
+  'Sabar', 'Jernih', 'Lembut', 'Bijak', 'Sentosa', 'Tabah',
+  'Tegar', 'Ikhlas', 'Lega'
+];
+
+/**
+ * Generate a random empathetic Indonesian alias without any PII (e.g. "Bunga Tenang #2481")
+ */
+export function generateAnonymousAlias(): string {
+  const noun = ALIAS_NOUNS[Math.floor(Math.random() * ALIAS_NOUNS.length)];
+  const adj = ALIAS_ADJECTIVES[Math.floor(Math.random() * ALIAS_ADJECTIVES.length)];
+  const num = Math.floor(1000 + Math.random() * 9000); // 4-digit code
+  return `${noun} ${adj} #${num}`;
+}
 
 /**
  * Generate a random 12-word recovery mnemonic
@@ -54,7 +80,12 @@ export function getAnonymousSession(): AnonymousUserSession | null {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) return null;
-    return JSON.parse(data) as AnonymousUserSession;
+    const parsed = JSON.parse(data) as AnonymousUserSession;
+    if (!parsed.anonymousAlias) {
+      parsed.anonymousAlias = generateAnonymousAlias();
+      saveAnonymousSession(parsed);
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -66,6 +97,10 @@ export function getAnonymousSession(): AnonymousUserSession | null {
 export function initAnonymousSession(consentGiven: boolean = false): AnonymousUserSession {
   const existing = getAnonymousSession();
   if (existing) {
+    if (!existing.anonymousAlias) {
+      existing.anonymousAlias = generateAnonymousAlias();
+      saveAnonymousSession(existing);
+    }
     if (consentGiven && !existing.consentGiven) {
       existing.consentGiven = true;
       existing.consentTimestamp = new Date().toISOString();
@@ -76,6 +111,7 @@ export function initAnonymousSession(consentGiven: boolean = false): AnonymousUs
 
   const newSession: AnonymousUserSession = {
     userId: generateUUID(),
+    anonymousAlias: generateAnonymousAlias(),
     createdAt: new Date().toISOString(),
     recoveryMnemonic: generateRecoveryMnemonic(),
     consentGiven,
@@ -105,26 +141,67 @@ export function saveAnonymousSession(session: AnonymousUserSession): void {
 export function updateUserContext(
   ageBracket?: AgeBracket,
   occupation?: string,
-  primaryDomain?: InterventionDomain
+  primaryDomain?: InterventionDomain,
+  topicPillar?: TopicPillarId
 ): AnonymousUserSession | null {
   const session = getAnonymousSession() || initAnonymousSession(true);
 
   if (ageBracket) session.ageBracket = ageBracket;
   if (occupation) session.occupation = occupation;
   if (primaryDomain) session.primaryDomain = primaryDomain;
+  if (topicPillar) session.topicPillar = topicPillar;
 
   saveAnonymousSession(session);
   return session;
 }
 
 /**
- * Save Assessment Evaluation Result
+ * Save & Resume: Save in-progress assessment draft
+ */
+export function saveAssessmentDraft(draft: AssessmentDraft): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+  } catch (err) {
+    console.error('Failed to save assessment draft:', err);
+  }
+}
+
+/**
+ * Save & Resume: Get in-progress assessment draft
+ */
+export function getAssessmentDraft(): AssessmentDraft | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AssessmentDraft;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Save & Resume: Clear in-progress assessment draft
+ */
+export function clearAssessmentDraft(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+  } catch (err) {
+    console.error('Failed to clear assessment draft:', err);
+  }
+}
+
+/**
+ * Save Assessment Evaluation Result (Triage)
  */
 export function saveAssessmentResult(evaluation: AssessmentEvaluation): void {
   const session = getAnonymousSession() || initAnonymousSession(true);
   session.assessmentResult = evaluation;
   session.activePathId = evaluation.recommendedPathId;
   saveAnonymousSession(session);
+  clearAssessmentDraft(); // Clear any draft upon finalizing
 }
 
 /**
@@ -236,6 +313,7 @@ export function clearAnonymousSession(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(CHECKINS_KEY);
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
     localStorage.removeItem('dengarin_journal_entries');
     // Clear mission keys
     const todayStr = new Date().toISOString().slice(0, 10);

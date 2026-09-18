@@ -6,7 +6,29 @@
 // ==========================================
 // 1. User & Demographics
 // ==========================================
-export type AgeBracket = '15-17' | '18-24' | '25-34' | '35-54';
+export type AgeBracket = 
+  | '15-17' 
+  | '18-29' 
+  | '30-49' 
+  | '50+' 
+  | '18-24' 
+  | '25-34' 
+  | '35-54';
+
+export type PRDAgeBracket = '15-17' | '18-29' | '30-49' | '50+';
+
+export type TopicPillarId = 'finance' | 'trauma' | 'sexual_violence';
+
+export interface TopicPillarConfig {
+  id: TopicPillarId;
+  label: string;
+  tagline: string;
+  description: string;
+  icon: string;
+  mappedDomains: InterventionDomain[];
+  primaryDomain: InterventionDomain;
+  isSensitive: boolean;
+}
 
 export type InterventionDomain = 
   | 'school'       // SMA / SMK (exams, peers, expectations)
@@ -20,11 +42,13 @@ export type InterventionDomain =
 
 export interface AnonymousUserSession {
   userId: string;          // Cryptographic UUID v4
+  anonymousAlias?: string; // Generated empathetic alias, e.g. "Bunga Tenang #2481" (Zero PII)
   createdAt: string;       // ISO timestamp
   recoveryMnemonic: string; // 12-word seed phrase
   ageBracket?: AgeBracket;
   occupation?: string;     // Context/role (e.g. Pelajar, Mahasiswa, Pekerja, Wirausaha, etc.)
-  primaryDomain?: InterventionDomain;
+  topicPillar?: TopicPillarId; // PRD 2.0 Primary Topic Pillar
+  primaryDomain?: InterventionDomain; // Life-context domain
   consentGiven: boolean;
   consentTimestamp?: string;
   assessmentResult?: AssessmentEvaluation;
@@ -131,8 +155,10 @@ export interface ValidationResult {
 }
 
 // ==========================================
-// 4. Generic Assessment Contracts (Extensible)
+// 4. Assessment Contracts (Adaptive & Non-Diagnostic)
 // ==========================================
+export type NonDiagnosticSeverityLevel = 'MILD' | 'MODERATE' | 'SEVERE';
+
 export interface AssessmentOption {
   value: number;
   label: string;
@@ -151,9 +177,40 @@ export interface AssessmentResponse {
   value: number | string;
 }
 
+// PRD 2.0 Adaptive Assessment Contracts
+export interface AdaptiveAssessmentOption {
+  id: string;
+  label: string;
+  score: number; // 0 to 3 points
+  nextQuestionId?: string | null; // dynamic branching target; null = finalize
+}
+
+export interface AdaptiveAssessmentQuestion {
+  id: string;
+  topic: TopicPillarId | 'general';
+  ageGroups?: AgeBracket[];
+  text: string;
+  subtext?: string;
+  sensitive: boolean;
+  skippable: boolean;
+  options: AdaptiveAssessmentOption[];
+  defaultNextQuestionId?: string | null;
+  scoringCategory: 'emotional_load' | 'context_impact' | 'functional_impact' | 'acute_distress' | 'support_readiness';
+}
+
+export interface AssessmentDraft {
+  currentQuestionId: string;
+  topic: TopicPillarId | 'general';
+  ageBracket: AgeBracket;
+  answers: Record<string, number>;
+  skippedQuestionIds: string[];
+  lastUpdated: string;
+}
+
 export interface AssessmentSubmission {
   userId: string;
   ageBracket: AgeBracket;
+  topicPillar?: TopicPillarId;
   domain: InterventionDomain;
   responses: AssessmentResponse[];
   freeTextNote?: string;
@@ -162,9 +219,11 @@ export interface AssessmentSubmission {
 
 export interface AssessmentEvaluation {
   distressScore: number;
-  normalizedLevel: 'mild' | 'moderate' | 'high';
+  normalizedLevel: 'mild' | 'moderate' | 'high'; // backward compatibility
+  severityLevel?: NonDiagnosticSeverityLevel;     // PRD 2.0 triage level (MILD | MODERATE | SEVERE)
   recommendedPathId: string;
   summaryFeedback: string;
+  recommendedSupportSpaces?: string[];
 }
 
 // ==========================================
