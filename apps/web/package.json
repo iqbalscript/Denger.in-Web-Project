@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@dengarin/auth": "*",
     "@dengarin/config": "*",
     "@dengarin/crisis-engine": "*",
     "@dengarin/orchestrator": "*",
