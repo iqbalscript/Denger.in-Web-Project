@@ -18,7 +18,11 @@
     "test:assessment": "node --experimental-strip-types tests/assessment/adaptiveAssessment.test.mjs",
     "test:orchestrator": "node --experimental-strip-types tests/orchestrator/orchestrator.test.mjs",
     "test:persistence": "node --experimental-strip-types tests/persistence/forumRepository.test.mjs",
-    "test": "npm run test:crisis && npm run test:validator && npm run test:assessment && npm run test:orchestrator && npm run test:persistence"
+    "test:auth": "node --experimental-strip-types tests/auth/auth.test.mjs",
+    "test:persistence-pg": "node --experimental-strip-types tests/persistence-pg/postgresRepositories.test.mjs",
+    "test": "npm run test:crisis && npm run test:validator && npm run test:assessment && npm run test:orchestrator && npm run test:persistence && npm run test:auth && npm run test:persistence-pg",
+    "db:migrate": "npm run db:migrate --workspace=services/persistence",
+    "db:seed-admin": "npm run db:seed-admin --workspace=services/persistence"
   },
   "keywords": [
     "mental-health",
