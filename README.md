@@ -119,7 +119,7 @@ Jika pada asesmen awal atau input teks bebas terdeteksi indikasi bahaya diri ata
 ### Current Skeleton / Planned (Belum Diimplementasikan Penuh)
 - **Ruang Cerita Anonim (`/forum`)**: *Route Skeleton* — Pratinjau antarmuka cerita solidaritas pengguna. Kerangka backend (`/api/forum`, `services/persistence`) sudah tersedia dengan moderasi wajib (`pending_review` default), namun masih memakai penyimpanan in-memory; adapter PostgreSQL/Supabase serta moderasi otomatis direncanakan untuk sprint lanjutan.
 - **Laporan Mingguan (`/report`)**: *Route Skeleton* — Pratinjau visual ringkasan kemajuan 7 hari. Kerangka backend stateless (`/api/report/weekly`) sudah tersedia untuk mensintesis ringkasan dari riwayat lokal klien; penyimpanan agregat sisi server direncanakan untuk sprint lanjutan.
-- **AI Provider Live Cloud Orchestrator**: Kerangka pipeline bertingkat (`services/orchestrator`: Tier 1 DeepSeek V4 Flash → Tier 2 OpenRouter → Tier 3 fallback deterministik) dan endpoint `/api/chat` sudah tersedia, divalidasi via `services/validator`; kunci API produksi dan pengujian model live belum dikonfigurasi.
+- **AI Provider Live Cloud Orchestrator**: Kerangka pipeline bertingkat (`services/orchestrator`: Tier 1 DeepSeek V4.1 Flash langsung ke DeepSeek Platform → Tier 2 model gratis OpenRouter sebagai "second brain" → Tier 3 fallback deterministik) dan endpoint `/api/chat` sudah tersedia, divalidasi via `services/validator`; tinggal isi `DEEPSEEK_API_KEY`/`OPENROUTER_API_KEY` di `.env.local` untuk mengaktifkan model live (lihat `.env.example`).
 
 ---
 
@@ -189,7 +189,7 @@ Paket `services/crisis-engine` memiliki batasan arsitektur ketat:
 | Lapisan | Paket | Catatan |
 |---|---|---|
 | **HTTP API** | `apps/web/src/app/api/*` | Route Handlers Next.js: `/api/chat`, `/api/forum`, `/api/forum/[postId]/moderate`, `/api/report/weekly`, `/api/sync`, `/api/admin/login`, `/api/admin/logout`, `/api/admin/me`, `/api/health` |
-| **AI Orchestrator** | `services/orchestrator` (`@dengarin/orchestrator`) | Pipeline bertingkat Tier 1 (DeepSeek) → Tier 2 (OpenRouter) → Tier 3 (fallback deterministik), lihat `docs/AI_POLICY.md` |
+| **AI Orchestrator** | `services/orchestrator` (`@dengarin/orchestrator`) | Pipeline bertingkat Tier 1 (DeepSeek V4.1 Flash, langsung ke DeepSeek Platform) → Tier 2 (model gratis OpenRouter, "second brain") → Tier 3 (fallback deterministik), lihat `docs/AI_POLICY.md` |
 | **Prompt Templates** | `packages/prompts` (`@dengarin/prompts`) | Sistem prompt & batasan larangan AI, dikonsumsi hanya oleh `services/orchestrator` |
 | **Persistence** | `services/persistence` (`@dengarin/persistence`) | `ForumRepository`, `SyncRepository`, `AdminRepository` — adapter **PostgreSQL sungguhan** (`pg`) teruji integrasi, dengan fallback in-memory otomatis saat `DATABASE_URL` kosong (lihat `src/factory.ts`) |
 | **Auth (Admin/Moderator)** | `services/auth` (`@dengarin/auth`) | Hashing password (`scrypt`, native Node `crypto`) & sesi bertanda tangan HMAC-SHA256 (JWT-lite) untuk gerbang `/api/admin/*` dan moderasi forum |
@@ -210,7 +210,7 @@ ADMIN_SEED_USERNAME=admin ADMIN_SEED_PASSWORD=ganti-ini-dengan-yang-kuat npm run
 Tanpa `DATABASE_URL`, seluruh API tetap berjalan menggunakan adapter in-memory (data hilang saat proses berhenti) — cocok untuk pengembangan lokal tanpa database.
 
 ### Planned / Future Technologies
-- **LLM Engine**: DeepSeek V4 Flash (Primary) / OpenRouter API (Fallback) — pipeline lengkap di `services/orchestrator`, kunci API produksi & pengujian live belum dikonfigurasi.
+- **LLM Engine**: DeepSeek V4.1 Flash langsung via DeepSeek Platform (`DEEPSEEK_API_KEY`, model default `deepseek-v4.1-flash`, overridable lewat `DEEPSEEK_MODEL`) sebagai Primary; model gratis OpenRouter (`OPENROUTER_API_KEY`, default `meta-llama/llama-3.3-70b-instruct:free`, overridable lewat `OPENROUTER_MODEL`) sebagai "second brain" Fallback — pipeline lengkap di `services/orchestrator`, tinggal isi kunci API di `.env.local`.
 - **Supabase-specific features** (auth pengguna akhir, storage, realtime) belum dipakai; adapter saat ini PostgreSQL murni via `pg`.
 
 ---
@@ -240,7 +240,7 @@ Denger.in/
 ├── services/
 │   ├── crisis-engine/           # Detektor krisis deterministik tanpa AI (@dengarin/crisis-engine)
 │   ├── validator/               # Validator runtime skema aksi AI (@dengarin/validator)
-│   ├── orchestrator/            # Pipeline AI bertingkat: DeepSeek → OpenRouter → fallback deterministik (@dengarin/orchestrator)
+│   ├── orchestrator/            # Pipeline AI bertingkat: DeepSeek V4.1 Flash → OpenRouter (gratis) → fallback deterministik (@dengarin/orchestrator)
 │   ├── persistence/             # Repositori forum, sinkronisasi & admin — adapter PostgreSQL + in-memory (@dengarin/persistence)
 │   │   ├── migrations/          # Skema SQL (001_init.sql: forum_posts, synced_sessions, admin_users)
 │   │   └── scripts/             # db:migrate, db:seed-admin
@@ -288,7 +288,7 @@ Permukaan HTTP backend diimplementasikan sebagai Next.js Route Handlers di `apps
 | Endpoint | Metode | Tujuan / Fungsi | Status |
 |---|---|---|---|
 | `/api/health` | `GET` | Health check layanan backend | **Implemented** |
-| `/api/chat` | `POST` | Gerbang krisis deterministik → orkestrator AI bertingkat → aksi tervalidasi | **Implemented** (fallback deterministik teruji end-to-end; kunci API live DeepSeek/OpenRouter belum dikonfigurasi) |
+| `/api/chat` | `POST` | Gerbang krisis deterministik → orkestrator AI bertingkat → aksi tervalidasi | **Implemented** (fallback deterministik teruji end-to-end; tinggal isi `DEEPSEEK_API_KEY`/`OPENROUTER_API_KEY` untuk mengaktifkan Tier 1/2 live) |
 | `/api/forum` | `GET`, `POST` | Daftar cerita yang disetujui; kirim cerita baru (otomatis `pending_review`, discan gerbang krisis) | **Implemented** (PostgreSQL, teruji end-to-end) |
 | `/api/forum/[postId]/moderate` | `PATCH` | Setujui/tolak cerita forum | **Implemented** — dilindungi sesi admin (`/api/admin/login`), teruji end-to-end |
 | `/api/report/weekly` | `POST` | Sintesis ringkasan mingguan stateless dari riwayat check-in/misi lokal klien | **Implemented** |
@@ -298,7 +298,7 @@ Permukaan HTTP backend diimplementasikan sebagai Next.js Route Handlers di `apps
 | `/api/admin/me` | `GET` | Cek sesi admin aktif saat ini | **Implemented** |
 
 > [!NOTE]
-> Semua endpoint di atas sudah diuji end-to-end terhadap instance PostgreSQL sungguhan (bukan hanya typecheck) selama pengembangan. Belum ada di sini: kunci API AI live (DeepSeek/OpenRouter), rate limiting terdistribusi (saat ini in-memory per-instance), dan enkripsi ujung-ke-ujung sisi klien untuk `/api/sync`. Lihat `.env.example` untuk variabel lingkungan yang dibutuhkan.
+> Semua endpoint di atas sudah diuji end-to-end terhadap instance PostgreSQL sungguhan (bukan hanya typecheck) selama pengembangan. Belum ada di sini: kunci API AI live (DeepSeek Platform langsung untuk Tier 1, OpenRouter untuk Tier 2 — cukup isi `DEEPSEEK_API_KEY`/`OPENROUTER_API_KEY` di `.env.local`), rate limiting terdistribusi (saat ini in-memory per-instance), dan enkripsi ujung-ke-ujung sisi klien untuk `/api/sync`. Lihat `.env.example` untuk variabel lingkungan yang dibutuhkan.
 
 ---
 
@@ -428,7 +428,7 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
 - [x] Skema migrasi (`services/persistence/migrations`) & script operasional (`npm run db:migrate`, `npm run db:seed-admin`).
 
 ### Planned (Sprint 2+)
-- [ ] Konfigurasi kunci API produksi & pengujian live model inferensi AI (DeepSeek V4 Flash / OpenRouter) — pipeline dan skema aksi terikat sudah tersedia di `services/orchestrator`.
+- [ ] Konfigurasi kunci API produksi & pengujian live model inferensi AI (DeepSeek V4.1 Flash langsung via DeepSeek Platform / model gratis OpenRouter sebagai "second brain") — pipeline dan skema aksi terikat sudah tersedia di `services/orchestrator`, tinggal isi `DEEPSEEK_API_KEY`/`OPENROUTER_API_KEY`.
 - [ ] Moderasi keselamatan otomatis (ML/heuristik tambahan) untuk Ruang Cerita Anonim (`/forum`) — saat ini moderasi manual via `/api/admin`.
 - [ ] Penyimpanan agregat sisi server & analitik historis untuk Laporan Kemajuan Mingguan (`/report`) — saat ini stateless dari riwayat lokal klien.
 - [ ] Enkripsi ujung-ke-ujung sungguhan (sisi klien) untuk opsi sinkronisasi antarperangkat menggunakan frasa 12-kata — kontrak penyimpanan (`/api/sync`) dan tabelnya sudah berjalan penuh di PostgreSQL.
