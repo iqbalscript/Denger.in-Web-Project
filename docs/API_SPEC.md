@@ -172,7 +172,8 @@ export interface OrchestratorResult {
 
 /**
  * Runs the tiered pipeline from docs/AI_POLICY.md:
- * Tier 1 DeepSeek V4 Flash -> Tier 2 OpenRouter -> Tier 3 deterministic
+ * Tier 1 DeepSeek V4.1 Flash (direct DeepSeek Platform, api.deepseek.com) ->
+ * Tier 2 OpenRouter free-tier model ("second brain") -> Tier 3 deterministic
  * fallback. Every tier's raw output is passed through
  * services/validator#validateAIOutput before being returned; an invalid or
  * unconfigured tier is skipped, never surfaced to the caller.
@@ -295,8 +296,11 @@ Admin accounts have no signup route — they are provisioned out-of-band via `np
 
 | Variable | Consumed by | Purpose |
 |---|---|---|
-| `DEEPSEEK_API_KEY` | `services/orchestrator` (Tier 1) | DeepSeek V4 Flash API key |
-| `OPENROUTER_API_KEY` | `services/orchestrator` (Tier 2) | OpenRouter fallback API key |
+| `DEEPSEEK_API_KEY` | `services/orchestrator` (Tier 1) | DeepSeek Platform API key (api.deepseek.com, called directly — not via OpenRouter) |
+| `DEEPSEEK_MODEL` | `services/orchestrator` (Tier 1) | Optional override; default `deepseek-v4.1-flash` |
+| `OPENROUTER_API_KEY` | `services/orchestrator` (Tier 2) | OpenRouter API key ("second brain" fallback) |
+| `OPENROUTER_MODEL` | `services/orchestrator` (Tier 2) | Optional override; default `meta-llama/llama-3.3-70b-instruct:free` (a $0 `:free` model) |
+| `OPENROUTER_SITE_URL` / `OPENROUTER_SITE_NAME` | `services/orchestrator` (Tier 2) | Optional `HTTP-Referer`/`X-Title` headers, free-tier attribution only |
 | `DATABASE_URL` | `services/persistence` factory | PostgreSQL connection string; unset = in-memory fallback |
 | `ADMIN_SESSION_SECRET` | `apps/web/src/lib/api/adminSession.ts` | HMAC secret signing the admin session cookie; required for `/api/admin/login` |
 | `ADMIN_SEED_USERNAME` / `ADMIN_SEED_PASSWORD` | `services/persistence/scripts/seedAdmin.ts` | One-time values read only when running `npm run db:seed-admin` |
