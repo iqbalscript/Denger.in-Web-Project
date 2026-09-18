@@ -196,4 +196,53 @@ describe('AI Action Schema & Whitelist Validator Tests', () => {
       assert.ok(result.errors.some(e => e.includes('action')));
     });
   });
+
+  describe('Maximum Guardrails & Safety Sanitization', () => {
+    it('rejects chat response that contains markdown code blocks', () => {
+      const input = {
+        action: 'chat',
+        message: 'Ini kodenya:\n```python\ndef fizzbuzz():\n    pass\n```',
+        disclaimer: STANDARD_DISCLAIMER
+      };
+      const result = validateAIOutput(input);
+      assert.equal(result.isValid, false);
+      assert.ok(result.errors.some(e => e.includes('anti-koding')));
+    });
+
+    it('rejects chat response that asserts clinical psychiatric diagnoses', () => {
+      const input = {
+        action: 'chat',
+        message: 'Berdasarkan ceritamu, kamu terdiagnosis depresi mayor.',
+        disclaimer: STANDARD_DISCLAIMER
+      };
+      const result = validateAIOutput(input);
+      assert.equal(result.isValid, false);
+      assert.ok(result.errors.some(e => e.includes('diagnosis psikiatris')));
+    });
+
+    it('rejects chat response that contains toxic positivity or invalidation', () => {
+      const input = {
+        action: 'chat',
+        message: 'Kamu harus lebih bersyukur dan jangan lebay menghadapi masalah ini.',
+        disclaimer: STANDARD_DISCLAIMER
+      };
+      const result = validateAIOutput(input);
+      assert.equal(result.isValid, false);
+      assert.ok(result.errors.some(e => e.includes('toxic positivity')));
+    });
+
+    it('automatically redacts PII such as email and phone number', () => {
+      const input = {
+        action: 'chat',
+        message: 'Hubungi saya di admin@example.com atau 081234567890 jika butuh bantuan.',
+        disclaimer: STANDARD_DISCLAIMER
+      };
+      const result = validateAIOutput(input);
+      assert.equal(result.isValid, true);
+      assert.equal(result.sanitized, true);
+      assert.ok(result.action.message.includes('[EMAIL DIRAHASIAKAN]'));
+      assert.ok(result.action.message.includes('[NOMOR TELEPON DIRAHASIAKAN]'));
+    });
+  });
 });
+

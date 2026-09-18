@@ -92,10 +92,10 @@ describe('AI Orchestrator Tiered Pipeline', () => {
       assert.equal(result.action.action, 'chat');
     });
 
-    it('moves to Tier 2 when Tier 1 is unconfigured', async () => {
+    it('moves to Tertiary tier (Gemini) when Primary tier is unconfigured', async () => {
       const providers = [
         { id: 'tier1-off', isConfigured: () => false, generate: async () => { throw new Error('unreachable'); } },
-        mockProvider('tier2-success', async () => ({
+        mockProvider('tertiary-gemini', async () => ({
           rawText: JSON.stringify({
             action: 'suggest_mission',
             missionId: 'mission-work-1',
@@ -105,11 +105,95 @@ describe('AI Orchestrator Tiered Pipeline', () => {
         }))
       ];
 
-      const result = await runOrchestrator({ message: 'Aku burnout kerja.', domain: 'work' }, { providers });
+      const result = await runOrchestrator(
+        { message: 'Aku burnout kerja.', domain: 'work' },
+        { providers, enableDebiaser: false }
+      );
 
-      assert.equal(result.tier, 'secondary');
-      assert.equal(result.providerId, 'tier2-success');
+      assert.equal(result.tier, 'tertiary');
+      assert.equal(result.providerId, 'tertiary-gemini');
       assert.equal(result.action.action, 'suggest_mission');
+    });
+
+    it('passes multi-turn conversation history into provider messages', async () => {
+      let capturedRequest = null;
+      const providers = [
+        mockProvider('tier1-history', async (req) => {
+          capturedRequest = req;
+          return {
+            rawText: JSON.stringify({
+              action: 'chat',
+              message: 'Aku mengerti konteks sebelumnya.',
+              disclaimer: STANDARD_DISCLAIMER
+            })
+          };
+        })
+      ];
+
+      const result = await runOrchestrator(
+        {
+          message: 'Bagaimana solusinya?',
+          history: [
+            { sender: 'user', text: 'Tugasku menumpuk' },
+            { sender: 'assistant', text: 'Apa tugas yang paling mendesak?' }
+          ]
+        },
+        { providers, enableDebiaser: false }
+      );
+
+      assert.equal(result.tier, 'primary');
+      assert.ok(capturedRequest);
+      assert.ok(capturedRequest.messages);
+      assert.equal(capturedRequest.messages.length, 4); // system, user, assistant, user
+      assert.equal(capturedRequest.messages[1].content, 'Tugasku menumpuk');
+    });
+
+    it('intercepts pure coding requests at the Pre-LLM domain gate', async () => {
+      const providers = [
+        mockProvider('should-not-be-called', async () => {
+          throw new Error('LLM should not be called for pure coding request');
+        })
+      ];
+
+      const result = await runOrchestrator(
+        { message: 'Tolong buatkan fungsi fizzbuzz di python' },
+        { providers }
+      );
+
+      assert.equal(result.providerId, 'guardrail:domain-gate');
+      assert.equal(result.action.action, 'chat');
+      assert.ok(result.action.message.includes('bukan asisten pemrograman'));
+    });
+
+    it('applies Second Brain debiasing when debiaser provider is configured', async () => {
+      const providers = [
+        mockProvider('tier1-deepseek', async () => ({
+          rawText: JSON.stringify({
+            action: 'chat',
+            message: 'Beban kerja seperti itu hal yang biasa terjadi.',
+            disclaimer: STANDARD_DISCLAIMER
+          })
+        }))
+      ];
+
+      const debiaserProvider = mockProvider('second-brain-nemotron', async () => ({
+        rawText: JSON.stringify({
+          action: 'chat',
+          message: 'Aku mendengar lelahnya beban kerjamu saat ini.',
+          disclaimer: STANDARD_DISCLAIMER
+        })
+      }));
+
+      const result = await runOrchestrator(
+        { message: 'Aku stres kerjaan numpuk.' },
+        { providers, debiaserProvider, enableDebiaser: true }
+      );
+
+      assert.equal(result.tier, 'primary');
+      assert.equal(result.debiased, true);
+      assert.ok(result.providerId.includes('second-brain-nemotron'));
+      assert.equal(result.action.message, 'Aku mendengar lelahnya beban kerjamu saat ini.');
     });
   });
 });
+

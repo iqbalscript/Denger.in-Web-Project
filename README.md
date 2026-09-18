@@ -107,7 +107,7 @@ Jika pada asesmen awal atau input teks bebas terdeteksi indikasi bahaya diri ata
 - **Permanent Data Wipe**: Utilitas pembersihan total data lokal di menu `/recovery` untuk menjaga kerahasiaan saat berbagi perangkat.
 - **Verified Directory (`/resources`)**: Direktori kontak darurat, konseling psikologis, perlindungan anak, dan advokasi pinjaman online ilegal dengan filter kategori dan pencarian.
 - **Local Private Journal (`/journal`)**: Ruang menuangkan pikiran secara bebas yang tersimpan privat di peramban tanpa terkirim ke server mana pun.
-- **Companion Chat Simulator (`/chat`)**: Antarmuka percakapan terpandu yang dilengkapi filter keselamatan deterministik serta validasi skema aksi ketat.
+- **AI Companion Multi-Brain Chat (`/chat`)**: Antarmuka percakapan empati terpandu dengan arsitektur 3-Brain (*DeepSeek Platform* sebagai Primary Brain, *OpenRouter NVIDIA Nemotron 3 Ultra* sebagai Second Brain / Anti-Bias Reviewer, dan *Google Gemini 3.1 Flash-Lite* sebagai Third Brain / Fallback), dilengkapi kartu aksi interaktif langsung (`suggest_mission`, `open_journal_prompt`, `suggest_forum`, `show_help_directory`, `adjust_path`) serta *Ironclad Maximum Guardrails*.
 - **Responsive Layout & Accessibility**: Desain responsif mobile/tablet/desktop dengan dukungan keyboard navigation, fokus visual terstandarisasi, dan `@media (prefers-reduced-motion)`.
 
 ### UI / Design System ("Soft Calm Glass")
@@ -117,45 +117,95 @@ Jika pada asesmen awal atau input teks bebas terdeteksi indikasi bahaya diri ata
 - **Reusable Primitives**: `PageContainer`, `ContentColumn`, `SplitLayout`, `GlassCard`, `SoftCard`, `Button`, `Input`, `Textarea`, `Chip`, `Badge`, `ProgressBar`, `HelpButton`, `MoodSelector`, `MissionCard`.
 
 ### Current Skeleton / Planned (Belum Diimplementasikan Penuh)
-- **Ruang Cerita Anonim (`/forum`)**: *Route Skeleton* — Pratinjau antarmuka cerita solidaritas pengguna. Kerangka backend (`/api/forum`, `services/persistence`) sudah tersedia dengan moderasi wajib (`pending_review` default), namun masih memakai penyimpanan in-memory; adapter PostgreSQL/Supabase serta moderasi otomatis direncanakan untuk sprint lanjutan.
+- **Ruang Cerita Anonim (`/forum`)**: *Route Skeleton* — Pratinjau antarmuka cerita solidaritas pengguna. Kerangka backend (`/api/forum`, `services/persistence`) sudah tersedia dengan moderasi wajib (`pending_review` default), didukung adapter PostgreSQL sungguhan maupun in-memory; moderasi otomatis AI direncanakan untuk sprint lanjutan.
 - **Laporan Mingguan (`/report`)**: *Route Skeleton* — Pratinjau visual ringkasan kemajuan 7 hari. Kerangka backend stateless (`/api/report/weekly`) sudah tersedia untuk mensintesis ringkasan dari riwayat lokal klien; penyimpanan agregat sisi server direncanakan untuk sprint lanjutan.
-- **AI Provider Live Cloud Orchestrator**: Kerangka pipeline bertingkat (`services/orchestrator`: Tier 1 DeepSeek V4.1 Flash langsung ke DeepSeek Platform → Tier 2 model gratis OpenRouter sebagai "second brain" → Tier 3 fallback deterministik) dan endpoint `/api/chat` sudah tersedia, divalidasi via `services/validator`; tinggal isi `DEEPSEEK_API_KEY`/`OPENROUTER_API_KEY` di `.env.local` untuk mengaktifkan model live (lihat `.env.example`).
 
 ---
 
-## 5. Safety Architecture
+## 5. Safety Architecture & Ironclad Guardrails
 
-Keselamatan pengguna adalah prioritas tertinggi di atas estetika dan fitur kecerdasan buatan.
+Keselamatan pengguna dan kemurnian domain pendampingan emosional adalah prioritas mutlak di atas estetika dan fitur kecerdasan buatan. Dengar.in menerapkan sistem pertahanan bertingkat (*4-Layer Ironclad Defense*) sebelum dan sesudah inferensi model:
 
 ```
 Input Pengguna (Asesmen / Chat / Catatan)
                │
                ▼
-┌────────────────────────────────────────┐
-│  DETERMINISTIC CRISIS ENGINE           │
-│  (services/crisis-engine)              │
-│  - Katalog Pola Bahasa Distress ID     │
-│  - Deteksi Niat Melukai Diri Sendiri   │
-│  - Normalisasi Teks & Anti-Evasion     │
-│  - ZERO AI / LLM Dependencies          │
-└────────────────────────────────────────┘
-               │
-      ┌────────┴────────┐
-      ▼                 ▼
-[CRISIS DETECTED]  [NON-CRISIS]
-      │                 │
-      ▼                 ▼
-Proses AI STOP!    Lanjut ke Alur Normal /
-Alihkan ke Layar   Validasi Skema Aksi AI
-Darurat Resmi      (services/validator)
+┌────────────────────────────────────────────────────────┐
+│  LAYER 0: DETERMINISTIC CRISIS ENGINE                  │
+│  (services/crisis-engine)                              │
+│  - Deteksi bahaya diri & keputusasaan akut             │
+│  - Normalisasi teks & anti-evasi (leetspeak/elongation)│
+│  - ZERO AI / LLM Dependencies                          │
+└───────────────────────┬────────────────────────────────┘
+                        │
+       ┌────────────────┴────────────────┐
+       ▼                                 ▼
+ [CRISIS DETECTED]                 [NON-CRISIS]
+       │                                 │
+       ▼                                 ▼
+ Proses AI STOP!          ┌────────────────────────────────────────────────────────┐
+ Alihkan ke Layar         │  LAYER 1: DOMAIN & ANTI-CODING DETERMINISTIC GATE      │
+ Darurat Resmi (/crisis)  │  (services/orchestrator/src/guardrails/domainGate.ts)  │
+                          │  - Intersepsi pertanyaan koding, skrip & teknis IT     │
+                          │  - Redireksi empati deterministik non-kritis           │
+                          │  - Mencegah eksploitasi chatbot di luar well-being     │
+                          └───────────────────────┬────────────────────────────────┘
+                                                  │
+                                 ┌────────────────┴────────────────┐
+                                 ▼                                 ▼
+                         [OUT-OF-DOMAIN]                    [VALID DOMAIN]
+                                 │                                 │
+                                 ▼                                 ▼
+                          Respons Redireksi         ┌───────────────────────────────────────┐
+                          Empati Langsung           │  LAYER 2: MULTI-BRAIN AI PIPELINE     │
+                          (Tanpa Konsumsi Token)    │  1. Primary Brain: DeepSeek Platform  │
+                                                    │     (deepseek-flash / JSON schema)    │
+                                                    │  2. Second Brain: NVIDIA Nemotron 3   │
+                                                    │     (OpenRouter anti-bias & review)   │
+                                                    │  3. Third Brain: Google Gemini 3.1    │
+                                                    │     (gemini-3.1-flash-lite fallback)  │
+                                                    └──────────────────┬────────────────────┘
+                                                                       │
+                                                                       ▼
+                                                    ┌───────────────────────────────────────┐
+                                                    │  LAYER 3: MAXIMUM ACTION VALIDATOR    │
+                                                    │  (services/validator)                 │
+                                                    │  - Blokir blok kode markdown (```)    │
+                                                    │  - Blokir diagnosis medis / klinis    │
+                                                    │  - Blokir toxic positivity            │
+                                                    │  - Sensor otomatis PII (email/tel/NIK)│
+                                                    │  - Validasi Whitelist 6 Aksi JSON     │
+                                                    └──────────────────┬────────────────────┘
+                                                                       │
+                                                                       ▼
+                                                            [Output Aman ke Pengguna]
 ```
 
-### Isolasi Mutlak Crisis Engine
-Paket `services/crisis-engine` memiliki batasan arsitektur ketat:
-- **NOL Ketergantungan AI**: Dilarang mengimpor atau menggunakan LLM, OpenAI, DeepSeek, Google GenAI, OpenRouter, embeddings, vector database, atau network API eksternal apa pun.
-- **Deterministik Penuh**: Beroperasi murni menggunakan normalisasi string (*anti-leetspeak*, *letter-elongation collapse*) dan pencocokan pola regex terhadap katalog frasa krisis bahasa Indonesia.
-- **Prioritas Eksekusi**: Menjadi filter utama (Langkah 0) sebelum data pengguna diproses oleh modul lain.
-- **AI Tidak Dapat Membatalkan**: AI tidak memiliki izin ataupun metode untuk mengabaikan atau menimpa keputusan gerbang krisis.
+### Rincian Lapisan Keamanan (The 4 Layers of Defense)
+
+1. **Layer 0: Isolasi Mutlak Crisis Engine (`services/crisis-engine`)**
+   - **NOL Ketergantungan AI**: Beroperasi murni menggunakan normalisasi string (*anti-leetspeak*, pemadatan pemanjangan karakter) dan pencocokan pola regex terhadap katalog frasa krisis bahasa Indonesia.
+   - **Prioritas Eksekusi Utama**: Menjadi filter absolut (Langkah 0) sebelum data pengguna diproses oleh modul apa pun. Jika krisis terdeteksi, AI sama sekali tidak dipanggil dan alur langsung beralih ke hub darurat resmi (`/crisis`).
+
+2. **Layer 1: Domain & Anti-Coding Deterministic Gate (`services/orchestrator/src/guardrails/domainGate.ts`)**
+   - **Pencegahan Penyalahgunaan Teknis**: Dengar.in adalah ruang aman kesehatan mental, bukan asisten pemrograman atau mesin penjawab umum.
+   - **Deteksi Cepat**: Menyaring kata kunci pemrograman teknis (*syntax error*, *fizzbuzz*, *function*, *bikin navbar react*, *SQL query*, dll.) tanpa tanda distres emosional.
+   - **Redireksi Empatik**: Mengembalikan respons pengalihan ramah secara instan untuk membawa percakapan kembali ke perasaan dan kesejahteraan pengguna, tanpa menghabiskan kuota inferensi LLM.
+
+3. **Layer 2: Multi-Brain AI Pipeline dengan Anti-Bias Debiasing**
+   - **Primary Brain (DeepSeek Platform - `deepseek-flash`)**: Menghasilkan respons empati yang kaya konteks sesuai format skema JSON terstruktur.
+   - **Second Brain (OpenRouter - `nvidia/nemotron-3-ultra-550b-a55b:free`)**: Bertindak sebagai *independent debiaser & alignment reviewer* berbobot 550B parameter yang memeriksa apakah respons mengandung bias kognitif, klaim klinis ilegal, kebocoran koding, atau kepalsuan empati (*toxic positivity*), lalu merevisinya sebelum dikirim.
+   - **Third Brain / Fallback (Google Gemini - `gemini-3.1-flash-lite`)**: Bertindak sebagai cadangan generatif berbasis *Google Generative Language API* dengan mode JSON terstruktur jika penyedia utama mengalami gangguan jaringan atau kuota.
+
+4. **Layer 3: Maximum Guardrails Action Validator (`services/validator`)**
+   - **Blokir Kode**: Menolak dan membuang respons apa pun yang menyertakan blok kode markdown (` ``` `) atau tag pemrograman.
+   - **Anti-Diagnosis**: Melarang keras pernyataan diagnosa klinis (seperti "kamu menderita depresi mayor", "ini bipolar").
+   - **Anti-Toxic Positivity**: Membatasi kalimat hampa yang menginvalidasi emosi (seperti "jangan sedih, semua ada hikmahnya").
+   - **Sensor PII Otomatis**: Melakukan redaksi instan terhadap data sensitif pribadi (alamat email, nomor telepon Indonesia, dan format NIK 16 digit).
+   - **Enforce Whitelist**: Memastikan hanya 6 aksi resmi yang diizinkan (`listen_and_reflect`, `suggest_mission`, `open_journal_prompt`, `suggest_forum`, `show_help_directory`, `adjust_path`).
+
+5. **Layer 4: Deterministic Safe Rule Fallback**
+   - Jika seluruh provider AI gagal merespons atau melanggar aturan validator skema, sistem secara otomatis mengembalikan respons pendamping deterministik yang hangat, aman, dan bebas risiko kegagalan.
 
 ---
 
@@ -189,8 +239,8 @@ Paket `services/crisis-engine` memiliki batasan arsitektur ketat:
 | Lapisan | Paket | Catatan |
 |---|---|---|
 | **HTTP API** | `apps/web/src/app/api/*` | Route Handlers Next.js: `/api/chat`, `/api/forum`, `/api/forum/[postId]/moderate`, `/api/report/weekly`, `/api/sync`, `/api/admin/login`, `/api/admin/logout`, `/api/admin/me`, `/api/health` |
-| **AI Orchestrator** | `services/orchestrator` (`@dengarin/orchestrator`) | Pipeline bertingkat Tier 1 (DeepSeek V4.1 Flash, langsung ke DeepSeek Platform) → Tier 2 (model gratis OpenRouter, "second brain") → Tier 3 (fallback deterministik), lihat `docs/AI_POLICY.md` |
-| **Prompt Templates** | `packages/prompts` (`@dengarin/prompts`) | Sistem prompt & batasan larangan AI, dikonsumsi hanya oleh `services/orchestrator` |
+| **AI Orchestrator** | `services/orchestrator` (`@dengarin/orchestrator`) | Multi-Brain AI Pipeline: Domain Gate → Primary Brain (DeepSeek Platform: `deepseek-flash`) → Second Brain (OpenRouter: `nvidia/nemotron-3-ultra-550b-a55b:free` debiaser) → Third Brain Fallback (Google Gemini: `gemini-3.1-flash-lite`) → Rule-based Fallback |
+| **Prompt Templates** | `packages/prompts` (`@dengarin/prompts`) | Sistem prompt, JSON action schemas, & batasan larangan koding / diagnosa medis, dikonsumsi oleh `services/orchestrator` |
 | **Persistence** | `services/persistence` (`@dengarin/persistence`) | `ForumRepository`, `SyncRepository`, `AdminRepository` — adapter **PostgreSQL sungguhan** (`pg`) teruji integrasi, dengan fallback in-memory otomatis saat `DATABASE_URL` kosong (lihat `src/factory.ts`) |
 | **Auth (Admin/Moderator)** | `services/auth` (`@dengarin/auth`) | Hashing password (`scrypt`, native Node `crypto`) & sesi bertanda tangan HMAC-SHA256 (JWT-lite) untuk gerbang `/api/admin/*` dan moderasi forum |
 
@@ -209,9 +259,12 @@ ADMIN_SEED_USERNAME=admin ADMIN_SEED_PASSWORD=ganti-ini-dengan-yang-kuat npm run
 
 Tanpa `DATABASE_URL`, seluruh API tetap berjalan menggunakan adapter in-memory (data hilang saat proses berhenti) — cocok untuk pengembangan lokal tanpa database.
 
-### Planned / Future Technologies
-- **LLM Engine**: DeepSeek V4.1 Flash langsung via DeepSeek Platform (`DEEPSEEK_API_KEY`, model default `deepseek-v4.1-flash`, overridable lewat `DEEPSEEK_MODEL`) sebagai Primary; model gratis OpenRouter (`OPENROUTER_API_KEY`, default `meta-llama/llama-3.3-70b-instruct:free`, overridable lewat `OPENROUTER_MODEL`) sebagai "second brain" Fallback — pipeline lengkap di `services/orchestrator`, tinggal isi kunci API di `.env.local`.
-- **Supabase-specific features** (auth pengguna akhir, storage, realtime) belum dipakai; adapter saat ini PostgreSQL murni via `pg`.
+### AI Engine Architecture (Live Multi-Brain)
+- **Primary Brain**: DeepSeek Platform (`DEEPSEEK_API_KEY`, model default `deepseek-flash` atau `deepseek-chat`, overridable lewat `DEEPSEEK_MODEL`) menghasilkan respons afektif berbasis JSON action schema.
+- **Second Brain (Anti-Bias & Alignment)**: OpenRouter (`OPENROUTER_API_KEY`, model `nvidia/nemotron-3-ultra-550b-a55b:free`, overridable lewat `OPENROUTER_MODEL`) bertindak sebagai penilai netralitas independen berukuran 550B parameter untuk mereduksi bias kognitif dan membersihkan klaim yang melanggar batasan.
+- **Third Brain (Generative Fallback)**: Google Gemini (`GEMINI_API_KEY`, model `gemini-3.1-flash-lite`, overridable lewat `GEMINI_MODEL`) bertindak sebagai jaring pengaman inferensi cloud dengan mode JSON terstruktur bawaan.
+- **Pre-LLM Domain Gate**: Filter deterministik cepat yang mencegat pertanyaan koding/teknis tanpa menyentuh kuota token AI.
+- **Post-LLM Maximum Guardrails**: Sensor otomatis PII (email, telepon, NIK), penghapusan blok kode markdown, dan pembatasan whitelist 6 aksi.
 
 ---
 
@@ -224,9 +277,9 @@ Denger.in/
 ├── apps/
 │   └── web/                     # Aplikasi Next.js 15 (Frontend + Backend API)
 │       ├── src/
-│       │   ├── app/             # Rute App Router (/consent, /dashboard, dll.)
+│       │   ├── app/             # Rute App Router (/consent, /dashboard, /chat, dll.)
 │       │   │   └── api/         # Route Handlers backend (/api/chat, /api/forum, /api/admin/*, /api/report/weekly, /api/sync, /api/health)
-│       │   ├── components/      # Komponen navigasi, footer, dan UI primitives
+│       │   ├── components/      # Komponen navigasi, footer, kartu aksi interaktif, dan UI primitives
 │       │   │   └── ui/          # Primitives: GlassCard, SoftCard, Button, Layout, dll.
 │       │   └── lib/
 │       │       ├── api/         # Crisis gate, rate limiter, sesi admin, repositori singleton, helper respons JSON
@@ -236,22 +289,23 @@ Denger.in/
 ├── packages/
 │   ├── types/                   # Definisi tipe data TypeScript global (@dengarin/types)
 │   ├── config/                  # Katalog kontak darurat, misi, dan opsi domain (@dengarin/config)
-│   └── prompts/                 # Template & batasan prompt AI, khusus konsumsi services/orchestrator (@dengarin/prompts)
+│   └── prompts/                 # Template, skema aksi JSON & batasan prompt AI (@dengarin/prompts)
 ├── services/
 │   ├── crisis-engine/           # Detektor krisis deterministik tanpa AI (@dengarin/crisis-engine)
-│   ├── validator/               # Validator runtime skema aksi AI (@dengarin/validator)
-│   ├── orchestrator/            # Pipeline AI bertingkat: DeepSeek V4.1 Flash → OpenRouter (gratis) → fallback deterministik (@dengarin/orchestrator)
+│   ├── validator/               # Validator runtime skema aksi AI & Maximum Guardrails (@dengarin/validator)
+│   ├── orchestrator/            # Pipeline Multi-Brain: Domain Gate → DeepSeek → Nemotron Debiaser → Gemini 3.1 → Deterministik (@dengarin/orchestrator)
 │   ├── persistence/             # Repositori forum, sinkronisasi & admin — adapter PostgreSQL + in-memory (@dengarin/persistence)
 │   │   ├── migrations/          # Skema SQL (001_init.sql: forum_posts, synced_sessions, admin_users)
 │   │   └── scripts/             # db:migrate, db:seed-admin
 │   └── auth/                    # Hashing password & sesi HMAC untuk admin/moderator (@dengarin/auth)
 ├── tests/
 │   ├── crisis/                  # 33 pengujian unit mesin krisis (normalisasi, false-positive, slang)
-│   ├── validator/               # 24 pengujian unit validator skema aksi kecerdasan buatan
-│   ├── orchestrator/            # Pengujian pipeline tiered fallback AI orchestrator
+│   ├── validator/               # 28 pengujian unit validator skema aksi & maximum guardrails
+│   ├── assessment/              # 19 pengujian alur asesmen adaptif
+│   ├── orchestrator/            # 9 pengujian pipeline Multi-Brain, debiaser & anti-coding domain gate
 │   ├── persistence/              # Pengujian repositori forum & sinkronisasi in-memory
 │   ├── persistence-pg/           # Pengujian integrasi terhadap PostgreSQL sungguhan (skip otomatis tanpa DATABASE_URL)
-│   └── auth/                     # Pengujian hashing password & sesi admin
+│   └── auth/                     # 10 pengujian hashing password & sesi admin
 ├── docs/                        # Dokumentasi arsitektur, PRD, kebijakan keselamatan, dan UX
 ├── .env.example                 # Contoh variabel lingkungan backend (kunci AI, DATABASE_URL, ADMIN_SESSION_SECRET)
 ├── package.json                 # Konfigurasi monorepo root & script eksekusi
@@ -274,7 +328,7 @@ Denger.in/
 | `/checkin` | Pencatatan suasana hati harian, energi, pemicu stres, dan riwayat | **Implemented** |
 | `/recovery` | Tampilan 12-kata kunci pemulihan sesi dan utilitas pembersihan data | **Implemented** |
 | `/journal` | Jurnal privat lokal bebas jejak di peramban pengguna | **Implemented (Local-First)** |
-| `/chat` | Antarmuka pendamping interaktif berbasis aksi tervalidasi | **Implemented (Local Simulator)** |
+| `/chat` | Antarmuka pendamping interaktif Multi-Brain AI dengan aksi tervalidasi | **Implemented (Live Multi-Brain: DeepSeek + Nemotron + Gemini 3.1)** |
 | `/resources` | Direktori layanan bantuan profesional & hotline terverifikasi | **Implemented** |
 | `/forum` | Ruang cerita solidaritas anonim sesama pengguna | **Skeleton (Sprint 0)**, backend API tersedia |
 | `/report` | Laporan evaluasi sintesis kemajuan mingguan | **Skeleton (Sprint 0)**, backend API tersedia |
@@ -288,7 +342,7 @@ Permukaan HTTP backend diimplementasikan sebagai Next.js Route Handlers di `apps
 | Endpoint | Metode | Tujuan / Fungsi | Status |
 |---|---|---|---|
 | `/api/health` | `GET` | Health check layanan backend | **Implemented** |
-| `/api/chat` | `POST` | Gerbang krisis deterministik → orkestrator AI bertingkat → aksi tervalidasi | **Implemented** (fallback deterministik teruji end-to-end; tinggal isi `DEEPSEEK_API_KEY`/`OPENROUTER_API_KEY` untuk mengaktifkan Tier 1/2 live) |
+| `/api/chat` | `POST` | Gerbang krisis deterministik → Gerbang domain/anti-coding → Multi-Brain AI Pipeline (DeepSeek → Nemotron Debiaser → Gemini 3.1 Fallback) → Maximum Guardrails & PII Redactor | **Implemented (Live Multi-Brain)** |
 | `/api/forum` | `GET`, `POST` | Daftar cerita yang disetujui; kirim cerita baru (otomatis `pending_review`, discan gerbang krisis) | **Implemented** (PostgreSQL, teruji end-to-end) |
 | `/api/forum/[postId]/moderate` | `PATCH` | Setujui/tolak cerita forum | **Implemented** — dilindungi sesi admin (`/api/admin/login`), teruji end-to-end |
 | `/api/report/weekly` | `POST` | Sintesis ringkasan mingguan stateless dari riwayat check-in/misi lokal klien | **Implemented** |
@@ -298,7 +352,7 @@ Permukaan HTTP backend diimplementasikan sebagai Next.js Route Handlers di `apps
 | `/api/admin/me` | `GET` | Cek sesi admin aktif saat ini | **Implemented** |
 
 > [!NOTE]
-> Semua endpoint di atas sudah diuji end-to-end terhadap instance PostgreSQL sungguhan (bukan hanya typecheck) selama pengembangan. Belum ada di sini: kunci API AI live (DeepSeek Platform langsung untuk Tier 1, OpenRouter untuk Tier 2 — cukup isi `DEEPSEEK_API_KEY`/`OPENROUTER_API_KEY` di `.env.local`), rate limiting terdistribusi (saat ini in-memory per-instance), dan enkripsi ujung-ke-ujung sisi klien untuk `/api/sync`. Lihat `.env.example` untuk variabel lingkungan yang dibutuhkan.
+> Semua endpoint di atas sudah diuji end-to-end terhadap instance PostgreSQL sungguhan maupun in-memory. Multi-Brain AI didukung penuh secara live menggunakan kredensial yang dikonfigurasi pada `.env.local` (`DEEPSEEK_API_KEY`, `OPENROUTER_API_KEY`, dan `GEMINI_API_KEY`). Jika salah satu provider API tidak tersedia atau mencapai kuota batas, orkestrator secara halus mengalihkan ke model lapis berikutnya hingga ke jaring pengaman deterministik.
 
 ---
 
@@ -336,21 +390,34 @@ npm run dev
 ```
 Akses aplikasi melalui peramban di `http://localhost:3000`. Tanpa `DATABASE_URL`, backend otomatis memakai penyimpanan in-memory (lihat bagian 7 "Database").
 
+### Konfigurasi Variabel Lingkungan (.env.local)
+Salin `.env.example` ke `.env.local` untuk mengonfigurasi database dan kunci API Multi-Brain:
+```env
+# Multi-Brain AI Providers (Aktif pada /chat & /api/chat)
+DEEPSEEK_API_KEY=sk-...                          # Primary Brain: DeepSeek Platform
+DEEPSEEK_MODEL=deepseek-flash
+OPENROUTER_API_KEY=sk-or-v1-...                  # Second Brain: OpenRouter Anti-Bias
+OPENROUTER_MODEL=nvidia/nemotron-3-ultra-550b-a55b:free
+GEMINI_API_KEY=...                               # Third Brain: Google Gemini Fallback
+GEMINI_MODEL=gemini-3.1-flash-lite
+
+# Database & Auth (Opsional untuk dev lokal)
+DATABASE_URL=postgresql://user:pass@localhost:5432/dengarin
+ADMIN_SESSION_SECRET=kunci-rahasia-minimal-32-karakter-acak
+```
+
 ### (Opsional) Menyambungkan PostgreSQL Sungguhan
 ```bash
-# 1. Salin .env.example -> .env.local, isi DATABASE_URL dan ADMIN_SESSION_SECRET
-cp .env.example .env.local
-
-# 2. Terapkan skema
+# 1. Terapkan skema migrasi
 npm run db:migrate
 
-# 3. Buat akun admin/moderator pertama
+# 2. Buat akun admin/moderator pertama
 ADMIN_SEED_USERNAME=admin ADMIN_SEED_PASSWORD=ganti-ini-dengan-yang-kuat npm run db:seed-admin
 ```
 
 ### Menjalankan Seluruh Validasi Otomatis
 ```bash
-# 1. Menjalankan seluruh rangkaian unit & integrasi test
+# 1. Menjalankan seluruh rangkaian unit & integrasi test (105+ pengujian)
 npm run test
 
 # 2. Validasi tipe TypeScript di seluruh monorepo
@@ -373,18 +440,16 @@ Status validasi otomatis saat ini di repositori:
 | Uji Kelayakan | Cakupan | Hasil |
 |---|---|---|
 | **Crisis Engine Tests** | 33 pengujian (anti-evasi, leetspeak, frasa bunuh diri, false-positive) | **33 / 33 PASS** |
-| **Action Validator Tests** | 24 pengujian (whitelist 6 aksi, sanitasi disclaimer, penolakan tindakan medis) | **24 / 24 PASS** |
+| **Action Validator Tests** | 28 pengujian (whitelist 6 aksi, blokir blok koding ` ``` `, sensor PII NIK/email/telepon, anti-diagnosis, anti-toxic positivity) | **28 / 28 PASS** |
 | **Assessment Tests** | 19 pengujian alur asesmen adaptif | **19 / 19 PASS** |
-| **AI Orchestrator Tests** | 6 pengujian tiered fallback (Tier 1/2/3, output tidak valid, timeout) | **6 / 6 PASS** |
+| **AI Orchestrator Tests** | 9 pengujian (Domain Gate anti-coding, pipeline Multi-Brain Tier 1/2/3, Nemotron debiaser, fallback aman) | **9 / 9 PASS** |
 | **Persistence Tests (in-memory)** | 6 pengujian repositori forum & sinkronisasi | **6 / 6 PASS** |
 | **Auth Tests** | 10 pengujian hashing password & sesi admin bertanda tangan | **10 / 10 PASS** |
-| **Persistence Tests (PostgreSQL, integrasi)** | 6 pengujian terhadap database sungguhan (skip otomatis tanpa `DATABASE_URL`) | **6 / 6 PASS** (diverifikasi manual dengan PostgreSQL lokal) |
-| **End-to-End API (manual)** | Alur penuh via `curl`: buat post forum → gerbang krisis → login admin → moderasi → tampil publik | **PASS**, lihat riwayat pengembangan |
-| **Typecheck** | `tsc --noEmit` pada seluruh paket dan aplikasi | **0 Errors** |
+| **Persistence Tests (PostgreSQL, integrasi)** | 6 pengujian terhadap database sungguhan (skip otomatis tanpa `DATABASE_URL`) | **6 / 6 PASS** (diverifikasi dengan PostgreSQL lokal) |
+| **End-to-End API (manual)** | Alur penuh chat Multi-Brain live, registrasi sesi, krisis, dan moderasi | **PASS** |
+| **Typecheck** | `tsc --noEmit` pada seluruh paket dan aplikasi monorepo | **0 Errors** |
 | **Lint** | ESLint pada seluruh komponen dan modul TypeScript | **0 Errors, 0 Warnings** |
 | **Production Build** | `next build` App Router + 9 API routes | **SUCCESS** |
-
-*Catatan: Verifikasi otomatis melalui subagent browser Playwright dapat bergantung pada ketersediaan driver biner lokal di lingkungan sistem operasi.*
 
 ---
 
@@ -401,8 +466,11 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
 ## 14. Security & Safety Notes
 
 ### Perlindungan Saat Ini (Current Implementation)
-- **Isolasi Logika Krisis**: Logika keselamatan hidup beroperasi secara independen di sisi klien/server tanpa campur tangan model generatif.
-- **Validasi Skema Aksi Ketat**: Segala respons kecerdasan buatan disaring melalui whitelist 6 aksi terdefinisi; aksi ilegal (seperti diagnosis atau rekomendasi pinjaman) langsung dibatalkan.
+- **Isolasi Logika Krisis (Layer 0)**: Logika keselamatan hidup beroperasi secara independen di sisi klien/server tanpa campur tangan model generatif.
+- **Domain & Anti-Coding Gate (Layer 1)**: Penyaringan pra-LLM instan untuk mencegah pembelokan platform menjadi asisten pemrograman atau penjawab umum.
+- **Second Brain Debiasing (Layer 2)**: Pemeriksaan netralitas emosional dan penghapusan bias kognitif menggunakan NVIDIA Nemotron 3 Ultra 550B sebelum pesan dikirimkan ke pengguna.
+- **Validasi Skema Aksi Ketat & Maximum Guardrails (Layer 3)**: Segala respons kecerdasan buatan disaring melalui whitelist 6 aksi terdefinisi; larangan keras penyertaan blok kode markdown, klaim diagnostik klinis psikiatri, dan penyingkiran *toxic positivity*.
+- **Sensor Data Sensitif (PII Redaction)**: Deteksi dan penyensoran otomatis terhadap alamat surel, nomor telepon Indonesia, serta format 16-digit NIK agar privasi pengguna terlindungi dari kebocoran log.
 - **Sesi Bebas Identitas**: Identitas berbasis UUID acak lokal yang tidak memerlukan database identitas kependudukan.
 - **Data Tersimpan Lokal**: Catatan emosional dan jurnal disimpan di peramban lokal tanpa log server sentral.
 
@@ -414,21 +482,31 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
 
 ## 15. Roadmap
 
-### Completed (Sprint 0 & Sprint 1)
+### Completed (Sprint 0, Sprint 1 & Sprint 2)
 - [x] Fondasi arsitektur monorepo, paket konfigurasi, dan tipe data global.
 - [x] Mesin deteksi krisis deterministik bahasa Indonesia (33 pengujian tervalidasi).
-- [x] Runtime action whitelist validator untuk output AI (24 pengujian tervalidasi).
+- [x] Runtime action whitelist validator untuk output AI & Maximum Guardrails (28 pengujian tervalidasi).
 - [x] Alur pengguna inti: Landing → Consent → Anonymous UUID → Onboarding → Assessment → Dashboard → Mission → Check-in.
 - [x] Direktori bantuan darurat resmi Indonesia terverifikasi.
 - [x] Redesain sistem visual "Soft Calm Glass" dan restrukturisasi hierarki tata letak 12-kolom responsif.
 - [x] Integrasi penyimpanan lokal aman (*client-side local persistence*).
-- [x] Kerangka backend: HTTP API (`apps/web/src/app/api`), pipeline AI orkestrator bertingkat (`services/orchestrator`), template prompt (`packages/prompts`).
-- [x] Backend penuh: adapter PostgreSQL sungguhan untuk `services/persistence` (forum, sinkronisasi, admin) dengan fallback in-memory otomatis, diuji integrasi terhadap database nyata (`tests/persistence-pg`).
-- [x] Autentikasi admin/moderator (`services/auth`: hashing password scrypt + sesi bertanda tangan HMAC) yang menggerbangi `/api/forum/[postId]/moderate`, diuji end-to-end.
+- [x] Kerangka backend: HTTP API (`apps/web/src/app/api`), template prompt (`packages/prompts`), adapter PostgreSQL sungguhan & in-memory.
+- [x] Autentikasi admin/moderator (`services/auth`: hashing password scrypt + sesi bertanda tangan HMAC) yang menggerbangi `/api/forum/[postId]/moderate`.
 - [x] Skema migrasi (`services/persistence/migrations`) & script operasional (`npm run db:migrate`, `npm run db:seed-admin`).
+- [x] **Live Multi-Brain AI Orchestrator**:
+  - Primary Brain: DeepSeek Platform (`deepseek-flash`) via JSON Mode.
+  - Second Brain: OpenRouter (`nvidia/nemotron-3-ultra-550b-a55b:free`) untuk debiasing, anti-bias, dan penyelarasan empati.
+  - Third Brain: Google Gemini (`gemini-3.1-flash-lite`) sebagai cadangan cloud generatif.
+  - Deterministic Rule-based Fallback.
+- [x] **Ironclad Maximum Guardrails & Anti-Coding Domain Gate**:
+  - Pencegahan pertanyaan koding/teknis di gerbang awal.
+  - Penolakan blok format kode ` ``` ` dan bahasa pemrograman.
+  - Redaksi otomatis PII (email, nomor telepon Indonesia, NIK).
+  - Larangan diagnosis klinis & eliminasi *toxic positivity*.
+- [x] **Interactive Action Cards pada Antarmuka Chat**:
+  - Kartu visual interaktif langsung untuk misi harian, prompt jurnal lokal, rekomendasi forum, direktori bantuan darurat, dan penyesuaian jalur 14 hari.
 
-### Planned (Sprint 2+)
-- [ ] Konfigurasi kunci API produksi & pengujian live model inferensi AI (DeepSeek V4.1 Flash langsung via DeepSeek Platform / model gratis OpenRouter sebagai "second brain") — pipeline dan skema aksi terikat sudah tersedia di `services/orchestrator`, tinggal isi `DEEPSEEK_API_KEY`/`OPENROUTER_API_KEY`.
+### Planned (Sprint 3+)
 - [ ] Moderasi keselamatan otomatis (ML/heuristik tambahan) untuk Ruang Cerita Anonim (`/forum`) — saat ini moderasi manual via `/api/admin`.
 - [ ] Penyimpanan agregat sisi server & analitik historis untuk Laporan Kemajuan Mingguan (`/report`) — saat ini stateless dari riwayat lokal klien.
 - [ ] Enkripsi ujung-ke-ujung sungguhan (sisi klien) untuk opsi sinkronisasi antarperangkat menggunakan frasa 12-kata — kontrak penyimpanan (`/api/sync`) dan tabelnya sudah berjalan penuh di PostgreSQL.

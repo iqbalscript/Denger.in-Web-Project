@@ -51,6 +51,13 @@ export function createOpenrouterProvider(
         headers['X-Title'] = process.env.OPENROUTER_SITE_NAME;
       }
 
+      const messages = request.messages && request.messages.length > 0
+        ? request.messages
+        : [
+            { role: 'system' as const, content: request.systemPrompt },
+            { role: 'user' as const, content: request.userPrompt }
+          ];
+
       try {
         const response = await fetch(OPENROUTER_ENDPOINT, {
           method: 'POST',
@@ -58,16 +65,14 @@ export function createOpenrouterProvider(
           body: JSON.stringify({
             model,
             response_format: { type: 'json_object' },
-            messages: [
-              { role: 'system', content: request.systemPrompt },
-              { role: 'user', content: request.userPrompt }
-            ]
+            messages
           }),
           signal: controller.signal
         });
 
         if (!response.ok) {
-          throw new Error(`OpenRouter merespons dengan status ${response.status}`);
+          const errBody = await response.text().catch(() => '');
+          throw new Error(`OpenRouter merespons dengan status ${response.status}: ${errBody}`);
         }
 
         const data = (await response.json()) as OpenrouterChatCompletion;
