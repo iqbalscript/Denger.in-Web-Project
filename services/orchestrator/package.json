@@ -1,0 +1,14 @@
+{
+  "name": "@dengarin/orchestrator",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/orchestrator.ts",
+  "types": "src/orchestrator.ts",
+  "private": true,
+  "dependencies": {
+    "@dengarin/types": "*",
+    "@dengarin/config": "*",
+    "@dengarin/validator": "*",
+    "@dengarin/prompts": "*"
+  }
+}

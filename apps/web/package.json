@@ -12,6 +12,9 @@
   "dependencies": {
     "@dengarin/config": "*",
     "@dengarin/crisis-engine": "*",
+    "@dengarin/orchestrator": "*",
+    "@dengarin/persistence": "*",
+    "@dengarin/prompts": "*",
     "@dengarin/types": "*",
     "@dengarin/validator": "*",
     "lucide-react": "^1.16.0",
