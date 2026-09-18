@@ -222,9 +222,25 @@ export interface SyncRepository {
   get(mnemonicHash: string): Promise<SyncedSessionRecord | undefined>;
   upsert(record: SyncedSessionRecord): Promise<SyncedSessionRecord>;
 }
+
+export interface AdminUserRecord {
+  id: string;
+  username: string;
+  passwordHash: string; // "<saltHex>:<hashHex>", see services/auth#hashPassword
+  createdAt: string;
+}
+
+export interface AdminRepository {
+  findByUsername(username: string): Promise<AdminUserRecord | undefined>;
+  create(input: { username: string; passwordHash: string }): Promise<AdminUserRecord>;
+}
 ```
 
-Sprint 0/1 ships `createInMemoryForumRepository()` / `createInMemorySyncRepository()`. Sprint 2+ adds a PostgreSQL/Supabase adapter implementing the same two interfaces — callers (the Next.js API routes) never need to change.
+Two implementations exist for all three repositories:
+- `createInMemory*Repository()` — process-local, non-persistent (local dev/demo).
+- `createPostgres*Repository(pool?)` — real PostgreSQL, schema in `services/persistence/migrations/001_init.sql`, integration-tested in `tests/persistence-pg` against a live database.
+
+`createForumRepository()` / `createSyncRepository()` / `createAdminRepository()` (`services/persistence/src/factory.ts`) pick the PostgreSQL adapter when `DATABASE_URL` is set and fall back to in-memory otherwise — callers (the Next.js API routes) never need to branch on this themselves.
 
 ---
 
@@ -250,8 +266,8 @@ Request: `{ authorPseudonym?: string; domain: InterventionDomain; title: string;
 `title` + `body` are scanned by the crisis gate before persisting; on a crisis match, responds `{ crisis: true, evaluation }` without saving the post. Otherwise creates the post (always `moderationStatus: 'pending_review'`) and responds `201 { crisis: false, post }`.
 
 ### `PATCH /api/forum/[postId]/moderate`
+Requires a valid admin session cookie (see `POST /api/admin/login`) — responds `401` without one.
 Request: `{ status: 'approved' | 'rejected' }`. Returns the updated `ForumPostRecord`, or `404` if not found.
-**No authentication yet** — must be gated behind a moderator/admin session before any public deployment (see README Roadmap, Sprint 2+).
 
 ### `POST /api/report/weekly`
 Request: `{ weekStarting?: string; checkins: DailyCheckin[]; missions: DailyMission[] }` — the client's own local history (Dengar.in stores check-ins/missions in the browser, not on the server). Stateless: computes and returns `{ summary: WeeklyReportSummary }` without persisting anything.
@@ -260,7 +276,18 @@ Request: `{ weekStarting?: string; checkins: DailyCheckin[]; missions: DailyMiss
 Returns `{ record: SyncedSessionRecord }`, or `404` if nothing is stored for that hash.
 
 ### `PUT /api/sync`
-Request: `{ mnemonicHash: string; encryptedBlob: string }`. Upserts and returns the stored `SyncedSessionRecord`. The server only ever stores/returns the opaque `encryptedBlob` — encryption/decryption happens client-side using the user's 12-word recovery mnemonic (not yet implemented; this route only demonstrates the storage contract).
+Request: `{ mnemonicHash: string; encryptedBlob: string }`. Upserts and returns the stored `SyncedSessionRecord`. The server only ever stores/returns the opaque `encryptedBlob` — encryption/decryption happens client-side using the user's 12-word recovery mnemonic (client-side encryption not yet implemented; this route's storage contract is fully functional against PostgreSQL).
+
+### `POST /api/admin/login`
+Request: `{ username: string; password: string }`. Rate-limited per IP. On success, sets an httpOnly, `SameSite=Strict` session cookie (`dengarin_admin_session`, 8h TTL, `Secure` in production) signed with `ADMIN_SESSION_SECRET` and responds `{ username }`. Responds `401` on a wrong username/password, `500` if `ADMIN_SESSION_SECRET` is not configured.
+
+### `POST /api/admin/logout`
+Clears the session cookie. Always responds `{ loggedOut: true }`.
+
+### `GET /api/admin/me`
+Verifies the session cookie. Returns `{ username, expiresAt }` or `401`.
+
+Admin accounts have no signup route — they are provisioned out-of-band via `npm run db:seed-admin` (`services/persistence/scripts/seedAdmin.ts`), consistent with Dengar.in's anonymous, zero-PII end-user surface: this is an operator account, not part of the product.
 
 ---
 
@@ -270,7 +297,33 @@ Request: `{ mnemonicHash: string; encryptedBlob: string }`. Upserts and returns 
 |---|---|---|
 | `DEEPSEEK_API_KEY` | `services/orchestrator` (Tier 1) | DeepSeek V4 Flash API key |
 | `OPENROUTER_API_KEY` | `services/orchestrator` (Tier 2) | OpenRouter fallback API key |
-| `DATABASE_URL` | *(planned)* future `services/persistence` adapter | PostgreSQL/Supabase connection string |
+| `DATABASE_URL` | `services/persistence` factory | PostgreSQL connection string; unset = in-memory fallback |
+| `ADMIN_SESSION_SECRET` | `apps/web/src/lib/api/adminSession.ts` | HMAC secret signing the admin session cookie; required for `/api/admin/login` |
+| `ADMIN_SEED_USERNAME` / `ADMIN_SEED_PASSWORD` | `services/persistence/scripts/seedAdmin.ts` | One-time values read only when running `npm run db:seed-admin` |
+
+---
+
+## 4e. Auth Contract (`services/auth`)
+
+```typescript
+// Password hashing (Node's built-in scrypt, no external bcrypt dependency)
+export function hashPassword(password: string): Promise<string>; // "<saltHex>:<hashHex>"
+export function verifyPassword(password: string, stored: string): Promise<boolean>;
+
+// Stateless, HMAC-SHA256-signed admin session token ("JWT-lite" — not the
+// full JWT spec, no external jsonwebtoken dependency). Format:
+// base64url(json payload) + "." + base64url(hmac-sha256 signature)
+export interface AdminSessionPayload {
+  sub: string; // admin username
+  iat: number; // issued-at, unix seconds
+  exp: number; // expiry, unix seconds
+}
+
+export function createSessionToken(username: string, secret: string, ttlSeconds?: number): string;
+export function verifySessionToken(token: string, secret: string): AdminSessionPayload | null;
+```
+
+`verifySessionToken` returns `null` (never throws) for a wrong-secret signature, a tampered payload, an expired token, or a malformed string — callers (`apps/web/src/lib/api/adminSession.ts#verifyAdminRequest`) treat `null` as "not authorized".
 
 ---
 

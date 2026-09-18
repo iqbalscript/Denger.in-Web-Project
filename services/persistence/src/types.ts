@@ -27,8 +27,8 @@ export interface CreateForumPostInput {
 
 /**
  * Storage-agnostic contract for the anonymous forum (`/forum`).
- * TODO(Sprint 2+): implement a PostgreSQL/Supabase-backed adapter against
- * this same interface (see README Technology Stack — "Database (Sprint 2+)").
+ * Implemented by createInMemoryForumRepository() (dev/demo) and
+ * createPostgresForumRepository() (real database, see src/db).
  */
 export interface ForumRepository {
   create(input: CreateForumPostInput): Promise<ForumPostRecord>;
@@ -51,10 +51,35 @@ export interface SyncedSessionRecord {
 
 /**
  * Storage-agnostic contract for opt-in encrypted cross-device sync.
- * TODO(Sprint 2+): implement a PostgreSQL/Supabase-backed adapter against
- * this same interface.
+ * Implemented by createInMemorySyncRepository() (dev/demo) and
+ * createPostgresSyncRepository() (real database, see src/db).
  */
 export interface SyncRepository {
   get(mnemonicHash: string): Promise<SyncedSessionRecord | undefined>;
   upsert(record: SyncedSessionRecord): Promise<SyncedSessionRecord>;
+}
+
+/**
+ * Operator/moderator account. NOT an end-user account — Dengar.in's
+ * anonymous users never authenticate (see docs/SAFETY.md, Zero Unnecessary
+ * PII). This exists solely to gate `/api/forum/[postId]/moderate`.
+ */
+export interface AdminUserRecord {
+  id: string;
+  username: string;
+  passwordHash: string;
+  createdAt: string;
+}
+
+export interface CreateAdminUserInput {
+  username: string;
+  passwordHash: string;
+}
+
+/**
+ * Storage-agnostic contract for admin/moderator accounts.
+ */
+export interface AdminRepository {
+  findByUsername(username: string): Promise<AdminUserRecord | undefined>;
+  create(input: CreateAdminUserInput): Promise<AdminUserRecord>;
 }
