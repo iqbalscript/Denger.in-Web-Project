@@ -1,22 +1,31 @@
 import type { LLMProvider, LLMProviderRequest, LLMProviderResponse } from './types.ts';
 
+// Direct DeepSeek Platform (platform.deepseek.com), NOT via OpenRouter.
 const DEEPSEEK_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions';
-const DEEPSEEK_MODEL = 'deepseek-v4-flash';
+
+// Overridable via DEEPSEEK_MODEL — DeepSeek occasionally renames/retires
+// model slugs on their platform, so this is not hardcoded blind. Default
+// targets DeepSeek V4.1 Flash per product direction; verify the exact slug
+// at https://api-docs.deepseek.com/quick_start/pricing if requests 404.
+const DEFAULT_DEEPSEEK_MODEL = 'deepseek-v4.1-flash';
 
 interface DeepseekChatCompletion {
   choices?: { message?: { content?: string } }[];
 }
 
 /**
- * TIER 1 — Primary Model (docs/AI_POLICY.md).
- * Reads DEEPSEEK_API_KEY from the environment by default; pass an explicit
- * key (or leave it undefined) to control configuration in tests.
+ * TIER 1 — Primary Model (docs/AI_POLICY.md), called directly against the
+ * DeepSeek Platform (api.deepseek.com), not through OpenRouter.
+ * Reads DEEPSEEK_API_KEY (required) and DEEPSEEK_MODEL (optional override)
+ * from the environment by default; pass explicit values to control
+ * configuration in tests.
  */
 export function createDeepseekProvider(
-  apiKey: string | undefined = process.env.DEEPSEEK_API_KEY
+  apiKey: string | undefined = process.env.DEEPSEEK_API_KEY,
+  model: string = process.env.DEEPSEEK_MODEL ?? DEFAULT_DEEPSEEK_MODEL
 ): LLMProvider {
   return {
-    id: 'deepseek-v4-flash',
+    id: `deepseek:${model}`,
 
     isConfigured(): boolean {
       return typeof apiKey === 'string' && apiKey.trim().length > 0;
@@ -38,7 +47,7 @@ export function createDeepseekProvider(
             Authorization: `Bearer ${apiKey}`
           },
           body: JSON.stringify({
-            model: DEEPSEEK_MODEL,
+            model,
             response_format: { type: 'json_object' },
             messages: [
               { role: 'system', content: request.systemPrompt },

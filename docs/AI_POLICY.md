@@ -14,7 +14,7 @@ In Dengar.in, the AI functions as an **Orchestrator of Structured Interventions*
 User Prompt (Validated Non-Crisis)
     │
     ▼
-LLM Inference (DeepSeek V4 Flash / OpenRouter Fallback)
+LLM Inference (DeepSeek V4.1 Flash direct / OpenRouter free-tier fallback)
     │
     ▼
 JSON Output Generation (Strict Schema Enforcement)
@@ -67,15 +67,18 @@ To ensure 100% uptime and resilience during live competition judging and product
 ```
 ┌────────────────────────────────────────────────────────┐
 │ TIER 1: Primary Model                                  │
-│ Model: DeepSeek V4 Flash                               │
+│ Model: DeepSeek V4.1 Flash                             │
+│ Provider: DeepSeek Platform direct (api.deepseek.com)  │
 │ Latency Target: < 1.2s                                 │
 │ Timeout: 4000ms                                        │
 └──────────────────────────┬─────────────────────────────┘
                            │ Failure / Timeout / Rate Limit
                            ▼
 ┌────────────────────────────────────────────────────────┐
-│ TIER 2: Secondary Cloud Fallback                       │
-│ Provider: OpenRouter (Claude 3.5 Haiku / Llama-3-70B)  │
+│ TIER 2: Secondary Cloud Fallback ("second brain")      │
+│ Provider: OpenRouter, free-tier model                  │
+│ Default: meta-llama/llama-3.3-70b-instruct:free        │
+│ (overridable via OPENROUTER_MODEL; see .env.example)   │
 │ Timeout: 4000ms                                        │
 └──────────────────────────┬─────────────────────────────┘
                            │ Failure / Network Outage
