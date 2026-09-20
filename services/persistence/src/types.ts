@@ -23,6 +23,7 @@ export interface CreateForumPostInput {
   domain: InterventionDomain;
   title: string;
   body: string;
+  initialStatus?: ForumModerationStatus;
 }
 
 /**
@@ -32,9 +33,10 @@ export interface CreateForumPostInput {
  */
 export interface ForumRepository {
   create(input: CreateForumPostInput): Promise<ForumPostRecord>;
-  listApproved(limit?: number): Promise<ForumPostRecord[]>;
+  listApproved(limit?: number, domain?: InterventionDomain): Promise<ForumPostRecord[]>;
   listPendingReview(limit?: number): Promise<ForumPostRecord[]>;
   moderate(postId: string, status: ForumModerationStatus): Promise<ForumPostRecord | undefined>;
+  incrementSupport(postId: string): Promise<ForumPostRecord | undefined>;
 }
 
 /**

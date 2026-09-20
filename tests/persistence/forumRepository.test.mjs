@@ -59,10 +59,33 @@ describe('In-Memory Forum Repository', () => {
     assert.equal(pending[0].id, second.id);
   });
 
-  it('returns undefined when moderating a non-existent post', async () => {
+  it('supports initialStatus and incrementSupport for community empathy', async () => {
+    const repo = createInMemoryForumRepository();
+    const post = await repo.create({
+      authorPseudonym: 'Bunga',
+      domain: 'campus',
+      title: 'Judul disetujui otomatis',
+      body: 'Isi cerita yang aman.',
+      initialStatus: 'approved'
+    });
+
+    assert.equal(post.moderationStatus, 'approved');
+    const approvedList = await repo.listApproved();
+    assert.equal(approvedList.length, 1);
+
+    const updated = await repo.incrementSupport(post.id);
+    assert.equal(updated?.supportCount, 1);
+
+    const updatedTwice = await repo.incrementSupport(post.id);
+    assert.equal(updatedTwice?.supportCount, 2);
+  });
+
+  it('returns undefined when moderating or supporting a non-existent post', async () => {
     const repo = createInMemoryForumRepository();
     const result = await repo.moderate('does-not-exist', 'approved');
     assert.equal(result, undefined);
+    const supportResult = await repo.incrementSupport('does-not-exist');
+    assert.equal(supportResult, undefined);
   });
 });
 
