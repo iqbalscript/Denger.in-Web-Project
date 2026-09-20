@@ -22,83 +22,104 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navLinks = [
+  // Center navigation links (pure navigation links, no heavy boxed border by default)
+  const centerLinks = [
     { href: '/dashboard', label: 'Home', icon: Compass },
     { href: '/mission', label: 'Misi', icon: CheckCircle2 },
     { href: '/checkin', label: 'Check-in', icon: Shield },
     { href: '/journal', label: 'Jurnal', icon: BookOpen },
     { href: '/forum', label: 'Ruang Cerita', icon: Users },
+  ];
+
+  // All links for mobile drawer
+  const mobileNavLinks = [
+    ...centerLinks,
     { href: '/resources', label: 'Bantuan', icon: HelpCircle },
   ];
 
   return (
     <>
       <header className="sticky top-0 z-40 bg-[#FFF8EF] border-b-2 border-[#151515]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-3">
-            {/* Brand - Strictly Anonymous */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-4">
+            {/* LEFT: Dengar.in logo & 100% ANONIM */}
             <div className="flex items-center gap-3 shrink-0">
               <Link
                 href="/"
                 className="flex items-center gap-2.5 group rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF]"
                 aria-label="Kembali ke Beranda Dengar.in"
               >
-                <div className="w-8 h-8 rounded-[4px] bg-[#4169FF] border-2 border-[#151515] flex items-center justify-center text-white shadow-[2px_2px_0px_#151515] transition-transform duration-120 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px]">
+                <div className="w-8 h-8 rounded-[4px] bg-[#4169FF] border-2 border-[#151515] flex items-center justify-center text-white shadow-[2px_2px_0px_#151515] transition-transform duration-120 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] shrink-0">
                   <span className="font-bold text-sm tracking-tight">D</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-lg text-[#151515] tracking-tight leading-tight">
+                  <span className="font-bold text-base sm:text-lg text-[#151515] tracking-tight leading-none">
                     Dengar.in
                   </span>
-                  <span className="text-[10px] text-[#59544D] font-bold tracking-wider uppercase">
-                    100% Anonim
+                  <span className="text-[10px] text-[#59544D] font-bold tracking-wider uppercase mt-0.5">
+                    100% ANONIM
                   </span>
                 </div>
               </Link>
             </div>
 
-            {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-1.5" aria-label="Navigasi Utama">
-              {navLinks.map((item) => {
+            {/* CENTER: Clean Navigation (Home, Misi, Check-in, Jurnal, Ruang Cerita) */}
+            <nav className="hidden lg:flex items-center justify-center gap-1 xl:gap-2 flex-1" aria-label="Navigasi Utama">
+              {centerLinks.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs sm:text-sm font-bold transition-all duration-120 ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs xl:text-sm font-bold whitespace-nowrap rounded-[4px] transition-colors duration-120 ${
                       isActive
                         ? 'bg-[#B8F34A] text-[#151515] border-2 border-[#151515] shadow-[2px_2px_0px_#151515]'
-                        : 'text-[#151515] border-2 border-transparent hover:border-[#151515] hover:bg-white'
+                        : 'text-[#151515] hover:text-[#4169FF] hover:bg-[#151515]/5'
                     }`}
                   >
-                    <Icon className="w-4 h-4 text-[#151515]" />
+                    <Icon className="w-4 h-4 shrink-0 text-current" />
                     <span>{item.label}</span>
                   </Link>
                 );
               })}
             </nav>
 
-            {/* Right Action Utilities: Quick Exit + Persistent Crisis Emergency Button */}
-            <div className="flex items-center gap-2 shrink-0">
-              {/* Persistent Quick Exit (ESC) */}
-              <QuickExitButton variant="navbar" />
+            {/* RIGHT: Action Group (Bantuan, Keluar Cepat + ESC, Bantuan Darurat) */}
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+              {/* Bantuan (Desktop) */}
+              <Link
+                href="/resources"
+                className={`hidden lg:inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-[4px] text-xs font-bold border-2 border-[#151515] shadow-[2px_2px_0px_#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] whitespace-nowrap ${
+                  pathname === '/resources'
+                    ? 'bg-[#B8F34A] text-[#151515]'
+                    : 'bg-white text-[#151515] hover:bg-[#FFF8EF]'
+                }`}
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-[#151515] shrink-0" />
+                <span>Bantuan</span>
+              </Link>
 
-              {/* Persistent Crisis Emergency Action (PRD-DESIGN.md) */}
+              {/* Keluar Cepat + ESC (Desktop) */}
+              <div className="hidden sm:block">
+                <QuickExitButton className="h-9" />
+              </div>
+
+              {/* Bantuan Darurat (Persistent Call-to-Action) */}
               <Link
                 href="/crisis"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[4px] text-xs sm:text-sm font-bold bg-[#FF5252] text-white border-2 border-[#151515] shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] transition-all duration-120"
+                className="inline-flex items-center justify-center gap-1.5 h-9 px-3 sm:px-3.5 rounded-[4px] text-xs font-bold bg-[#FF5252] text-white border-2 border-[#151515] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] transition-all duration-120 whitespace-nowrap"
                 aria-label="Akses Bantuan Darurat Krisis"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-white shrink-0" />
-                <span className="hidden sm:inline">BANTUAN DARURAT</span>
-                <span className="sm:hidden">DARURAT</span>
+                <span className="hidden md:inline">BANTUAN DARURAT</span>
+                <span className="md:hidden">DARURAT</span>
               </Link>
 
               {/* Mobile Menu Toggle */}
               <button
                 type="button"
-                className="lg:hidden p-2 rounded-[4px] border-2 border-[#151515] bg-white text-[#151515] shadow-[2px_2px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                className="lg:hidden inline-flex items-center justify-center h-9 w-9 rounded-[4px] border-2 border-[#151515] bg-white text-[#151515] shadow-[2px_2px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] transition-all"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-expanded={mobileMenuOpen}
                 aria-label="Buka menu navigasi"
@@ -113,7 +134,7 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="lg:hidden bg-[#FFF8EF] border-t-2 border-[#151515] px-4 pt-3 pb-5 space-y-3">
             <div className="grid grid-cols-2 gap-2">
-              {navLinks.map((item) => {
+              {mobileNavLinks.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 return (
@@ -127,11 +148,15 @@ export function Navbar() {
                         : 'bg-white text-[#151515] hover:bg-[#FFF8EF]'
                     }`}
                   >
-                    <Icon className="w-4 h-4 text-[#151515]" />
-                    <span>{item.label}</span>
+                    <Icon className="w-4 h-4 text-[#151515] shrink-0" />
+                    <span className="whitespace-nowrap">{item.label}</span>
                   </Link>
                 );
               })}
+            </div>
+
+            <div className="sm:hidden pt-1">
+              <QuickExitButton className="w-full h-9 justify-center" />
             </div>
 
             <div className="border-t-2 border-[#151515]/20 pt-3 flex flex-col gap-2">
@@ -140,7 +165,7 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 p-2.5 rounded-[4px] text-xs font-bold bg-white border-2 border-[#151515]"
               >
-                <BarChart3 className="w-4 h-4 text-[#4169FF]" />
+                <BarChart3 className="w-4 h-4 text-[#4169FF] shrink-0" />
                 <span>Refleksi Mingguan</span>
               </Link>
               <Link
@@ -148,7 +173,7 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 p-2.5 rounded-[4px] text-xs font-bold bg-white border-2 border-[#151515]"
               >
-                <Key className="w-4 h-4 text-[#FF8A3D]" />
+                <Key className="w-4 h-4 text-[#FF8A3D] shrink-0" />
                 <span>Pemulihan Sesi (12-Kata)</span>
               </Link>
             </div>
