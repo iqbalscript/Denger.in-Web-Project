@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import { SoftCard } from './SoftCard';
 import { Badge } from './Chip';
 import { Button } from './Button';
 import { CheckCircle2, Clock, ArrowRight } from 'lucide-react';
@@ -34,14 +33,12 @@ export function MissionCard({
   const isInProgress = status === 'in_progress';
 
   return (
-    <SoftCard
-      variant={isCompleted ? 'tinted' : 'white'}
-      elevation="medium"
-      className={`p-5 sm:p-6 transition-all duration-200 ${className}`}
+    <div
+      className={`p-5 sm:p-6 bg-white border-2 border-[#151515] shadow-[4px_4px_0px_#151515] rounded-[6px] transition-all duration-120 ${className}`}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="calm" size="sm">
+          <Badge variant="cobalt" size="sm">
             {category}
           </Badge>
           <Badge variant="sand" size="sm">
@@ -50,31 +47,31 @@ export function MissionCard({
         </div>
 
         {isCompleted ? (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-calm-700 bg-calm-100 px-2.5 py-1 rounded-full border border-calm-200">
+          <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#151515] bg-[#B8F34A] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Selesai</span>
           </span>
         ) : isInProgress ? (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-warm-700 bg-warm-100 px-2.5 py-1 rounded-full border border-warm-200">
+          <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#151515] bg-[#FFD84D] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
             <Clock className="w-3.5 h-3.5" />
             <span>Sedang Berjalan</span>
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-sand-700 bg-sand-100 px-2.5 py-1 rounded-full border border-sand-200">
+          <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#151515] bg-[#FFF8EF] px-2.5 py-1 rounded-[4px] border-2 border-[#151515]">
             <span>Rekomendasi</span>
           </span>
         )}
       </div>
 
-      <h3 className="text-base sm:text-lg font-bold text-sand-900 mb-1.5 leading-snug">
+      <h3 className="text-base sm:text-lg font-bold text-[#151515] mb-1.5 leading-snug">
         {title}
       </h3>
-      <p className="text-xs sm:text-sm text-sand-800/80 mb-4 leading-relaxed line-clamp-2">
+      <p className="text-xs sm:text-sm text-[#59544D] mb-4 leading-relaxed line-clamp-2">
         {description}
       </p>
 
-      <div className="flex items-center justify-between pt-2 border-t border-sand-200/80">
-        <div className="text-xs text-sand-600 font-medium">
+      <div className="flex items-center justify-between pt-3 border-t-2 border-[#151515]/10">
+        <div className="text-xs text-[#59544D] font-bold uppercase tracking-wider">
           {stepsCount > 0 && (
             <span>
               {completedStepsCount} / {stepsCount} langkah selesai
@@ -85,7 +82,7 @@ export function MissionCard({
         {href ? (
           <Link href={href}>
             <Button
-              variant={isCompleted ? 'calm-subtle' : 'primary'}
+              variant={isCompleted ? 'secondary' : 'primary'}
               size="sm"
               icon={isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
             >
@@ -94,7 +91,7 @@ export function MissionCard({
           </Link>
         ) : onAction ? (
           <Button
-            variant={isCompleted ? 'calm-subtle' : 'primary'}
+            variant={isCompleted ? 'secondary' : 'primary'}
             size="sm"
             onClick={onAction}
             icon={isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
@@ -103,6 +100,6 @@ export function MissionCard({
           </Button>
         ) : null}
       </div>
-    </SoftCard>
+    </div>
   );
 }

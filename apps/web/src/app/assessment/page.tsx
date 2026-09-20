@@ -202,26 +202,26 @@ export default function AssessmentPage() {
       <ContentColumn size="md" className={`space-y-8 text-left ${isSenior ? 'accessibility-large-text' : ''}`}>
         {/* Draft Resume Notice Banner */}
         {hasDraftNotice && (
-          <div className="p-4 rounded-2xl bg-honey-50 border border-honey-200 text-sand-800 shadow-soft-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn">
+          <div className="p-4 rounded-md bg-yellow/20 border-2 border-ink text-ink shadow-hard-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <BookmarkCheck className="w-5 h-5 text-honey-500 shrink-0" />
+              <BookmarkCheck className="w-5 h-5 text-ink shrink-0" />
               <div className="text-xs">
-                <span className="font-bold block text-sand-900">Draf Asesmen Ditemukan</span>
-                <span className="text-sand-600">Anda memiliki jawaban tersimpan dari sesi sebelumnya.</span>
+                <span className="font-black uppercase tracking-wider block text-ink">DRAF ASESMEN DITEMUKAN</span>
+                <span className="text-ink/80 font-medium">Anda memiliki jawaban tersimpan dari sesi sebelumnya.</span>
               </div>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleResumeDraft}
-                className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-terracotta-500 text-white font-bold text-xs shadow-soft-xs hover:bg-terracotta-600 transition-colors"
+                className="flex-1 sm:flex-initial px-3 py-1.5 rounded bg-cobalt text-white font-bold text-xs border-2 border-ink shadow-hard-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
               >
                 Lanjutkan Draf
               </button>
               <button
                 type="button"
                 onClick={handleDiscardDraft}
-                className="px-3 py-1.5 rounded-xl border border-sand-300 text-sand-700 font-semibold text-xs hover:bg-sand-100 transition-colors"
+                className="px-3 py-1.5 rounded bg-white border-2 border-ink text-ink font-bold text-xs shadow-hard-sm hover:bg-paper transition-all"
               >
                 Mulai Baru
               </button>
@@ -231,24 +231,24 @@ export default function AssessmentPage() {
 
         {/* Top Header: Progress & Pause Control */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-sand-600 font-medium">
-            <span className="flex items-center gap-1.5 font-bold text-terracotta-800">
-              <Sparkles className="w-3.5 h-3.5 text-terracotta-600" />
-              Asesmen Adaptif Non-Diagnostik
+          <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-ink">
+            <span className="flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-cobalt" />
+              ASESMEN ADAPTIF NON-DIAGNOSTIK
             </span>
             <div className="flex items-center gap-3">
-              <span className="font-semibold text-sand-700">
+              <span className="bg-yellow px-2 py-0.5 border border-ink rounded">
                 {isReviewPhase
-                  ? 'Catatan Opsional'
-                  : `Pertanyaan ${currentStepIndex + 1} dari ${totalQuestions}`}
+                  ? 'CATATAN OPSIONAL'
+                  : `PERTANYAAN ${currentStepIndex + 1} DARI ${totalQuestions}`}
               </span>
               <button
                 type="button"
                 onClick={handleSaveAndPause}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-sand-300 bg-white hover:bg-sand-50 text-sand-800 font-medium text-[11px] transition-colors"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded border-2 border-ink bg-white hover:bg-paper text-ink font-bold text-[11px] shadow-hard-sm transition-all"
                 title="Simpan draf dan jeda asesmen"
               >
-                <Pause className="w-3 h-3 text-terracotta-600" />
+                <Pause className="w-3 h-3 text-cobalt" />
                 <span>Jeda &amp; Lanjut Nanti</span>
               </button>
             </div>
@@ -261,25 +261,25 @@ export default function AssessmentPage() {
 
         {/* ACTIVE QUESTION (ONE QUESTION PER SCREEN) */}
         {!isReviewPhase && currentQ && (
-          <div className="space-y-6 animate-fadeIn">
+          <div className="space-y-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-terracotta-700 bg-terracotta-100 px-3 py-1 rounded-full">
-                  Pertanyaan #{currentStepIndex + 1}
+                <span className="text-xs font-black uppercase tracking-wider text-ink bg-yellow px-3 py-1 rounded border-2 border-ink shadow-hard-sm">
+                  PERTANYAAN #{currentStepIndex + 1}
                 </span>
                 {currentQ.sensitive && (
-                  <Badge variant="warm" size="sm">
-                    Sensitif • Dapat Dilewati
-                  </Badge>
+                  <span className="text-xs font-black uppercase tracking-wider text-white bg-coral px-2.5 py-1 rounded border-2 border-ink shadow-hard-sm">
+                    SENSITIF • DAPAT DILEWATI
+                  </span>
                 )}
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-extrabold text-sand-900 tracking-tight leading-snug">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-ink tracking-tight leading-snug">
                 {currentQ.text}
               </h2>
 
               {currentQ.subtext && (
-                <p className="text-xs sm:text-sm text-sand-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
                   {currentQ.subtext}
                 </p>
               )}
@@ -294,14 +294,14 @@ export default function AssessmentPage() {
                     key={opt.id}
                     type="button"
                     onClick={() => handleSelectOption(currentQ.id, opt.score)}
-                    className={`p-4 sm:p-5 rounded-2xl text-left border transition-all duration-150 cursor-pointer focus-visible:outline-terracotta-500 min-h-[60px] flex items-center justify-between gap-3 touch-target-primary ${
+                    className={`p-4 sm:p-5 rounded-md text-left border-2 border-ink transition-all cursor-pointer focus-visible:outline-ink min-h-[60px] flex items-center justify-between gap-3 ${
                       isSelected
-                        ? 'border-terracotta-500 bg-terracotta-50/95 text-sand-900 shadow-soft-xs ring-1 ring-terracotta-500 font-bold -translate-y-0.5'
-                        : 'border-sand-200 bg-white hover:border-sand-300 hover:bg-sand-50/60 text-sand-800 font-medium shadow-soft-xs'
+                        ? 'bg-cobalt text-white shadow-hard font-bold translate-x-[1px] translate-y-[1px]'
+                        : 'bg-white hover:bg-paper text-ink font-medium shadow-hard-sm'
                     }`}
                   >
-                    <span className="text-sm sm:text-base leading-snug">{opt.label}</span>
-                    {isSelected && <CheckCircle2 className="w-5 h-5 text-terracotta-500 shrink-0" />}
+                    <span className="text-sm sm:text-base leading-snug font-medium">{opt.label}</span>
+                    {isSelected && <CheckCircle2 className="w-5 h-5 text-white shrink-0" />}
                   </button>
                 );
               })}
@@ -313,9 +313,9 @@ export default function AssessmentPage() {
                 <button
                   type="button"
                   onClick={() => handleSkipQuestion(currentQ.id)}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-sand-600 hover:text-sand-900 hover:underline py-1 px-2 rounded-lg"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-ink/70 hover:text-ink hover:underline py-1 px-2"
                 >
-                  <SkipForward className="w-3.5 h-3.5 text-terracotta-600" />
+                  <SkipForward className="w-3.5 h-3.5 text-cobalt" />
                   <span>Lewati pertanyaan ini (tanpa mengurangi penilaian)</span>
                 </button>
               </div>
@@ -325,17 +325,17 @@ export default function AssessmentPage() {
 
         {/* OPTIONAL NOTES & REVIEW PHASE */}
         {isReviewPhase && (
-          <div className="space-y-6 animate-fadeIn">
+          <div className="space-y-6">
             <div className="space-y-2">
               <Badge variant="calm" size="md">
                 Langkah Terakhir
               </Badge>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-sand-900 tracking-tight">
-                Ada unek-unek lain yang ingin Anda tuliskan?
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-ink tracking-tight uppercase">
+                ADA UNEK-UNEK LAIN YANG INGIN DITULISKAN?
               </h2>
-              <p className="text-xs sm:text-sm text-sand-700 leading-relaxed">
+              <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
                 Tuliskan secara bebas jika ada hal spesifik yang sedang Anda rasakan. Bagian ini sepenuhnya
-                opsional dan tersimpan di peramban Anda.
+                opsional dan tersimpan aman di peramban Anda.
               </p>
             </div>
 
@@ -346,8 +346,8 @@ export default function AssessmentPage() {
                 rows={4}
                 placeholder="Contoh: 'Tugas menumpuk dan takut mengecewakan keluarga', 'Cemas memikirkan tagihan bulan depan'..."
               />
-              <div className="flex items-center gap-1.5 text-xs text-sand-600">
-                <AlertTriangle className="w-3.5 h-3.5 text-terracotta-600 shrink-0" />
+              <div className="p-3 rounded-md bg-yellow/20 border-2 border-ink shadow-hard-sm flex items-center gap-2 text-xs text-ink font-medium">
+                <AlertTriangle className="w-4 h-4 text-ink shrink-0" />
                 <span>
                   Input teks diawasi oleh filter krisis deterministik 100% bebas AI demi keselamatanmu.
                 </span>
@@ -357,15 +357,15 @@ export default function AssessmentPage() {
         )}
 
         {/* Bottom Navigation */}
-        <div className="pt-4 flex items-center justify-between gap-4 border-t border-sand-200/80">
+        <div className="pt-4 flex items-center justify-between gap-4 border-t-2 border-ink">
           {currentStepIndex > 0 ? (
             <Button
-              variant="ghost"
+              variant="outline"
               size="md"
               onClick={handlePrev}
               icon={<ArrowLeft className="w-4 h-4" />}
             >
-              Sebelumnya
+              SEBELUMNYA
             </Button>
           ) : (
             <div />
@@ -378,9 +378,9 @@ export default function AssessmentPage() {
               disabled={currentAnswer === undefined}
               onClick={handleNext}
               icon={<ArrowRight className="w-4 h-4" />}
-              className="flex-row-reverse touch-target-primary shadow-soft-sm"
+              className="flex-row-reverse"
             >
-              Pertanyaan Berikutnya
+              PERTANYAAN BERIKUTNYA →
             </Button>
           ) : (
             <Button
@@ -390,31 +390,31 @@ export default function AssessmentPage() {
               isLoading={isSubmitting}
               onClick={handleFinalSubmit}
               icon={<ArrowRight className="w-4 h-4" />}
-              className="flex-row-reverse touch-target-primary shadow-soft-sm"
+              className="flex-row-reverse"
             >
-              {isSubmitting ? 'Menyusun Rekomendasi...' : 'Selesaikan & Lihat Rekomendasi'}
+              {isSubmitting ? 'MENYUSUN REKOMENDASI...' : 'SELESAIKAN & LIHAT REKOMENDASI →'}
             </Button>
           )}
         </div>
 
         {/* Non-Diagnostic Disclaimer */}
-        <div className="pt-2 text-center text-xs text-sand-500 flex items-center justify-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-terracotta-600 shrink-0" />
+        <div className="pt-2 text-center text-xs text-ink/70 flex items-center justify-center gap-1.5 font-medium">
+          <ShieldCheck className="w-4 h-4 text-cobalt shrink-0" />
           <span>Hasil asesmen non-diagnostik untuk mengarahkan ruang dukungan, bukan label medis.</span>
         </div>
 
         {/* Pause & Resume Modal */}
         {showPauseModal && (
-          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-5 shadow-soft-lg border border-sand-200 animate-fadeIn text-left">
-              <div className="w-10 h-10 rounded-2xl bg-honey-100 text-honey-600 flex items-center justify-center">
+          <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-none flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full space-y-5 shadow-hard-lg border-2 border-ink text-left">
+              <div className="w-10 h-10 rounded-md bg-yellow text-ink border-2 border-ink shadow-hard-sm flex items-center justify-center font-black">
                 <BookmarkCheck className="w-5 h-5" />
               </div>
               <div className="space-y-1.5">
-                <h3 className="font-extrabold text-lg text-sand-900">
-                  Draf Berhasil Disimpan
+                <h3 className="font-black text-lg text-ink uppercase tracking-wider">
+                  DRAF BERHASIL DISIMPAN
                 </h3>
-                <p className="text-xs sm:text-sm text-sand-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
                   Jawabanmu telah tersimpan aman di peramban ini. Kamu dapat menutup halaman ini atau kembali ke
                   dashboard, lalu melanjutkan kapan saja saat kamu siap.
                 </p>
@@ -444,3 +444,4 @@ export default function AssessmentPage() {
     </PageContainer>
   );
 }
+

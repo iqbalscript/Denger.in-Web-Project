@@ -13,25 +13,25 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-semibold text-sand-800 tracking-wide">
+          <label htmlFor={inputId} className="block text-xs font-bold uppercase tracking-wider text-[#151515]">
             {label}
           </label>
         )}
         <input
           ref={ref}
           id={inputId}
-          className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm text-sand-900 placeholder:text-sand-400 
-            transition-colors duration-150 min-h-[44px]
-            focus:outline-none focus:ring-2 focus:ring-calm-700/30 focus:border-calm-700
-            ${error ? 'border-crisis focus:border-crisis focus:ring-crisis/20' : 'border-sand-200 hover:border-sand-300'}
-            disabled:bg-sand-50 disabled:text-sand-400 disabled:cursor-not-allowed
+          className={`w-full px-3.5 py-2.5 bg-white border-2 rounded-[4px] text-sm font-medium text-[#151515] placeholder:text-[#8A857D] 
+            transition-all duration-120 min-h-[44px]
+            focus:outline-none focus:shadow-[3px_3px_0px_#4169FF]
+            ${error ? 'border-[#FF5252] shadow-[2px_2px_0px_#FF5252]' : 'border-[#151515] shadow-[2px_2px_0px_#151515]'}
+            disabled:bg-[#D8D3C9]/40 disabled:text-[#8A857D] disabled:cursor-not-allowed
             ${className}`}
           {...props}
         />
         {error ? (
-          <p className="text-xs text-crisis font-medium">{error}</p>
+          <p className="text-xs text-[#FF5252] font-bold">{error}</p>
         ) : helperText ? (
-          <p className="text-xs text-sand-700">{helperText}</p>
+          <p className="text-xs text-[#59544D]">{helperText}</p>
         ) : null}
       </div>
     );
@@ -53,7 +53,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-semibold text-sand-800 tracking-wide">
+          <label htmlFor={inputId} className="block text-xs font-bold uppercase tracking-wider text-[#151515]">
             {label}
           </label>
         )}
@@ -61,18 +61,18 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={inputId}
           rows={rows}
-          className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm text-sand-900 placeholder:text-sand-400 
-            transition-colors duration-150
-            focus:outline-none focus:ring-2 focus:ring-calm-700/30 focus:border-calm-700
-            ${error ? 'border-crisis focus:border-crisis focus:ring-crisis/20' : 'border-sand-200 hover:border-sand-300'}
-            disabled:bg-sand-50 disabled:text-sand-400 disabled:cursor-not-allowed
+          className={`w-full px-3.5 py-2.5 bg-white border-2 rounded-[4px] text-sm font-medium text-[#151515] placeholder:text-[#8A857D] 
+            transition-all duration-120
+            focus:outline-none focus:shadow-[3px_3px_0px_#4169FF]
+            ${error ? 'border-[#FF5252] shadow-[2px_2px_0px_#FF5252]' : 'border-[#151515] shadow-[2px_2px_0px_#151515]'}
+            disabled:bg-[#D8D3C9]/40 disabled:text-[#8A857D] disabled:cursor-not-allowed
             ${className}`}
           {...props}
         />
         {error ? (
-          <p className="text-xs text-crisis font-medium">{error}</p>
+          <p className="text-xs text-[#FF5252] font-bold">{error}</p>
         ) : helperText ? (
-          <p className="text-xs text-sand-700">{helperText}</p>
+          <p className="text-xs text-[#59544D]">{helperText}</p>
         ) : null}
       </div>
     );

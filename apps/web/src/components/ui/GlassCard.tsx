@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   tint?: 'none' | 'calm' | 'warm';
@@ -15,18 +15,18 @@ export function GlassCard({
   ...props
 }: GlassCardProps) {
   const tintClasses = {
-    none: 'bg-white/70 border-white/70',
-    calm: 'bg-calm-50/70 border-calm-200/50',
-    warm: 'bg-warm-50/70 border-sand-200/60',
+    none: 'bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#151515]',
+    calm: 'bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#4169FF]',
+    warm: 'bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#FF8A3D]',
   };
 
   const hoverClass = hoverEffect
-    ? 'transition-all duration-200 hover:shadow-soft-lg hover:-translate-y-0.5'
+    ? 'transition-all duration-120 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515]'
     : '';
 
   return (
     <div
-      className={`backdrop-blur-md rounded-2xl sm:rounded-3xl border shadow-glass ${tintClasses[tint]} ${hoverClass} ${className}`}
+      className={`rounded-[6px] ${tintClasses[tint]} ${hoverClass} ${className}`}
       {...props}
     >
       {children}

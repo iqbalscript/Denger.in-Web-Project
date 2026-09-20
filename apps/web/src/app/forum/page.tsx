@@ -18,7 +18,6 @@ import {
 import {
   PageContainer,
   ContentColumn,
-  SoftCard,
   Button,
   Badge,
   Chip,
@@ -133,7 +132,6 @@ export default function ForumPage() {
       if (res.ok) {
         const data = await res.json();
         if (data.posts && Array.isArray(data.posts)) {
-          // Combine server posts with fallback seed posts if empty
           if (data.posts.length === 0) {
             const filteredSeed = selectedDomain && selectedDomain !== 'all'
               ? INITIAL_FALLBACK_POSTS.filter((p) => p.domain === selectedDomain)
@@ -166,7 +164,6 @@ export default function ForumPage() {
   const handleSupport = async (postId: string) => {
     if (supportedPosts.has(postId)) return;
 
-    // Optimistic UI update
     setPosts((prev) =>
       prev.map((p) => (p.id === postId ? { ...p, supportCount: p.supportCount + 1 } : p))
     );
@@ -180,7 +177,6 @@ export default function ForumPage() {
       // ignore
     }
 
-    // Call API if not a seed
     if (!postId.startsWith('seed-')) {
       try {
         await fetch(`/api/forum/${postId}/support`, { method: 'POST' });
@@ -228,7 +224,6 @@ export default function ForumPage() {
       }
 
       if (data.moderation?.status === 'approved') {
-        // Auto approved! Prepend post to feed
         if (data.post) {
           setPosts((prev) => [data.post, ...prev]);
         }
@@ -263,8 +258,8 @@ export default function ForumPage() {
       <ContentColumn size="md" className="space-y-8 text-left">
         <div>
           <Link href="/dashboard" className="inline-block">
-            <Button variant="ghost" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              Kembali ke Dashboard
+            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
+              KEMBALI KE DASHBOARD
             </Button>
           </Link>
         </div>
@@ -273,13 +268,13 @@ export default function ForumPage() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div className="space-y-2">
             <Badge variant="calm" size="md">
-              <Users className="w-3.5 h-3.5 mr-1 text-calm-700" />
+              <Users className="w-3.5 h-3.5 mr-1" />
               Ruang Cerita Anonim
             </Badge>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-sand-900 tracking-tight">
-              Solidaritas Tanpa Identitas
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-none">
+              SOLIDARITAS TANPA IDENTITAS
             </h1>
-            <p className="text-xs sm:text-sm text-sand-700 leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-xl font-medium">
               Ruang aman membaca dan berbagi refleksi dengan sesama yang menghadapi beban hidup serupa.
               Bebas dari penghakiman dan 100% anonim.
             </p>
@@ -290,23 +285,23 @@ export default function ForumPage() {
             size="md"
             icon={<PlusCircle className="w-4 h-4" />}
             onClick={handleOpenModal}
-            className="shrink-0 shadow-soft-sm"
+            className="shrink-0"
           >
-            Bagikan Cerita
+            BAGIKAN CERITA →
           </Button>
         </div>
 
         {/* Safety & Moderation Trust Badge */}
-        <div className="p-3.5 rounded-2xl bg-calm-50/90 border border-calm-200/80 flex items-center justify-between gap-3 text-xs text-calm-950">
+        <div className="p-3.5 rounded-md bg-yellow/20 border-2 border-ink shadow-hard-sm flex items-center justify-between gap-3 text-xs text-ink font-medium">
           <div className="flex items-center gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-calm-700 shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-cobalt shrink-0" />
             <span>
-              <strong>Moderasi Keselamatan Otomatis Aktif:</strong> Setiap cerita disaring melalui gerbang krisis deterministik & filter kelayakan anti-toksik.
+              <strong className="font-black uppercase tracking-wide">MODERASI OTOMATIS AKTIF:</strong> Setiap cerita disaring melalui gerbang krisis deterministik &amp; filter kelayakan anti-toksik.
             </span>
           </div>
           <button
             onClick={() => fetchPosts(activeTab)}
-            className="text-calm-700 hover:text-calm-900 transition-colors p-1"
+            className="text-ink hover:text-cobalt transition-colors p-1"
             title="Segarkan feed"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -334,42 +329,39 @@ export default function ForumPage() {
             const categoryLabel = CATEGORIES.find((c) => c.domain === post.domain)?.label || 'Beban Pikiran';
 
             return (
-              <SoftCard
+              <div
                 key={post.id}
-                variant="white"
-                elevation="low"
-                hoverEffect
-                className="p-6 space-y-3.5 transition-all"
+                className="bg-white border-2 border-ink rounded-lg p-6 space-y-3.5 shadow-hard-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
               >
                 <div className="flex items-center justify-between gap-2 text-xs">
-                  <Badge variant="sand" size="sm">
+                  <span className="text-[11px] font-black uppercase px-2 py-0.5 bg-paper border border-ink rounded text-ink">
                     {post.authorPseudonym}
-                  </Badge>
-                  <span className="text-[11px] text-sand-500 font-medium">
+                  </span>
+                  <span className="text-[11px] text-ink/60 font-bold uppercase tracking-wide">
                     {categoryLabel}
                   </span>
                 </div>
 
-                <h3 className="font-bold text-base text-sand-900 leading-snug">
+                <h3 className="font-black text-base text-ink uppercase tracking-wide leading-snug">
                   {post.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-sand-700 leading-relaxed whitespace-pre-line">
+                <p className="text-xs sm:text-sm text-ink/80 leading-relaxed whitespace-pre-line font-medium">
                   {post.body}
                 </p>
 
-                <div className="pt-3 flex items-center justify-between text-xs text-sand-600 border-t border-sand-100">
+                <div className="pt-3 flex items-center justify-between text-xs text-ink/70 border-t-2 border-ink">
                   <button
                     onClick={() => handleSupport(post.id)}
-                    className={`flex items-center gap-1.5 font-semibold py-1 px-2.5 rounded-full transition-all ${
+                    className={`flex items-center gap-1.5 font-bold py-1 px-2.5 rounded border-2 border-ink transition-all ${
                       hasSupported
-                        ? 'bg-red-50 text-red-700 font-bold border border-red-200/80 shadow-soft-xs'
-                        : 'text-sand-600 hover:text-red-700 hover:bg-sand-50'
+                        ? 'bg-coral/20 text-coral shadow-hard-sm'
+                        : 'bg-white hover:bg-paper text-ink shadow-hard-sm'
                     }`}
                   >
                     <Heart
                       className={`w-3.5 h-3.5 ${
-                        hasSupported ? 'fill-red-500 text-red-500 scale-110' : 'text-sand-400'
-                      } transition-transform`}
+                        hasSupported ? 'fill-coral text-coral' : 'text-ink'
+                      }`}
                     />
                     <span>
                       {hasSupported
@@ -378,35 +370,35 @@ export default function ForumPage() {
                     </span>
                   </button>
 
-                  <span className="text-[11px] text-sand-400">
+                  <span className="text-[11px] text-ink/50 font-bold">
                     {new Date(post.createdAt).toLocaleDateString('id-ID', {
                       day: 'numeric',
                       month: 'short',
                     })}
                   </span>
                 </div>
-              </SoftCard>
+              </div>
             );
           })}
         </div>
 
         {/* Modal: Bagikan Cerita Anonim */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sand-950/40 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-3xl border border-sand-200/90 shadow-soft-lg w-full max-w-lg p-6 sm:p-7 space-y-5 text-left relative max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between pb-3 border-b border-sand-100">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-none">
+            <div className="bg-white rounded-lg border-2 border-ink shadow-hard-lg w-full max-w-lg p-6 sm:p-7 space-y-5 text-left relative max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between pb-3 border-b-2 border-ink">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-calm-50 flex items-center justify-center text-calm-700">
+                  <div className="w-8 h-8 rounded bg-yellow border-2 border-ink flex items-center justify-center text-ink font-black">
                     <MessageCircleHeart className="w-4 h-4" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-sand-900">Bagikan Cerita Anonim</h2>
-                    <p className="text-[11px] text-sand-500">Kisahmu mungkin menguatkan orang lain hari ini.</p>
+                    <h2 className="text-base font-black text-ink uppercase tracking-wide">Bagikan Cerita Anonim</h2>
+                    <p className="text-[11px] text-ink/70 font-medium">Kisahmu mungkin menguatkan orang lain hari ini.</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-1 rounded-full text-sand-400 hover:text-sand-700 hover:bg-sand-100 transition-colors"
+                  className="p-1 rounded text-ink hover:bg-paper transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -414,32 +406,32 @@ export default function ForumPage() {
 
               {submitNotice && (
                 <div
-                  className={`p-3.5 rounded-2xl text-xs flex items-start gap-2.5 ${
+                  className={`p-3.5 rounded-md border-2 border-ink text-xs flex items-start gap-2.5 shadow-hard-sm ${
                     submitNotice.type === 'success'
-                      ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+                      ? 'bg-lime text-ink'
                       : submitNotice.type === 'warning'
-                      ? 'bg-amber-50 border border-amber-200 text-amber-900'
-                      : 'bg-red-50 border border-red-200 text-red-900'
+                      ? 'bg-yellow text-ink'
+                      : 'bg-coral text-white'
                   }`}
                 >
                   {submitNotice.type === 'success' ? (
-                    <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <Sparkles className="w-4 h-4 shrink-0 mt-0.5" />
                   ) : (
-                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   )}
-                  <span className="leading-relaxed">{submitNotice.message}</span>
+                  <span className="leading-relaxed font-medium">{submitNotice.message}</span>
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Pseudonym */}
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-sand-700 flex items-center justify-between">
+                  <label className="text-xs font-black uppercase tracking-wider text-ink flex items-center justify-between">
                     <span>Nama Samaran Anonim</span>
                     <button
                       type="button"
                       onClick={() => setAuthorPseudonym(generateRandomPseudonym())}
-                      className="text-calm-700 hover:text-calm-900 text-[11px] font-medium flex items-center gap-1"
+                      className="text-cobalt hover:underline text-[11px] font-bold flex items-center gap-1"
                     >
                       <RefreshCw className="w-3 h-3" /> Acak Nama
                     </button>
@@ -454,26 +446,26 @@ export default function ForumPage() {
 
                 {/* Category Domain */}
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-sand-700">Topik Beban Hidup</label>
+                  <label className="text-xs font-black uppercase tracking-wider text-ink">Topik Beban Hidup</label>
                   <select
                     value={domain}
                     onChange={(e) => setDomain(e.target.value as InterventionDomain)}
-                    className="w-full rounded-2xl border border-sand-200 bg-white px-3.5 py-2.5 text-xs text-sand-800 shadow-soft-xs focus:outline-none focus:ring-2 focus:ring-calm-600/30"
+                    className="w-full rounded-md border-2 border-ink bg-white px-3.5 py-2.5 text-xs text-ink shadow-hard-sm focus:outline-none font-medium"
                   >
-                    <option value="campus">Kampus & Skripsi</option>
-                    <option value="finance">Tekanan Finansial & Pinjol</option>
-                    <option value="work">Beban Pekerjaan & Burnout</option>
+                    <option value="campus">Kampus &amp; Skripsi</option>
+                    <option value="finance">Tekanan Finansial &amp; Pinjol</option>
+                    <option value="work">Beban Pekerjaan &amp; Burnout</option>
                     <option value="family">Dinamika Keluarga</option>
-                    <option value="relationship">Hubungan & Asmara</option>
+                    <option value="relationship">Hubungan &amp; Asmara</option>
                     <option value="general">Beban Pikiran Umum</option>
                   </select>
                 </div>
 
                 {/* Title */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold text-sand-700">
+                  <div className="flex justify-between text-xs font-black uppercase tracking-wider text-ink">
                     <span>Judul Cerita</span>
-                    <span className="text-sand-400 font-normal">{title.length}/100</span>
+                    <span className="text-ink/50 font-normal">{title.length}/100</span>
                   </div>
                   <Input
                     value={title}
@@ -485,9 +477,9 @@ export default function ForumPage() {
 
                 {/* Story Body */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold text-sand-700">
+                  <div className="flex justify-between text-xs font-black uppercase tracking-wider text-ink">
                     <span>Isi Pengalaman / Refleksi</span>
-                    <span className="text-sand-400 font-normal">{body.length}/2500</span>
+                    <span className="text-ink/50 font-normal">{body.length}/2500</span>
                   </div>
                   <Textarea
                     value={body}
@@ -498,14 +490,14 @@ export default function ForumPage() {
                   />
                 </div>
 
-                <div className="p-3 rounded-xl bg-sand-50 border border-sand-200/80 text-[11px] text-sand-600 leading-relaxed">
-                  🔒 <strong>Etika Ruang Aman:</strong> Dilarang menyertakan nama asli, kontak pribadi, tautan luar, promosi, atau ujaran kebencian. Postingan akan langsung disaring secara otomatis demi kenyamanan bersama.
+                <div className="p-3 rounded-md bg-paper border-2 border-ink text-[11px] text-ink leading-relaxed font-medium">
+                  🔒 <strong className="font-bold">ETIKA RUANG AMAN:</strong> Dilarang menyertakan nama asli, kontak pribadi, tautan luar, promosi, atau ujaran kebencian. Postingan akan langsung disaring secara otomatis demi kenyamanan bersama.
                 </div>
 
                 <div className="flex items-center justify-end gap-2.5 pt-2">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => setIsModalOpen(false)}
                     disabled={submitting}
@@ -519,7 +511,7 @@ export default function ForumPage() {
                     icon={<Send className="w-3.5 h-3.5" />}
                     disabled={submitting || title.trim().length < 5 || body.trim().length < 20}
                   >
-                    {submitting ? 'Memverifikasi...' : 'Kirim Cerita'}
+                    {submitting ? 'Memverifikasi...' : 'KIRIM CERITA →'}
                   </Button>
                 </div>
               </form>
@@ -530,3 +522,4 @@ export default function ForumPage() {
     </PageContainer>
   );
 }
+

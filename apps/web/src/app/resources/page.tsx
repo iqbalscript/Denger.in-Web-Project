@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { PhoneCall, MessageCircle, ExternalLink, ArrowLeft, Search } from 'lucide-react';
 import { EMERGENCY_CONTACTS } from '@dengarin/config';
-import { PageContainer, SoftCard, Button, Badge, Chip } from '@/components/ui';
+import { PageContainer, Button, Badge, Chip } from '@/components/ui';
 
 export default function ResourcesPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -31,37 +31,37 @@ export default function ResourcesPage() {
       {/* Top Nav */}
       <div>
         <Link href="/dashboard" className="inline-block">
-          <Button variant="ghost" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-            Kembali ke Dashboard
+          <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
+            KEMBALI KE DASHBOARD
           </Button>
         </Link>
       </div>
 
       {/* Header */}
-      <SoftCard variant="white" elevation="medium" className="p-6 sm:p-8 space-y-3">
+      <div className="bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-3 shadow-hard text-left">
         <Badge variant="calm" size="md">
           Direktori Terverifikasi
         </Badge>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-sand-900 tracking-tight pt-1">
-          Bantuan Profesional & Saluran Krisis Indonesia
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-none pt-1">
+          BANTUAN PROFESIONAL &amp; SALURAN KRISIS INDONESIA
         </h1>
-        <p className="text-xs sm:text-sm text-sand-700 leading-relaxed max-w-2xl">
+        <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-2xl font-medium">
           Ketika bantuan mandiri tidak lagi mencukupi, tenaga profesional manusia siap mendampingimu.
           Semua kontak di bawah ini merupakan lembaga resmi, nirlaba terverifikasi, atau otoritas negara.
         </p>
-      </SoftCard>
+      </div>
 
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-sand-400 absolute left-3.5 top-3.5" />
+          <Search className="w-4 h-4 text-ink/40 absolute left-3.5 top-3.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari layanan, nomor telepon, atau jenis bantuan..."
             aria-label="Cari layanan bantuan"
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-sand-200 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-calm-700/30 focus:border-calm-700"
+            className="w-full pl-10 pr-4 py-2.5 rounded-md border-2 border-ink text-xs sm:text-sm bg-white shadow-hard-sm focus:outline-none font-medium"
           />
         </div>
 
@@ -82,33 +82,30 @@ export default function ResourcesPage() {
       {/* Directory Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filtered.map((item) => (
-          <SoftCard
+          <div
             key={item.id}
-            variant="white"
-            elevation="low"
-            className="p-5 flex flex-col justify-between space-y-4"
+            className="bg-white border-2 border-ink rounded-lg p-5 flex flex-col justify-between space-y-4 shadow-hard-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all text-left"
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <Badge
-                  variant={item.cost === 'gratis' ? 'calm' : 'sand'}
-                  size="sm"
-                >
+                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border border-ink ${
+                  item.cost === 'gratis' ? 'bg-lime text-ink' : 'bg-paper text-ink'
+                }`}>
                   {item.cost === 'gratis' ? 'Bebas Pulsa / Gratis' : 'Tarif Normal'}
-                </Badge>
-                <span className="text-xs text-sand-500 font-medium">
+                </span>
+                <span className="text-xs text-ink/60 font-bold uppercase tracking-wide">
                   {item.availableHours}
                 </span>
               </div>
-              <h3 className="font-bold text-base text-sand-900 leading-snug">{item.name}</h3>
-              <p className="text-xs text-sand-700 leading-relaxed">{item.description}</p>
+              <h3 className="font-black text-base text-ink uppercase tracking-wide leading-snug">{item.name}</h3>
+              <p className="text-xs text-ink/80 leading-relaxed font-medium">{item.description}</p>
             </div>
 
-            <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-sand-100">
+            <div className="pt-2 flex flex-wrap items-center gap-2 border-t-2 border-ink">
               {item.phone && (
                 <a
                   href={`tel:${item.phone.replace(/[^0-9]/g, '')}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-calm-700 hover:bg-calm-800 text-white text-xs font-semibold rounded-xl shadow-soft-xs transition-colors min-h-[38px] focus-visible:outline-calm-700"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-cobalt hover:bg-cobalt-dark text-white text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[38px]"
                 >
                   <PhoneCall className="w-3.5 h-3.5" />
                   <span>{item.phone}</span>
@@ -119,7 +116,7 @@ export default function ResourcesPage() {
                   href={`https://wa.me/62${item.whatsapp.replace(/^0/, '').replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl shadow-soft-xs transition-colors min-h-[38px] focus-visible:outline-emerald-700"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-lime text-ink text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[38px]"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   <span>WA: {item.whatsapp}</span>
@@ -130,7 +127,7 @@ export default function ResourcesPage() {
                   href={item.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-sand-100 hover:bg-sand-200 text-sand-800 rounded-xl transition-colors ml-auto min-h-[38px] min-w-[38px] flex items-center justify-center focus-visible:outline-sand-700"
+                  className="p-2 bg-paper hover:bg-paper-dark text-ink rounded border-2 border-ink shadow-hard-sm transition-all ml-auto min-h-[38px] min-w-[38px] flex items-center justify-center"
                   title="Buka Website"
                   aria-label={`Buka website resmi ${item.name}`}
                 >
@@ -138,9 +135,10 @@ export default function ResourcesPage() {
                 </a>
               )}
             </div>
-          </SoftCard>
+          </div>
         ))}
       </div>
     </PageContainer>
   );
 }
+

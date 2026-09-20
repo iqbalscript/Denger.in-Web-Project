@@ -30,7 +30,7 @@ import {
   normalizeMnemonic
 } from '@/lib/crypto/e2ee';
 import type { AnonymousUserSession, DailyCheckin, JournalEntry } from '@dengarin/types';
-import { PageContainer, ContentColumn, SoftCard, Button, Badge, Textarea } from '@/components/ui';
+import { PageContainer, ContentColumn, Button, Badge, Textarea } from '@/components/ui';
 
 interface DecryptedBackupPayload {
   session: AnonymousUserSession;
@@ -229,48 +229,48 @@ export default function RecoveryPage() {
 
   return (
     <PageContainer size="narrow">
-      <ContentColumn size="md" className="space-y-10 text-left">
+      <ContentColumn size="md" className="space-y-8 text-left">
         <div>
           <Link href="/dashboard" className="inline-block">
-            <Button variant="ghost" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
+            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
               Kembali ke Dashboard
             </Button>
           </Link>
         </div>
 
         {/* Heading */}
-        <div className="space-y-2">
-          <Badge variant="calm" size="md">
-            <Key className="w-3.5 h-3.5 mr-1 text-calm-700" />
+        <div className="space-y-3">
+          <Badge variant="cobalt" size="md">
+            <Key className="w-3.5 h-3.5 mr-1" />
             Utilitas Cadangan Anonim & E2EE Sync
           </Badge>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-sand-900 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#151515] tracking-tight">
             Kunci Akses Sesi Pribadimu
           </h1>
-          <p className="text-xs sm:text-sm text-sand-700 leading-relaxed max-w-xl">
-            Dengar.in tidak menyimpan email atau nomor telepon. Simpan 12 kata ini sebagai kunci kriptografis untuk mencadangkan dan memulihkan seluruh progresmu.
+          <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed max-w-xl font-medium">
+            Dengar.in tidak menyimpan email atau nomor telepon. Simpan 12 kata ini sebagai kunci kriptografis untuk mencadangkan dan memulihkan seluruh progresmu secara mandiri.
           </p>
         </div>
 
         {/* 1. PRIMARY: 12-Word Recovery Code */}
-        <SoftCard variant="white" elevation="medium" className="p-6 sm:p-8 space-y-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-sand-900 uppercase tracking-wider">
+        <div className="p-6 sm:p-8 space-y-6 bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515]">
+          <div className="flex items-center justify-between border-b-2 border-[#151515] pb-3">
+            <span className="text-xs font-black text-[#151515] uppercase tracking-wider">
               12 Kata Kunci Rahasia
             </span>
-            <span className="text-xs text-sand-500 font-medium flex items-center gap-1">
-              <Lock className="w-3 h-3 text-calm-700" /> Kunci Enkripsi Sisi Klien
+            <span className="text-xs text-[#59544D] font-bold flex items-center gap-1">
+              <Lock className="w-3.5 h-3.5 text-[#4169FF]" /> Kunci Enkripsi Sisi Klien
             </span>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 p-4 rounded-2xl bg-sand-50 border border-sand-200 font-mono text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 rounded-[4px] bg-[#FFF8EF] border-2 border-[#151515]">
             {words.map((w: string, idx: number) => (
               <div
                 key={idx}
-                className="bg-white p-2.5 rounded-xl border border-sand-200/90 flex items-center gap-1.5 shadow-soft-xs"
+                className="bg-white p-2.5 rounded-[4px] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] flex items-center gap-2 font-mono text-xs sm:text-sm"
               >
-                <span className="text-[10px] text-sand-400 font-sans">{idx + 1}.</span>
-                <span className="font-bold text-sand-900">{w}</span>
+                <span className="text-[10px] text-[#8A857D] font-bold font-sans">{idx + 1}.</span>
+                <span className="font-bold text-[#151515]">{w}</span>
               </div>
             ))}
           </div>
@@ -278,28 +278,28 @@ export default function RecoveryPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
             <Button
               variant="primary"
-              size="sm"
+              size="md"
               onClick={handleCopy}
-              icon={copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+              icon={copied ? <Check className="w-4 h-4 text-[#B8F34A]" /> : <Copy className="w-4 h-4" />}
             >
               {copied ? 'Tersalin ke Clipboard!' : 'Salin 12 Kata'}
             </Button>
 
-            <span className="text-[11px] text-sand-600 italic">
+            <span className="text-xs text-[#59544D] font-bold italic">
               * Jangan bagikan kata-kata ini kepada siapa pun.
             </span>
           </div>
-        </SoftCard>
+        </div>
 
         {/* 2. E2EE CLOUD BACKUP SECTION */}
-        <SoftCard variant="white" elevation="low" className="p-6 sm:p-7 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="p-6 sm:p-7 space-y-5 bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-sand-900 flex items-center gap-2">
-                <CloudUpload className="w-4 h-4 text-calm-700" />
+              <h3 className="text-sm sm:text-base font-extrabold text-[#151515] flex items-center gap-2">
+                <CloudUpload className="w-4 h-4 text-[#4169FF]" />
                 <span>Cadangkan ke Cloud Terenkripsi (Zero-Knowledge E2EE)</span>
               </h3>
-              <p className="text-xs text-sand-600 leading-relaxed max-w-lg">
+              <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed max-w-lg font-medium">
                 Data check-in dan jurnalmu dienkripsi menggunakan AES-GCM 256-bit langsung di peramban sebelum dikirim. Server tidak pernah memiliki kunci dekripsi.
               </p>
             </div>
@@ -318,33 +318,33 @@ export default function RecoveryPage() {
 
           {backupNotice && (
             <div
-              className={`p-3.5 rounded-2xl text-xs flex items-start gap-2.5 ${
+              className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-xs font-bold flex items-start gap-2.5 ${
                 backupNotice.type === 'success'
-                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
-                  : 'bg-red-50 border border-red-200 text-red-900'
+                  ? 'bg-[#B8F34A] text-[#151515] shadow-[2px_2px_0px_#151515]'
+                  : 'bg-[#FF5252] text-white shadow-[2px_2px_0px_#151515]'
               }`}
             >
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
               <span className="leading-relaxed">{backupNotice.message}</span>
             </div>
           )}
 
           {lastBackupTime && (
-            <div className="text-[11px] text-sand-500 pt-1 border-t border-sand-100 flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-calm-700" />
+            <div className="text-xs text-[#59544D] font-bold pt-2 border-t-2 border-[#151515]/10 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#4169FF]" />
               <span>Terakhir dicadangkan: {new Date(lastBackupTime).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
             </div>
           )}
-        </SoftCard>
+        </div>
 
         {/* 3. RESTORE SESSION SECTION */}
-        <div className="space-y-4 pt-2">
+        <div className="p-6 sm:p-7 space-y-4 bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515]">
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-sand-900 flex items-center gap-2">
-              <CloudDownload className="w-4 h-4 text-calm-700" />
+            <h3 className="text-base font-extrabold text-[#151515] flex items-center gap-2">
+              <CloudDownload className="w-4 h-4 text-[#4169FF]" />
               <span>Pulihkan Sesi di Perangkat Baru</span>
             </h3>
-            <p className="text-xs text-sand-600 leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed font-medium">
               Masukkan 12 kata kunci untuk mendekripsi dan memulihkan seluruh data riwayatmu dari cadangan cloud.
             </p>
           </div>
@@ -361,18 +361,18 @@ export default function RecoveryPage() {
 
             {restoreStatus && (
               <div
-                className={`p-3.5 rounded-2xl text-xs flex items-start gap-2.5 ${
+                className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-xs font-bold flex items-start gap-2.5 ${
                   restoreStatus.type === 'success'
-                    ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+                    ? 'bg-[#B8F34A] text-[#151515] shadow-[2px_2px_0px_#151515]'
                     : restoreStatus.type === 'warning'
-                    ? 'bg-amber-50 border border-amber-200 text-amber-900'
-                    : 'bg-red-50 border border-red-200 text-red-900'
+                    ? 'bg-[#FFD84D] text-[#151515] shadow-[2px_2px_0px_#151515]'
+                    : 'bg-[#FF5252] text-white shadow-[2px_2px_0px_#151515]'
                 }`}
               >
                 {restoreStatus.type === 'success' ? (
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 )}
                 <span className="leading-relaxed">{restoreStatus.message}</span>
               </div>
@@ -381,7 +381,7 @@ export default function RecoveryPage() {
             <div>
               <Button
                 type="submit"
-                variant="secondary"
+                variant="primary"
                 size="sm"
                 disabled={isRestoring || !restoreInput.trim()}
                 icon={<RefreshCw className={`w-3.5 h-3.5 ${isRestoring ? 'animate-spin' : ''}`} />}
@@ -393,26 +393,24 @@ export default function RecoveryPage() {
         </div>
 
         {/* 4. DANGER ZONE: Wipe Data */}
-        <div className="pt-8 border-t border-sand-200/80">
-          <div className="p-4 sm:p-5 rounded-2xl bg-red-50/70 border border-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <h4 className="text-xs sm:text-sm font-bold text-crisis-dark flex items-center gap-1.5">
-                <Trash2 className="w-4 h-4 text-crisis" />
-                <span>Zona Bahaya: Bersihkan Data Lokal</span>
-              </h4>
-              <p className="text-xs text-red-900/80 leading-relaxed">
-                Menghapus seluruh identitas anonim, jurnal, dan riwayat check-in dari browser ini.
-              </p>
-            </div>
-            <Button
-              variant="crisis"
-              size="sm"
-              onClick={handleWipe}
-              className="shrink-0"
-            >
-              Hapus Permanen
-            </Button>
+        <div className="p-5 sm:p-6 rounded-[6px] bg-white border-2 border-[#FF5252] shadow-[4px_4px_0px_#FF5252] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <h4 className="text-xs sm:text-sm font-extrabold text-[#FF5252] flex items-center gap-1.5">
+              <Trash2 className="w-4 h-4 text-[#FF5252]" />
+              <span>Zona Bahaya: Bersihkan Data Lokal</span>
+            </h4>
+            <p className="text-xs text-[#59544D] leading-relaxed font-medium">
+              Menghapus seluruh identitas anonim, jurnal, dan riwayat check-in dari browser ini.
+            </p>
           </div>
+          <Button
+            variant="crisis"
+            size="sm"
+            onClick={handleWipe}
+            className="shrink-0"
+          >
+            Hapus Permanen
+          </Button>
         </div>
       </ContentColumn>
     </PageContainer>

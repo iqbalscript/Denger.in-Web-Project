@@ -12,7 +12,7 @@ import {
 } from '@/lib/storage';
 import { DOMAIN_CONFIGS } from '@dengarin/config';
 import type { DailyMission } from '@dengarin/types';
-import { PageContainer, ContentColumn, SoftCard, Button, Badge, Input } from '@/components/ui';
+import { PageContainer, ContentColumn, Button, Input } from '@/components/ui';
 
 export default function MissionPage() {
   const [mission, setMission] = useState<DailyMission | null>(null);
@@ -44,7 +44,7 @@ export default function MissionPage() {
   if (!mission) {
     return (
       <PageContainer size="narrow">
-        <div className="py-16 text-center text-sm text-sand-600">
+        <div className="py-16 text-center text-sm text-ink/70 font-medium">
           Memuat misi harian Anda...
         </div>
       </PageContainer>
@@ -53,60 +53,58 @@ export default function MissionPage() {
 
   return (
     <PageContainer size="narrow">
-      <ContentColumn size="md" className="space-y-10 text-left">
+      <ContentColumn size="md" className="space-y-8 text-left">
         {/* Top: Breadcrumb / Back */}
         <div>
           <Link href="/dashboard" className="inline-block">
-            <Button variant="ghost" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              Kembali ke Dashboard
+            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
+              KEMBALI KE DASHBOARD
             </Button>
           </Link>
         </div>
 
-        {/* Center: THE MISSION HERO (Clean editorial focus, not trapped in an extra box) */}
+        {/* Center: THE MISSION HERO */}
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="calm" size="md">
+            <span className="text-xs font-black uppercase px-2.5 py-1 bg-lime text-ink border-2 border-ink rounded shadow-hard-sm">
               Misi Hari ke-{currentDay} dari 14
-            </Badge>
-            <Badge variant="sand" size="md">
+            </span>
+            <span className="text-xs font-black uppercase px-2.5 py-1 bg-white text-ink border-2 border-ink rounded shadow-hard-sm">
               Fokus: {domainLabel}
-            </Badge>
-            <div className="flex items-center gap-1.5 text-xs text-sand-600 font-medium ml-auto">
-              <Clock className="w-3.5 h-3.5 text-calm-600" />
-              <span>~{mission.durationMinutes} Menit</span>
+            </span>
+            <div className="flex items-center gap-1.5 text-xs text-ink font-bold ml-auto">
+              <Clock className="w-3.5 h-3.5 text-cobalt" />
+              <span>~{mission.durationMinutes} MENIT</span>
             </div>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-sand-900 tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-none">
             {mission.title}
           </h1>
 
-          <p className="text-sm sm:text-base text-sand-700 leading-relaxed max-w-2xl">
+          <p className="text-sm sm:text-base text-ink/80 leading-relaxed max-w-2xl font-medium">
             {mission.summary}
           </p>
         </div>
 
         {/* Vertical Connected Timeline of Guided Steps */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sand-800">
-            <Sparkles className="w-4 h-4 text-calm-700" />
-            <span>Panduan Langkah Demi Langkah:</span>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-ink">
+            <Sparkles className="w-4 h-4 text-cobalt" />
+            <span>PANDUAN LANGKAH DEMI LANGKAH:</span>
           </div>
 
-          <div className="relative pl-8 sm:pl-10 space-y-8 before:absolute before:left-3.5 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-sand-200">
+          <div className="space-y-4">
             {mission.steps.map((step, idx) => (
-              <div key={idx} className="relative group">
-                {/* Timeline Node Circle */}
-                <div className="absolute -left-8 sm:-left-10 top-0.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-calm-700 text-white font-bold text-xs flex items-center justify-center shadow-soft-xs ring-4 ring-sand-50">
-                  {idx + 1}
+              <div key={idx} className="p-5 bg-white border-2 border-ink rounded-lg shadow-hard-sm flex items-start gap-4">
+                <div className="w-9 h-9 rounded-md bg-cobalt text-white font-black text-sm flex items-center justify-center border-2 border-ink shadow-hard-sm shrink-0 mt-0.5">
+                  0{idx + 1}
                 </div>
-
                 <div className="space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-calm-700">
-                    Langkah {idx + 1}
+                  <span className="text-[11px] font-black uppercase tracking-wider text-cobalt">
+                    LANGKAH {idx + 1}
                   </span>
-                  <p className="text-sm sm:text-base text-sand-900 leading-relaxed font-medium">
+                  <p className="text-sm sm:text-base text-ink leading-relaxed font-medium">
                     {step}
                   </p>
                 </div>
@@ -116,7 +114,7 @@ export default function MissionPage() {
         </div>
 
         {/* Reflection Input Section */}
-        <div className="space-y-3 pt-4 border-t border-sand-200/80">
+        <div className="space-y-3 pt-4 border-t-2 border-ink">
           <Input
             label={`Refleksi Singkat: ${mission.reflectionQuestion}`}
             value={reflectionText}
@@ -129,26 +127,22 @@ export default function MissionPage() {
         {/* Completion State / Action Button */}
         <div>
           {isCompleted ? (
-            <SoftCard
-              variant="tinted"
-              elevation="flat"
-              className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-calm-300 shadow-soft-sm"
-            >
+            <div className="bg-lime border-2 border-ink rounded-lg p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-hard">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-6 h-6 text-calm-700 shrink-0" />
+                <CheckCircle2 className="w-6 h-6 text-ink shrink-0" />
                 <div className="space-y-0.5">
-                  <h4 className="text-sm font-bold text-calm-950">Misi Selesai untuk Hari Ini</h4>
-                  <p className="text-xs text-calm-800/80 leading-relaxed">
+                  <h4 className="text-sm font-black text-ink uppercase tracking-wide">Misi Selesai untuk Hari Ini</h4>
+                  <p className="text-xs text-ink/80 leading-relaxed font-medium">
                     Satu tindakan kecil yang nyata telah kamu selesaikan. Istirahatlah dengan tenang.
                   </p>
                 </div>
               </div>
               <Link href="/dashboard" className="shrink-0 w-full sm:w-auto">
                 <Button variant="primary" size="md" fullWidth>
-                  Kembali ke Dashboard
+                  KEMBALI KE DASHBOARD →
                 </Button>
               </Link>
-            </SoftCard>
+            </div>
           ) : (
             <Button
               variant="primary"
@@ -157,7 +151,7 @@ export default function MissionPage() {
               onClick={handleComplete}
               icon={<CheckCircle2 className="w-5 h-5" />}
             >
-              Tandai Selesai & Simpan Refleksi
+              TANDAI SELESAI &amp; SIMPAN REFLEKSI →
             </Button>
           )}
         </div>
@@ -165,3 +159,4 @@ export default function MissionPage() {
     </PageContainer>
   );
 }
+
