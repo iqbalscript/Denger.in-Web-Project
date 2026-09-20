@@ -107,7 +107,7 @@ export function Footer() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 text-xs text-[#59544D] font-medium">
             <span>© 2026 Dengar.in — MindCraft Web Competition 2026</span>
             <span className="inline-flex items-center gap-1">
-              Didesain dengan empati, privasi, dan ketenangan <Heart className="w-3.5 h-3.5 text-[#FF5252] fill-[#FF5252]" /> untuk Indonesia
+              Website by 5 Pria Berflanell (Telkom University Surabaya)
             </span>
           </div>
         </div>
