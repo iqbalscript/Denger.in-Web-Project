@@ -341,7 +341,7 @@ export default function ChatPage() {
                   </span>
                 </div>
                 <p className="text-[11px] text-ink/70 font-medium">
-                  DeepSeek Platform • NVIDIA Nemotron • Gemini 3.1 • Guardrails Maksimum
+                  Multi-Tier AI System with Live Verification & Deblasing
                 </p>
               </div>
             </div>
@@ -377,11 +377,10 @@ export default function ChatPage() {
               >
                 {msg.sender === 'assistant' && (
                   <div
-                    className={`px-2 py-1 rounded border-2 border-ink font-black text-[11px] uppercase tracking-wider shadow-hard-sm shrink-0 mt-1 ${
-                      msg.isError
+                    className={`px-2 py-1 rounded border-2 border-ink font-black text-[11px] uppercase tracking-wider shadow-hard-sm shrink-0 mt-1 ${msg.isError
                         ? 'bg-yellow text-ink'
                         : 'bg-cobalt text-white'
-                    }`}
+                      }`}
                   >
                     DENGAR
                   </div>
@@ -389,13 +388,12 @@ export default function ChatPage() {
 
                 <div className="max-w-[85%] sm:max-w-[75%] space-y-1.5">
                   <div
-                    className={`p-4 rounded-md border-2 border-ink text-xs sm:text-sm leading-relaxed shadow-hard-sm font-medium ${
-                      msg.sender === 'user'
+                    className={`p-4 rounded-md border-2 border-ink text-xs sm:text-sm leading-relaxed shadow-hard-sm font-medium ${msg.sender === 'user'
                         ? 'bg-white text-ink'
                         : msg.isError
                           ? 'bg-yellow/20 text-ink'
                           : 'bg-paper text-ink'
-                    }`}
+                      }`}
                   >
                     <div className="whitespace-pre-line">{msg.text}</div>
 
@@ -413,21 +411,21 @@ export default function ChatPage() {
                       ) : msg.debiased || msg.providerId?.includes('nemotron') ? (
                         <span className="text-[9px] font-black uppercase text-ink bg-lime px-1.5 py-0.5 rounded border border-ink inline-flex items-center gap-0.5">
                           <Zap className="w-2.5 h-2.5" />
-                          DeepSeek + 🛡️ Nemotron Verified
+                          Verified & Deblased
                         </span>
                       ) : msg.tier === 'tertiary' || msg.providerId?.includes('gemini') ? (
                         <span className="text-[9px] font-black uppercase text-white bg-cobalt px-1.5 py-0.5 rounded border border-ink inline-flex items-center gap-0.5">
                           <Sparkles className="w-2.5 h-2.5" />
-                          Gemini 3.1 Flash-Lite
+                          Fallback
                         </span>
                       ) : msg.tier === 'primary' ? (
                         <span className="text-[9px] font-black uppercase text-ink bg-yellow px-1.5 py-0.5 rounded border border-ink inline-flex items-center gap-0.5">
                           <Zap className="w-2.5 h-2.5" />
-                          DeepSeek Platform
+                          Main
                         </span>
                       ) : (
                         <span className="text-[9px] font-black uppercase text-ink bg-paper px-1.5 py-0.5 rounded border border-ink">
-                          🛡️ Mode Cadangan
+                          Subs
                         </span>
                       )}
                     </div>
