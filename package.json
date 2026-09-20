@@ -23,7 +23,10 @@
     "test:persistence-pg": "node --experimental-strip-types tests/persistence-pg/postgresRepositories.test.mjs",
     "test": "npm run test:crisis && npm run test:validator && npm run test:assessment && npm run test:orchestrator && npm run test:persistence && npm run test:auth && npm run test:crypto && npm run test:persistence-pg",
     "db:migrate": "npm run db:migrate --workspace=services/persistence",
-    "db:seed-admin": "npm run db:seed-admin --workspace=services/persistence"
+    "db:seed-admin": "npm run db:seed-admin --workspace=services/persistence",
+    "supabase:migration:list": "npx supabase migration list",
+    "supabase:db:push:dry": "npx supabase db push --dry-run",
+    "supabase:db:push": "npx supabase db push"
   },
   "keywords": [
     "mental-health",

@@ -12,12 +12,42 @@ import assert from 'node:assert/strict';
  * used at runtime by the API routes.
  */
 
+
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+
+if (!process.env.DATABASE_URL) {
+  const candidateDirs = [
+    process.cwd(),
+    path.resolve(process.cwd(), '..'),
+    path.resolve(process.cwd(), '..', '..'),
+    path.resolve(process.cwd(), 'apps', 'web'),
+  ];
+  for (const dir of candidateDirs) {
+    for (const file of ['.env.local', '.env']) {
+      const fullPath = path.join(dir, file);
+      if (existsSync(fullPath)) {
+        try {
+          process.loadEnvFile?.(fullPath);
+          if (process.env.DATABASE_URL) break;
+        } catch {
+          // ignore
+        }
+      }
+    }
+    if (process.env.DATABASE_URL) break;
+  }
+}
+
 if (!process.env.DATABASE_URL) {
   console.log(
     'tests/persistence-pg: DATABASE_URL tidak diset — melewati pengujian integrasi PostgreSQL.'
   );
 } else {
   const { Pool } = await import('pg');
+  const { buildPoolConfig } = await import(
+    '../../services/persistence/src/db/pool.ts'
+  );
   const { createPostgresForumRepository } = await import(
     '../../services/persistence/src/adapters/postgresForumRepository.ts'
   );
@@ -29,7 +59,7 @@ if (!process.env.DATABASE_URL) {
   );
   const { hashPassword } = await import('../../services/auth/src/password.ts');
 
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool(buildPoolConfig(process.env.DATABASE_URL));
 
   describe('PostgreSQL Forum Repository (real database)', () => {
     it('creates a post as pending_review, then approves it into the public listing', async () => {
