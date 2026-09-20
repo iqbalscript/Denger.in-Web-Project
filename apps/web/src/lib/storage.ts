@@ -15,14 +15,6 @@ const CHECKINS_KEY = 'dengarin_checkins';
 const DRAFT_STORAGE_KEY = 'dengarin_assessment_draft';
 const MISSION_KEY_PREFIX = 'dengarin_mission_';
 
-// Curated calm wordlist for 12-word recovery mnemonics
-const MNEMONIC_WORDS = [
-  'samudra', 'lentera', 'harmoni', 'fajar', 'damai', 'teduh',
-  'kelana', 'mentari', 'rimba', 'saujana', 'hening', 'aksara',
-  'melati', 'swara', 'embun', 'cakrawala', 'sejuk', 'cahaya',
-  'senja', 'kidung', 'nirmala', 'pelita', 'bumi', 'lestari'
-];
-
 // Curated non-PII words for anonymous identity generation (e.g. "Bunga Tenang #2481")
 const ALIAS_NOUNS = [
   'Bunga', 'Embun', 'Lentera', 'Samudra', 'Fajar', 'Senja',
@@ -50,12 +42,11 @@ export function generateAnonymousAlias(): string {
  * Generate a random 12-word recovery mnemonic
  */
 export function generateRecoveryMnemonic(): string {
-  const words: string[] = [];
-  for (let i = 0; i < 12; i++) {
-    const randomIndex = Math.floor(Math.random() * MNEMONIC_WORDS.length);
-    words.push(MNEMONIC_WORDS[randomIndex]);
-  }
-  return words.join(' ');
+  // Twelve six-character hexadecimal groups contain 288 bits from Web Crypto.
+  // Legacy 12-word phrases remain accepted by the restore flow.
+  const bytes = crypto.getRandomValues(new Uint8Array(36));
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return hex.match(/.{6}/g)!.join(' ');
 }
 
 /**

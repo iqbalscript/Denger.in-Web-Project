@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { syncRepository } from '@/lib/api/repositories';
 import { jsonError, jsonOk } from '@/lib/api/response';
+import { HEX_256, validBackupProof } from '@/lib/api/syncAuth';
 
 /**
  * Encrypted cross-device sync skeleton (README Roadmap — "Opsi sinkronisasi
@@ -11,6 +12,14 @@ import { jsonError, jsonOk } from '@/lib/api/response';
  * client-side; this route only demonstrates the storage contract.
  */
 export async function GET(request: NextRequest) {
+  const backupId = request.nextUrl.searchParams.get('backupId');
+  if (backupId) {
+    if (!HEX_256.test(backupId)) return jsonError('backupId tidak valid.');
+    const record = await syncRepository.getSecure(backupId);
+    if (!record) return jsonError('Cadangan tidak ditemukan.', 404);
+    return jsonOk({ record: { backupId, encryptedBlob: record.encryptedBlob,
+      version: record.version, updatedAt: record.updatedAt } });
+  }
   const mnemonicHash = request.nextUrl.searchParams.get('mnemonicHash');
   if (!mnemonicHash) {
     return jsonError('Query parameter "mnemonicHash" wajib diisi.');
@@ -25,21 +34,35 @@ export async function GET(request: NextRequest) {
 }
 
 interface SyncPutBody {
-  mnemonicHash?: string;
+  backupId?: string;
   encryptedBlob?: string;
+  expectedVersion?: number;
+  writeProof?: string;
+  writeKey?: string;
 }
 
 export async function PUT(request: NextRequest) {
   const body = (await request.json().catch(() => null)) as SyncPutBody | null;
-  if (!body || !body.mnemonicHash || !body.encryptedBlob) {
-    return jsonError('Properti "mnemonicHash" dan "encryptedBlob" wajib diisi.');
+  if (!body || !body.backupId || !HEX_256.test(body.backupId) ||
+      typeof body.encryptedBlob !== 'string' || !body.encryptedBlob ||
+      !Number.isSafeInteger(body.expectedVersion) || body.expectedVersion! < 0 ||
+      typeof body.writeProof !== 'string') {
+    return jsonError('Permintaan cadangan tidak valid.');
   }
-
-  const record = await syncRepository.upsert({
-    mnemonicHash: body.mnemonicHash,
-    encryptedBlob: body.encryptedBlob,
-    updatedAt: new Date().toISOString()
-  });
-
-  return jsonOk({ record });
+  const expectedVersion = body.expectedVersion as number;
+  const current = await syncRepository.getSecure(body.backupId);
+  if (!current && expectedVersion !== 0) return jsonError('Cadangan tidak ditemukan.', 404);
+  if (current && current.version !== expectedVersion) return jsonError('Versi cadangan sudah berubah.', 409);
+  const key = current?.writeKey ?? body.writeKey;
+  if (!key || !validBackupProof(key, body.backupId, expectedVersion, body.encryptedBlob, body.writeProof)) {
+    return jsonError('Otorisasi cadangan gagal.', 403);
+  }
+  const record = { backupId: body.backupId, encryptedBlob: body.encryptedBlob,
+    writeKey: key, version: expectedVersion + 1, updatedAt: new Date().toISOString() };
+  const saved = current
+    ? await syncRepository.updateSecure(record, expectedVersion)
+    : await syncRepository.createSecure(record);
+  if (!saved) return jsonError('Versi cadangan sudah berubah.', 409);
+  return jsonOk({ record: { backupId: record.backupId, encryptedBlob: record.encryptedBlob,
+    version: record.version, updatedAt: record.updatedAt } });
 }

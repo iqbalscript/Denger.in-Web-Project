@@ -52,6 +52,40 @@ export async function hashMnemonic(mnemonic: string): Promise<string> {
   return bufferToHex(hashBuffer);
 }
 
+/** Legacy lookup is retained only for reading backups created before v2. */
+export function isModernRecoveryPhrase(mnemonic: string): boolean {
+  return /^(?:[0-9a-f]{6} ){11}[0-9a-f]{6}$/.test(normalizeMnemonic(mnemonic));
+}
+
+async function deriveSyncBytes(mnemonic: string, purpose: string): Promise<ArrayBuffer> {
+  if (!isModernRecoveryPhrase(mnemonic)) throw new Error('Kunci pemulihan baru tidak valid.');
+  const material = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(normalizeMnemonic(mnemonic)), 'HKDF', false, ['deriveBits']
+  );
+  return crypto.subtle.deriveBits({
+    name: 'HKDF', hash: 'SHA-256',
+    salt: new TextEncoder().encode('dengarin-sync-v2'),
+    info: new TextEncoder().encode(purpose)
+  }, material, 256);
+}
+
+export async function deriveSyncCredentials(mnemonic: string): Promise<{ backupId: string; writeKey: string }> {
+  const [lookup, write] = await Promise.all([
+    deriveSyncBytes(mnemonic, 'lookup'), deriveSyncBytes(mnemonic, 'write')
+  ]);
+  return { backupId: bufferToHex(lookup), writeKey: bufferToHex(write) };
+}
+
+export async function signBackupUpdate(
+  writeKey: string, backupId: string, expectedVersion: number, encryptedBlob: string
+): Promise<string> {
+  const key = await crypto.subtle.importKey('raw', Uint8Array.from(writeKey.match(/../g)!, x => parseInt(x, 16)),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const digest = bufferToHex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(encryptedBlob)));
+  const input = new TextEncoder().encode(`${backupId}\n${expectedVersion}\n${digest}`);
+  return bufferToHex(await crypto.subtle.sign('HMAC', key, input));
+}
+
 /**
  * Derives an AES-GCM 256-bit key from the 12-word mnemonic using PBKDF2 (100,000 rounds).
  */

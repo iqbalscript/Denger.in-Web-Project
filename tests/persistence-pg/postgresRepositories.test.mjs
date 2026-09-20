@@ -13,31 +13,8 @@ import assert from 'node:assert/strict';
  */
 
 
-import { existsSync } from 'node:fs';
-import path from 'node:path';
-
-if (!process.env.DATABASE_URL) {
-  const candidateDirs = [
-    process.cwd(),
-    path.resolve(process.cwd(), '..'),
-    path.resolve(process.cwd(), '..', '..'),
-    path.resolve(process.cwd(), 'apps', 'web'),
-  ];
-  for (const dir of candidateDirs) {
-    for (const file of ['.env.local', '.env']) {
-      const fullPath = path.join(dir, file);
-      if (existsSync(fullPath)) {
-        try {
-          process.loadEnvFile?.(fullPath);
-          if (process.env.DATABASE_URL) break;
-        } catch {
-          // ignore
-        }
-      }
-    }
-    if (process.env.DATABASE_URL) break;
-  }
-}
+// A real database test must be explicitly opted into via the process environment.
+// Do not silently load deployment credentials from a developer's .env.local.
 
 if (!process.env.DATABASE_URL) {
   console.log(
@@ -116,6 +93,21 @@ if (!process.env.DATABASE_URL) {
         assert.equal((await repo.get(mnemonicHash)).encryptedBlob, 'v2');
       } finally {
         await pool.query('DELETE FROM synced_sessions WHERE mnemonic_hash = $1', [mnemonicHash]);
+      }
+    });
+    it('conditionally updates v2 backups and rejects stale writes', async () => {
+      const repo = createPostgresSyncRepository(pool);
+      const backupId = `pg-test-v2-${Date.now()}`;
+      const record = { backupId, encryptedBlob: 'v1', writeKey: 'test-write-key',
+        version: 1, updatedAt: new Date().toISOString() };
+      try {
+        assert.equal(await repo.createSecure(record), true);
+        assert.equal(await repo.createSecure(record), false);
+        assert.equal(await repo.updateSecure({ ...record, encryptedBlob: 'v2', version: 2 }, 1), true);
+        assert.equal(await repo.updateSecure({ ...record, encryptedBlob: 'stale', version: 2 }, 1), false);
+        assert.equal((await repo.getSecure(backupId)).encryptedBlob, 'v2');
+      } finally {
+        await pool.query('DELETE FROM synced_sessions_v2 WHERE backup_id = $1', [backupId]);
       }
     });
   });

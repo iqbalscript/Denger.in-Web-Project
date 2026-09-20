@@ -26,7 +26,7 @@ const CRISIS_RULES: PatternRule[] = [
   // Explicit Suicidal Intent & Slang
   {
     id: 'explicit-suicide-phrase',
-    pattern: /\b(bunuh\s*diri|bundir|akhiri\s*hidup|mengakhiri\s*hidup)\b/i,
+    pattern: /\b(bunuh\s*diri|bundir|akhiri\s*hidup(?:ku|nya)?|mengakhiri\s*hidup(?:ku|nya)?)\b/i,
     category: 'suicide',
     severity: 'crisis'
   },
@@ -54,6 +54,18 @@ const CRISIS_RULES: PatternRule[] = [
     id: 'self-cutting',
     pattern: /\b(sayat|nyayat|iris)\s*(tangan|nadi|lengan|urat|leher)\b/i,
     category: 'self_harm',
+    severity: 'crisis'
+  },
+  {
+    id: 'self-harm-intent',
+    pattern: /\b(?:menyakiti|melukai|mencelakai)\s*diri(?:ku| sendiri)?\b/i,
+    category: 'self_harm',
+    severity: 'crisis'
+  },
+  {
+    id: 'first-person-euphemism',
+    pattern: /\b(?:aku|saya|gue|gw)\s+(?:ingin|mau|pengen|akan)\s+(?:tidur\s*selamanya|menghilang\s*selamanya|ga\s*bangun\s*lagi)\b/i,
+    category: 'suicide',
     severity: 'crisis'
   },
   {
@@ -151,7 +163,8 @@ export function normalizeIndonesianText(rawText: string): string {
 
   let normalized = rawText
     .toLowerCase()
-    .normalize('NFD')
+    .normalize('NFKD')
+    .replace(/[\u200b-\u200d\ufeff]/g, '')
     .replace(/[\u0300-\u036f]/g, ''); // strip accents
 
   // Common leetspeak substitutions
@@ -164,7 +177,9 @@ export function normalizeIndonesianText(rawText: string): string {
     .replace(/8/g, 'b');
 
   // Collapse character elongation (e.g. "matiiiiii" -> "mati", "buuuundir" -> "bundir")
-  normalized = normalized.replace(/(.)\1+/g, '$1');
+  // Preserve normal doubled letters (e.g. "nanggung") while reducing elongation.
+  normalized = normalized.replace(/(.)\1{2,}/g, '$1');
+  normalized = normalized.replace(/\bb[\s._-]*u[\s._-]*n[\s._-]*u[\s._-]*h[\s._-]*d[\s._-]*i[\s._-]*r[\s._-]*i\b/g, 'bunuh diri');
 
   return normalized;
 }
@@ -178,9 +193,15 @@ export function evaluateCrisisInput(
   ageBracket: AgeBracket = '18-24'
 ): CrisisEvaluationResult {
   const normalized = normalizeIndonesianText(rawText);
+  // Only wholly explicit denial or clearly framed third-person discussion is
+  // exempt. Mixed or ambiguous statements still take the safer crisis path.
+  const hasFirstPerson = /\b(?:aku|saya|gue|gw|diriku|hidupku)\b/i.test(normalized);
+  const contextualDiscussion =
+    /^(?:aku|saya)\s+(?:tidak|ga|gak)\s+(?:mau|ingin|akan)\s+(?:bunuh\s*diri|mati)\s*[.!]?$/i.test(normalized.trim()) ||
+    (!hasFirstPerson && /^(?:dalam\s+(?:film|berita|pelajaran|artikel)\s+(?:itu\s+)?|di\s+(?:film|berita)\s+(?:itu\s+)?)(?:tokoh|dia|mereka)\b[^.!?]*(?:bunuh\s*diri|mau\s*mati)[^.!?]*[.!]?$/i.test(normalized.trim()));
   const matchedRules: PatternRule[] = [];
 
-  for (const rule of CRISIS_RULES) {
+  for (const rule of contextualDiscussion ? [] : CRISIS_RULES) {
     if (rule.pattern.test(normalized)) {
       matchedRules.push(rule);
     }
