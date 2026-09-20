@@ -5,6 +5,7 @@ import type { AgeBracket, InterventionDomain } from '@dengarin/types';
 import { runCrisisGate } from '@/lib/api/crisisGate';
 import { isRateLimited } from '@/lib/api/rateLimit';
 import { jsonError, jsonOk } from '@/lib/api/response';
+import { screenChatContext } from '@/lib/api/chatHistory';
 
 interface ChatRequestBody {
   sessionId?: string;
@@ -22,6 +23,9 @@ interface ChatRequestBody {
  */
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => null)) as ChatRequestBody | null;
+  const screened = screenChatContext(body?.message, body?.history, body?.ageBracket);
+  if (screened.error) return jsonError(screened.error);
+  if (screened.evaluation) return jsonOk({ crisis: true, evaluation: screened.evaluation });
   if (!body || typeof body.message !== 'string' || body.message.trim().length === 0) {
     return jsonError('Properti "message" wajib diisi.');
   }
@@ -38,7 +42,7 @@ export async function POST(request: NextRequest) {
 
   const result = await runOrchestrator({
     message: body.message,
-    history: body.history,
+    history: screened.history,
     ageBracket: body.ageBracket,
     domain: body.domain
   });

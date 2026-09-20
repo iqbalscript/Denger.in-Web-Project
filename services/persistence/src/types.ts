@@ -51,6 +51,14 @@ export interface SyncedSessionRecord {
   updatedAt: string;
 }
 
+export interface SecureBackupRecord {
+  backupId: string;
+  encryptedBlob: string;
+  writeKey: string;
+  version: number;
+  updatedAt: string;
+}
+
 /**
  * Storage-agnostic contract for opt-in encrypted cross-device sync.
  * Implemented by createInMemorySyncRepository() (dev/demo) and
@@ -59,6 +67,9 @@ export interface SyncedSessionRecord {
 export interface SyncRepository {
   get(mnemonicHash: string): Promise<SyncedSessionRecord | undefined>;
   upsert(record: SyncedSessionRecord): Promise<SyncedSessionRecord>;
+  getSecure(backupId: string): Promise<SecureBackupRecord | undefined>;
+  createSecure(record: SecureBackupRecord): Promise<boolean>;
+  updateSecure(record: SecureBackupRecord, expectedVersion: number): Promise<boolean>;
 }
 
 /**

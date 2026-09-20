@@ -21,10 +21,14 @@ import {
   saveAnonymousSession,
   clearAnonymousSession,
   initAnonymousSession,
+  generateRecoveryMnemonic,
   getDailyCheckins,
 } from '@/lib/storage';
 import {
   hashMnemonic,
+  isModernRecoveryPhrase,
+  deriveSyncCredentials,
+  signBackupUpdate,
   encryptSessionData,
   decryptSessionData,
   normalizeMnemonic
@@ -95,24 +99,32 @@ export default function RecoveryPage() {
         // ignore
       }
 
+      // A legacy phrase remains valid for reading its old backup, but its hash
+      // cannot prove write ownership. Rotate only when creating a new backup.
+      const backupSession = isModernRecoveryPhrase(session.recoveryMnemonic)
+        ? session : { ...session, recoveryMnemonic: generateRecoveryMnemonic() };
       const payload: DecryptedBackupPayload = {
-        session,
+        session: backupSession,
         checkins,
         journals,
         backupAt: new Date().toISOString()
       };
 
       // Client-side AES-GCM 256 encryption via Web Crypto API
-      const encryptedBlob = await encryptSessionData(payload, session.recoveryMnemonic);
-      const mnemonicHash = await hashMnemonic(session.recoveryMnemonic);
+      const encryptedBlob = await encryptSessionData(payload, backupSession.recoveryMnemonic);
+      const { backupId, writeKey } = await deriveSyncCredentials(backupSession.recoveryMnemonic);
+      const existing = await fetch(`/api/sync?backupId=${encodeURIComponent(backupId)}`, { cache: 'no-store' });
+      if (!existing.ok && existing.status !== 404) throw new Error('Gagal membaca versi cadangan.');
+      const expectedVersion = existing.ok ? (await existing.json()).data.record.version as number : 0;
+      const writeProof = await signBackupUpdate(writeKey, backupId, expectedVersion, encryptedBlob);
 
       // Send opaque ciphertext to server
       const res = await fetch('/api/sync', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mnemonicHash,
-          encryptedBlob
+          backupId, encryptedBlob, expectedVersion, writeProof,
+          ...(expectedVersion === 0 ? { writeKey } : {})
         })
       });
 
@@ -120,12 +132,19 @@ export default function RecoveryPage() {
         throw new Error('Gagal mengirim paket cadangan ke server.');
       }
 
+      if (backupSession !== session) {
+        saveAnonymousSession(backupSession);
+        setSession(backupSession);
+      }
+
       const nowStr = new Date().toISOString();
       setLastBackupTime(nowStr);
       localStorage.setItem('dengarin_last_backup', nowStr);
       setBackupNotice({
         type: 'success',
-        message: 'Data sesi, check-in, dan jurnal berhasil dienkripsi dan dicadangkan ke cloud secara aman (Zero-Knowledge).'
+        message: backupSession !== session
+          ? 'Cadangan baru berhasil dibuat. Kunci pemulihan telah diperbarui; salin dan simpan 12 kelompok baru yang ditampilkan di atas.'
+          : 'Data sesi, check-in, dan jurnal berhasil dienkripsi dan dicadangkan ke cloud secara aman (Zero-Knowledge).'
       });
     } catch (err: any) {
       setBackupNotice({
@@ -155,22 +174,28 @@ export default function RecoveryPage() {
 
     try {
       // 1. Compute hash to look up cloud record
-      const mnemonicHash = await hashMnemonic(clean);
-      const res = await fetch(`/api/sync?mnemonicHash=${encodeURIComponent(mnemonicHash)}`);
+      const modern = isModernRecoveryPhrase(clean);
+      const lookup = modern
+        ? `backupId=${encodeURIComponent((await deriveSyncCredentials(clean)).backupId)}`
+        : `mnemonicHash=${encodeURIComponent(await hashMnemonic(clean))}`;
+      const res = await fetch(`/api/sync?${lookup}`, { cache: 'no-store' });
+
+      if (!res.ok && res.status !== 404) throw new Error('Gagal membaca cadangan cloud.');
 
       if (res.ok) {
         const data = await res.json();
-        if (data.record?.encryptedBlob) {
+        if (data.data?.record?.encryptedBlob) {
           // Decrypt client-side using Web Crypto API
           const payload = await decryptSessionData<DecryptedBackupPayload>(
-            data.record.encryptedBlob,
+            data.data.record.encryptedBlob,
             clean
           );
 
           // Restore to localStorage
           if (payload.session) {
-            saveAnonymousSession(payload.session);
-            setSession(payload.session);
+            const restored = { ...payload.session, recoveryMnemonic: clean };
+            saveAnonymousSession(restored);
+            setSession(restored);
           }
           if (Array.isArray(payload.checkins)) {
             localStorage.setItem('dengarin_checkins', JSON.stringify(payload.checkins));
@@ -248,7 +273,7 @@ export default function RecoveryPage() {
             Kunci Akses Sesi Pribadimu
           </h1>
           <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed max-w-xl font-medium">
-            Dengar.in tidak menyimpan email atau nomor telepon. Simpan 12 kata ini sebagai kunci kriptografis untuk mencadangkan dan memulihkan seluruh progresmu secara mandiri.
+            Dengar.in tidak menyimpan email atau nomor telepon. Simpan 12 bagian kunci ini untuk mencadangkan dan memulihkan seluruh progresmu secara mandiri.
           </p>
         </div>
 
@@ -256,7 +281,7 @@ export default function RecoveryPage() {
         <div className="p-6 sm:p-8 space-y-6 bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515]">
           <div className="flex items-center justify-between border-b-2 border-[#151515] pb-3">
             <span className="text-xs font-black text-[#151515] uppercase tracking-wider">
-              12 Kata Kunci Rahasia
+              12 Bagian Kunci Rahasia
             </span>
             <span className="text-xs text-[#59544D] font-bold flex items-center gap-1">
               <Lock className="w-3.5 h-3.5 text-[#4169FF]" /> Kunci Enkripsi Sisi Klien
@@ -282,7 +307,7 @@ export default function RecoveryPage() {
               onClick={handleCopy}
               icon={copied ? <Check className="w-4 h-4 text-[#B8F34A]" /> : <Copy className="w-4 h-4" />}
             >
-              {copied ? 'Tersalin ke Clipboard!' : 'Salin 12 Kata'}
+              {copied ? 'Tersalin ke Clipboard!' : 'Salin 12 Bagian'}
             </Button>
 
             <span className="text-xs text-[#59544D] font-bold italic">
@@ -345,7 +370,7 @@ export default function RecoveryPage() {
               <span>Pulihkan Sesi di Perangkat Baru</span>
             </h3>
             <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed font-medium">
-              Masukkan 12 kata kunci untuk mendekripsi dan memulihkan seluruh data riwayatmu dari cadangan cloud.
+              Masukkan 12 bagian kunci (atau 12 kata lama) untuk mendekripsi cadangan cloud.
             </p>
           </div>
 
@@ -354,7 +379,7 @@ export default function RecoveryPage() {
               value={restoreInput}
               onChange={(e) => setRestoreInput(e.target.value)}
               rows={2}
-              placeholder="Ketik 12 kata dipisahkan spasi (contoh: samudra lentera harmoni...)"
+              placeholder="Ketik 12 bagian kunci dipisahkan spasi"
               className="font-mono text-xs sm:text-sm"
               required
             />

@@ -1,5 +1,5 @@
 import { Pool, type PoolConfig } from 'pg';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 let pool: Pool | undefined;
@@ -36,18 +36,30 @@ function ensureEnvLoaded(): void {
 /**
  * Builds a safe PoolConfig for PostgreSQL connections.
  * For Supabase and remote managed Postgres instances:
- * - Enables SSL with rejectUnauthorized: false (required for Supabase pooler and direct connections)
+ * - Verifies remote TLS certificates using system trust or an explicitly supplied CA
  * - Sets connection pooling limits suitable for serverless / hosted Supabase instances
  */
 export function buildPoolConfig(connectionString: string): PoolConfig {
-  const isLocalhost =
-    connectionString.includes('localhost') ||
-    connectionString.includes('127.0.0.1') ||
-    connectionString.includes('::1');
+  const url = new URL(connectionString);
+  const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  // pg may let connection-string SSL parameters override the explicit config.
+  for (const name of ['sslmode', 'ssl', 'sslcert', 'sslkey', 'sslrootcert']) {
+    if (url.searchParams.has(name)) throw new Error('Atur TLS database melalui konfigurasi server, bukan URL.');
+  }
+  if (process.env.DATABASE_CA_CERT && process.env.DATABASE_CA_FILE) {
+    throw new Error('Pilih satu sumber CA database.');
+  }
+  const ca = process.env.DATABASE_CA_FILE
+    ? readFileSync(process.env.DATABASE_CA_FILE, 'utf8')
+    : process.env.DATABASE_CA_CERT;
 
   return {
     connectionString,
-    ssl: isLocalhost ? false : { rejectUnauthorized: false },
+    ssl: isLocalhost ? false : {
+      rejectUnauthorized: true,
+      servername: url.hostname,
+      ...(ca ? { ca } : {})
+    },
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
