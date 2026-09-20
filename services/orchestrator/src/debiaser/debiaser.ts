@@ -21,7 +21,10 @@ Tugas utamamu adalah mengevaluasi draf respons AI primer (DeepSeek) terhadap pes
 4. ANTI-DIAGNOSIS PSIKIATRIS:
    - Pastikan tidak ada label diagnostik klinis (misal: "kamu menderita depresi mayor", "ini gejala bipolar", atau anjuran obat medis).
 
-5. PRESERVASI FORMAT JSON:
+5. GAYA RINGKAS & NATURAL:
+   - Pertahankan respons tetap ringkas (target 30–80 kata, 1–4 kalimat, 1–3 paragraf pendek), hangat, natural, dan mudah dibaca. Hindari penjelasan panjang, ceramah, atau empati berlebihan.
+
+6. PRESERVASI FORMAT JSON:
    - Balas HANYA dengan satu objek JSON valid sesuai skema aksi yang sama dengan draf (harus memiliki "action", payload sesuai aksi, dan "disclaimer"). Tanpa teks lain di luar JSON.`;
 
 export interface DebiasResult {
