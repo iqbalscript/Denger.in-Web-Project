@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { createSessionToken, verifyPassword } from '@dengarin/auth';
 import { adminRepository } from '@/lib/api/repositories';
 import { isRateLimited } from '@/lib/api/rateLimit';
+import { readJsonLimited } from '@/lib/api/requestLimits';
 import { jsonError, jsonOk } from '@/lib/api/response';
 import { ADMIN_SESSION_COOKIE, ADMIN_SESSION_TTL_SECONDS, getAdminSessionSecret } from '@/lib/api/adminSession';
 
@@ -18,14 +19,12 @@ interface LoginBody {
  * signed session cookie consumed by verifyAdminRequest().
  */
 export async function POST(request: NextRequest) {
-  const body = (await request.json().catch(() => null)) as LoginBody | null;
+  if (isRateLimited('admin-login')) return jsonError('Terlalu banyak percobaan login. Coba lagi sebentar lagi.', 429);
+  const parsed = await readJsonLimited(request, 4096);
+  if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
+  const body = parsed.value as LoginBody | null;
   if (!body || !body.username || !body.password) {
     return jsonError('Properti "username" dan "password" wajib diisi.');
-  }
-
-  const rateLimitKey = `admin-login:${request.headers.get('x-forwarded-for') ?? 'local'}`;
-  if (isRateLimited(rateLimitKey)) {
-    return jsonError('Terlalu banyak percobaan login. Coba lagi sebentar lagi.', 429);
   }
 
   let secret: string;

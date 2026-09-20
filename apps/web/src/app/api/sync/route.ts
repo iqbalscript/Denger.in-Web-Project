@@ -2,6 +2,8 @@ import type { NextRequest } from 'next/server';
 import { syncRepository } from '@/lib/api/repositories';
 import { jsonError, jsonOk } from '@/lib/api/response';
 import { HEX_256, validBackupProof } from '@/lib/api/syncAuth';
+import { isRateLimited } from '@/lib/api/rateLimit';
+import { readJsonLimited } from '@/lib/api/requestLimits';
 
 /**
  * Encrypted cross-device sync skeleton (README Roadmap — "Opsi sinkronisasi
@@ -12,6 +14,7 @@ import { HEX_256, validBackupProof } from '@/lib/api/syncAuth';
  * client-side; this route only demonstrates the storage contract.
  */
 export async function GET(request: NextRequest) {
+  if (isRateLimited('sync-read')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
   const backupId = request.nextUrl.searchParams.get('backupId');
   if (backupId) {
     if (!HEX_256.test(backupId)) return jsonError('backupId tidak valid.');
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest) {
       version: record.version, updatedAt: record.updatedAt } });
   }
   const mnemonicHash = request.nextUrl.searchParams.get('mnemonicHash');
-  if (!mnemonicHash) {
+  if (!mnemonicHash || mnemonicHash.length > 128) {
     return jsonError('Query parameter "mnemonicHash" wajib diisi.');
   }
 
@@ -42,7 +45,10 @@ interface SyncPutBody {
 }
 
 export async function PUT(request: NextRequest) {
-  const body = (await request.json().catch(() => null)) as SyncPutBody | null;
+  if (isRateLimited('sync-write')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  const parsed = await readJsonLimited(request, 4 * 1024 * 1024);
+  if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
+  const body = parsed.value as SyncPutBody | null;
   if (!body || !body.backupId || !HEX_256.test(body.backupId) ||
       typeof body.encryptedBlob !== 'string' || !body.encryptedBlob ||
       !Number.isSafeInteger(body.expectedVersion) || body.expectedVersion! < 0 ||
