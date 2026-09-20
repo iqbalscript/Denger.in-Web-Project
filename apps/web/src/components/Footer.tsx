@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Heart, Key, BarChart3, Users } from 'lucide-react';
+import { ShieldCheck, Key, BarChart3, Users } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -85,7 +85,7 @@ export function Footer() {
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-[#4169FF] hover:underline transition-colors"
                 >
                   <Key className="w-3.5 h-3.5 text-[#FF8A3D]" />
-                  <span>12-Kata Kode Pemulihan</span>
+                  <span>Kode Pemulihan 12 Bagian</span>
                 </Link>
               </li>
             </ul>

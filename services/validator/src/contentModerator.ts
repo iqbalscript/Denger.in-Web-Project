@@ -11,6 +11,25 @@ export interface ForumPostContent {
   title: string;
   body: string;
   domain: InterventionDomain;
+  authorPseudonym?: string;
+}
+
+export const MAX_FORUM_PSEUDONYM_LENGTH = 50;
+
+/** Normalize only for inspection; the displayed alias is never silently rewritten. */
+function pseudonymForInspection(value: string): string {
+  return value.normalize('NFKC').replace(/\p{Cf}/gu, '');
+}
+
+function hasPseudonymContactOrMarkup(value: string): boolean {
+  const normalized = pseudonymForInspection(value);
+  return /\p{Cf}/u.test(value) ||
+    !/^[\p{L}\p{M}\p{N} #'’-]+$/u.test(normalized) ||
+    /\b(?:https?|hxxps?):\s*\/\s*\/|\bwww\./iu.test(normalized) ||
+    /\b(?:[\p{L}\p{N}-]+\.)+[\p{L}]{2,}\b/iu.test(normalized) ||
+    /\b[\p{L}\p{N}-]+\s+(?:dot|titik)\s+(?:com|net|org|id|co|io|me|xyz)\b/iu.test(normalized) ||
+    /(?:^|\D)(?:\+?62[\s().-]*|0)8(?:[\s().-]*\d){8,12}(?!\d)/u.test(normalized) ||
+    /\b(?:whats\s*app|telegram|instagram|tiktok|ig|wa|line)\b/iu.test(normalized);
 }
 
 // Patterns that trigger instant rejection (toxic, scam, harassment, gambling)
@@ -39,7 +58,16 @@ const SENSITIVE_REVIEW_PATTERNS: RegExp[] = [
 export function moderateForumPost(input: ForumPostContent): ModerationResult {
   const title = input.title.trim();
   const body = input.body.trim();
-  const combined = `${title} ${body}`;
+  const pseudonym = input.authorPseudonym?.trim() ?? 'Sahabat Anonim';
+  const pseudonymScan = pseudonymForInspection(pseudonym).replace(/[._-]+/g, ' ');
+  const combined = `${title} ${body} ${pseudonymScan}`;
+
+  if (pseudonym.length > MAX_FORUM_PSEUDONYM_LENGTH) {
+    return { status: 'rejected', reason: 'Nama samaran terlalu panjang (maksimum 50 karakter).', tags: [], safetyScore: 0 };
+  }
+  if (hasPseudonymContactOrMarkup(pseudonym)) {
+    return { status: 'rejected', reason: 'Nama samaran mengandung karakter, kontak, atau tautan yang tidak diizinkan.', tags: [], safetyScore: 0 };
+  }
 
   // 1. Basic length & quality constraints
   if (title.length < 5) {

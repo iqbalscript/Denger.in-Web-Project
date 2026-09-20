@@ -3,6 +3,8 @@ import type { InterventionDomain } from '@dengarin/types';
 import { runCrisisGate } from '@/lib/api/crisisGate';
 import { forumRepository } from '@/lib/api/repositories';
 import { jsonError, jsonOk } from '@/lib/api/response';
+import { isRateLimited } from '@/lib/api/rateLimit';
+import { readJsonLimited } from '@/lib/api/requestLimits';
 
 import { moderateForumPost } from '@dengarin/validator';
 
@@ -29,13 +31,19 @@ export async function GET(request: NextRequest) {
  *    - Rejected -> returns helpful feedback.
  */
 export async function POST(request: NextRequest) {
-  const body = (await request.json().catch(() => null)) as CreateForumPostBody | null;
-  if (!body || !body.title?.trim() || !body.body?.trim() || !body.domain) {
+  if (isRateLimited('forum-write')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  const parsed = await readJsonLimited(request, 8192);
+  if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
+  const body = parsed.value as CreateForumPostBody | null;
+  if (!body || typeof body.title !== 'string' || !body.title.trim() ||
+      typeof body.body !== 'string' || !body.body.trim() || !body.domain ||
+      (body.authorPseudonym !== undefined && typeof body.authorPseudonym !== 'string')) {
     return jsonError('Properti "title", "body", dan "domain" wajib diisi.');
   }
+  const authorPseudonym = body.authorPseudonym?.trim() || 'Sahabat Anonim';
 
   // Layer 0: Crisis Gate
-  const { cleared, evaluation } = runCrisisGate(`${body.title}\n${body.body}`);
+  const { cleared, evaluation } = runCrisisGate(`${body.title}\n${body.body}\n${authorPseudonym}`);
   if (!cleared) {
     return jsonOk({ crisis: true, evaluation });
   }
@@ -44,7 +52,8 @@ export async function POST(request: NextRequest) {
   const moderation = moderateForumPost({
     title: body.title.trim(),
     body: body.body.trim(),
-    domain: body.domain
+    domain: body.domain,
+    authorPseudonym
   });
 
   if (moderation.status === 'rejected') {
@@ -52,7 +61,7 @@ export async function POST(request: NextRequest) {
   }
 
   const post = await forumRepository.create({
-    authorPseudonym: body.authorPseudonym?.trim() || 'Sahabat Anonim',
+    authorPseudonym,
     domain: body.domain,
     title: body.title.trim(),
     body: body.body.trim(),

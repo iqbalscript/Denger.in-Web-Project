@@ -1,6 +1,8 @@
 import type { NextRequest } from 'next/server';
 import type { DailyCheckin, DailyMission, MoodScore, WeeklyReportSummary } from '@dengarin/types';
 import { jsonError, jsonOk } from '@/lib/api/response';
+import { isRateLimited } from '@/lib/api/rateLimit';
+import { readJsonLimited } from '@/lib/api/requestLimits';
 
 interface WeeklyReportRequestBody {
   weekStarting?: string;
@@ -41,10 +43,14 @@ function computeDominantMood(checkins: DailyCheckin[]): MoodScore {
  * reading from a server-side database.
  */
 export async function POST(request: NextRequest) {
-  const body = (await request.json().catch(() => null)) as WeeklyReportRequestBody | null;
+  if (isRateLimited('weekly-report')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  const parsed = await readJsonLimited(request, 64 * 1024);
+  if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
+  const body = parsed.value as WeeklyReportRequestBody | null;
   if (!body || !Array.isArray(body.checkins) || !Array.isArray(body.missions)) {
     return jsonError('Properti "checkins" dan "missions" wajib berupa array.');
   }
+  if (body.checkins.length > 500 || body.missions.length > 500) return jsonError('Permintaan tidak valid atau terlalu besar.', 413);
 
   const completedMissionsCount = body.missions.filter((mission) => mission.completed).length;
   const dominantMood = body.checkins.length > 0 ? computeDominantMood(body.checkins) : 'netral';
