@@ -42,9 +42,9 @@ export function QuickExitButton({ className = '', variant = 'navbar' }: QuickExi
         onClick={executeQuickExit}
         title="Keluar Cepat (Tekan ESC untuk segera mengalihkan ke halaman netral)"
         aria-label="Keluar Cepat (Tekan ESC)"
-        className={`fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-dark text-white font-bold text-xs shadow-soft-lg hover:bg-black transition-all active:scale-95 focus-visible:outline-crisis touch-target-base ${className}`}
+        className={`fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-2.5 rounded-[4px] bg-[#151515] text-white font-bold text-xs border-2 border-[#151515] shadow-[3px_3px_0px_#FF5252] hover:bg-[#FF5252] hover:border-[#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5252] touch-target-base ${className}`}
       >
-        <LogOut className="w-4 h-4 text-crisis" />
+        <LogOut className="w-4 h-4 text-[#FF5252]" />
         <span>Keluar Cepat (ESC)</span>
       </button>
     );
@@ -56,10 +56,10 @@ export function QuickExitButton({ className = '', variant = 'navbar' }: QuickExi
       onClick={executeQuickExit}
       title="Keluar Cepat: Segera alihkan peramban ke halaman netral (atau tekan ESC)"
       aria-label="Keluar Cepat (Tekan ESC)"
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-sand-300/80 bg-white/80 hover:bg-crisis hover:text-white hover:border-crisis text-sand-800 transition-all duration-150 focus-visible:outline-crisis shadow-soft-xs ${className}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-bold border-2 border-[#151515] bg-white hover:bg-[#FF5252] hover:text-white text-[#151515] shadow-[2px_2px_0px_#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5252] ${className}`}
     >
-      <LogOut className="w-3.5 h-3.5 text-crisis group-hover:text-white shrink-0" />
-      <span>Keluar Cepat <kbd className="hidden sm:inline-block text-[10px] font-mono px-1 py-0.2 bg-sand-100 rounded border border-sand-300">ESC</kbd></span>
+      <LogOut className="w-3.5 h-3.5 text-[#FF5252] group-hover:text-white shrink-0" />
+      <span>Keluar Cepat <kbd className="hidden sm:inline-block text-[10px] font-mono px-1 py-0.5 bg-[#FFF8EF] rounded-[2px] border border-[#151515]">ESC</kbd></span>
     </button>
   );
 }

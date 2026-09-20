@@ -38,12 +38,12 @@ export default function CheckinPage() {
     setHistory(getDailyCheckins());
   }, []);
 
-  const moods: Array<{ id: MoodScore; label: string; emoji: string; sub: string }> = [
-    { id: 'sangat_baik', label: 'Sangat Baik', emoji: '😊', sub: 'Bertenaga' },
-    { id: 'baik', label: 'Cukup Baik', emoji: '🙂', sub: 'Terkendali' },
-    { id: 'netral', label: 'Biasa Saja', emoji: '😐', sub: 'Stabil' },
-    { id: 'berat', label: 'Terasa Berat', emoji: '😟', sub: 'Cemas / Lelah' },
-    { id: 'kewalahan', label: 'Kewalahan', emoji: '😞', sub: 'Sangat Lelah' },
+  const moods: Array<{ id: MoodScore; label: string; emoji: string; sub: string; activeClass: string }> = [
+    { id: 'sangat_baik', label: 'Sangat Baik', emoji: '😊', sub: 'Bertenaga', activeClass: 'bg-lime text-ink' },
+    { id: 'baik', label: 'Cukup Baik', emoji: '🙂', sub: 'Terkendali', activeClass: 'bg-cobalt text-white' },
+    { id: 'netral', label: 'Biasa Saja', emoji: '😐', sub: 'Stabil', activeClass: 'bg-yellow text-ink' },
+    { id: 'berat', label: 'Terasa Berat', emoji: '😟', sub: 'Cemas / Lelah', activeClass: 'bg-tangerine text-white' },
+    { id: 'kewalahan', label: 'Kewalahan', emoji: '😞', sub: 'Sangat Lelah', activeClass: 'bg-coral text-white' },
   ];
 
   const tags = [
@@ -107,11 +107,11 @@ export default function CheckinPage() {
 
   return (
     <PageContainer size="narrow">
-      <ContentColumn size="md" className="space-y-10 text-left">
+      <ContentColumn size="md" className="space-y-8 text-left">
         <div>
           <Link href="/dashboard" className="inline-block">
-            <Button variant="ghost" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              Kembali ke Dashboard
+            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
+              KEMBALI KE DASHBOARD
             </Button>
           </Link>
         </div>
@@ -119,13 +119,13 @@ export default function CheckinPage() {
         {/* Heading */}
         <div className="space-y-2">
           <Badge variant="calm" size="md">
-            <Sparkles className="w-3.5 h-3.5 mr-1 text-calm-700" />
+            <Sparkles className="w-3.5 h-3.5 mr-1" />
             Check-in Mandiri Harian
           </Badge>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-sand-900 tracking-tight">
-            Bagaimana kabarmu hari ini?
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-none">
+            GIMANA KEADAANMU HARI INI?
           </h1>
-          <p className="text-xs sm:text-sm text-sand-700 leading-relaxed max-w-xl">
+          <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-xl font-medium">
             Ambil jeda satu menit untuk mengenali apa yang sedang terjadi di dalam dirimu saat ini.
           </p>
         </div>
@@ -133,8 +133,8 @@ export default function CheckinPage() {
         <form onSubmit={handleSave} className="space-y-8">
           {/* PRIMARY: Large Tactile Mood Selector */}
           <div className="space-y-3">
-            <label className="block text-xs sm:text-sm font-bold text-sand-900">
-              1. Pilih suasana hatimu saat ini:
+            <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-ink">
+              1. PILIH SUASANA HATIMU SAAT INI:
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {moods.map((m) => {
@@ -144,19 +144,19 @@ export default function CheckinPage() {
                     key={m.id}
                     type="button"
                     onClick={() => setSelectedMood(m.id)}
-                    className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-1 transition-all duration-150 cursor-pointer focus-visible:outline-calm-700 min-h-[92px] ${
+                    className={`p-4 rounded-md border-2 border-ink flex flex-col items-center justify-center gap-1 transition-all cursor-pointer focus-visible:outline-ink min-h-[96px] ${
                       isSelected
-                        ? 'border-calm-700 bg-calm-50/95 shadow-soft-sm ring-1 ring-calm-700 font-bold -translate-y-0.5'
-                        : 'border-sand-200 bg-white hover:border-sand-300 hover:bg-sand-50/60 font-medium'
+                        ? `${m.activeClass} shadow-hard font-black translate-x-[1px] translate-y-[1px]`
+                        : 'bg-white hover:bg-paper font-bold shadow-hard-sm text-ink'
                     }`}
                   >
                     <span className="text-3xl mb-1 select-none" aria-hidden="true">
                       {m.emoji}
                     </span>
-                    <span className="text-xs text-sand-900 text-center leading-tight">
+                    <span className="text-xs text-center leading-tight uppercase tracking-wide">
                       {m.label}
                     </span>
-                    <span className="text-[10px] text-sand-500">{m.sub}</span>
+                    <span className="text-[10px] opacity-80">{m.sub}</span>
                   </button>
                 );
               })}
@@ -164,15 +164,15 @@ export default function CheckinPage() {
           </div>
 
           {/* Energy Level Slider */}
-          <div className="space-y-3">
+          <div className="space-y-3 p-4 bg-white border-2 border-ink rounded-md shadow-hard-sm">
             <div className="flex items-center justify-between">
-              <label className="text-xs sm:text-sm font-bold text-sand-900 flex items-center gap-1.5">
-                <BatteryMedium className="w-4 h-4 text-calm-700" />
-                <span>2. Tingkat Energimu (1–10)</span>
+              <label className="text-xs sm:text-sm font-black uppercase tracking-wider text-ink flex items-center gap-1.5">
+                <BatteryMedium className="w-4 h-4 text-cobalt" />
+                <span>2. TINGKAT ENERGIMU (1–10)</span>
               </label>
-              <Badge variant="calm" size="sm">
-                Skor: {energyLevel} / 10
-              </Badge>
+              <span className="text-xs font-black uppercase px-2.5 py-1 bg-yellow border border-ink rounded shadow-hard-sm">
+                SKOR: {energyLevel} / 10
+              </span>
             </div>
             <input
               type="range"
@@ -181,14 +181,14 @@ export default function CheckinPage() {
               value={energyLevel}
               onChange={(e) => setEnergyLevel(Number(e.target.value))}
               aria-label="Tingkat energi dari 1 sampai 10"
-              className="w-full h-2.5 bg-sand-200 rounded-lg appearance-none cursor-pointer accent-calm-700"
+              className="w-full h-3 bg-paper border-2 border-ink rounded appearance-none cursor-pointer accent-cobalt"
             />
           </div>
 
           {/* Stressor Chips */}
           <div className="space-y-3">
-            <label className="block text-xs sm:text-sm font-bold text-sand-900">
-              3. Sumber tekanan terbesar hari ini (bisa pilih lebih dari satu):
+            <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-ink">
+              3. SUMBER TEKANAN TERBESAR HARI INI (OPSIONAL):
             </label>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => {
@@ -216,8 +216,8 @@ export default function CheckinPage() {
               rows={2}
               placeholder="Ceritakan sedikit apa yang ada di pikiranmu..."
             />
-            <div className="flex items-center gap-1.5 text-xs text-sand-600">
-              <AlertTriangle className="w-3.5 h-3.5 text-calm-700 shrink-0" />
+            <div className="p-3 rounded-md bg-yellow/20 border-2 border-ink shadow-hard-sm flex items-center gap-2 text-xs text-ink font-medium">
+              <AlertTriangle className="w-4 h-4 text-ink shrink-0" />
               <span>Privasi aman dan tersimpan anonim di peramban Anda.</span>
             </div>
           </div>
@@ -232,45 +232,45 @@ export default function CheckinPage() {
               disabled={!selectedMood || saved}
               icon={saved ? <CheckCircle2 className="w-5 h-5" /> : undefined}
             >
-              {saved ? 'Check-in Tersimpan!' : 'Simpan Check-in Hari Ini'}
+              {saved ? 'CHECK-IN TERSIMPAN!' : 'SIMPAN CHECK-IN HARI INI →'}
             </Button>
           </div>
         </form>
 
-        {/* History Section: Placed strictly below the active check-in with subtle separation */}
+        {/* History Section */}
         {history.length > 0 && (
-          <div className="pt-8 border-t border-sand-200/80 space-y-4">
-            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-sand-900 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-calm-700" />
-              <span>Riwayat Check-in Terakhir ({history.length})</span>
+          <div className="pt-8 border-t-2 border-ink space-y-4">
+            <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-ink flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-cobalt" />
+              <span>RIWAYAT CHECK-IN TERAKHIR ({history.length})</span>
             </h3>
 
             <div className="space-y-2.5">
               {history.slice(0, 4).map((entry) => (
                 <div
                   key={entry.id}
-                  className="p-4 rounded-2xl bg-white border border-sand-200 shadow-soft-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                  className="p-4 rounded-md bg-white border-2 border-ink shadow-hard-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sand-900 capitalize">
+                      <span className="font-black text-ink uppercase tracking-wide">
                         {entry.mood.replace('_', ' ')}
                       </span>
-                      <Badge variant="calm" size="sm">
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-paper border border-ink rounded">
                         Energi: {entry.energyLevel}/10
-                      </Badge>
+                      </span>
                     </div>
                     {entry.stressorTags.length > 0 && (
-                      <p className="text-[11px] text-sand-600">
+                      <p className="text-[11px] text-ink/70 font-medium">
                         Pemicu: {entry.stressorTags.join(', ')}
                       </p>
                     )}
                     {entry.briefNote && (
-                      <p className="text-xs text-sand-800 italic">&quot;{entry.briefNote}&quot;</p>
+                      <p className="text-xs text-ink italic font-medium">&quot;{entry.briefNote}&quot;</p>
                     )}
                   </div>
 
-                  <span className="text-[11px] text-sand-500 shrink-0">
+                  <span className="text-[11px] text-ink/60 font-bold shrink-0">
                     {new Date(entry.timestamp).toLocaleDateString('id-ID', {
                       day: 'numeric',
                       month: 'short',
@@ -287,3 +287,4 @@ export default function CheckinPage() {
     </PageContainer>
   );
 }
+

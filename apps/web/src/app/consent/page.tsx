@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, CheckSquare, Square, ArrowRight, AlertCircle, Lock } from 'lucide-react';
+import { CheckSquare, Square, ArrowRight, Lock } from 'lucide-react';
 import { initAnonymousSession } from '@/lib/storage';
-import { PageContainer, SplitLayout, SoftCard, Button, Badge } from '@/components/ui';
+import { PageContainer, SplitLayout, Button, Badge } from '@/components/ui';
 
 export default function ConsentPage() {
   const router = useRouter();
@@ -23,62 +23,59 @@ export default function ConsentPage() {
     <div className="space-y-6">
       <div className="space-y-3">
         <Badge variant="calm" size="md">
-          <Lock className="w-3.5 h-3.5 mr-1 text-calm-700" />
-          Persetujuan Layanan & Privasi
+          <Lock className="w-3.5 h-3.5 mr-1" />
+          Persetujuan Layanan &amp; Privasi
         </Badge>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-sand-900 tracking-tight leading-tight">
-          Sebelum Melangkah Lebih Jauh.
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-none">
+          SEBELUM KITA MULAI.
         </h1>
-        <p className="text-sm sm:text-base text-sand-700 leading-relaxed max-w-xl">
-          Kami menjunjung tinggi transparansi dan keamanan emosionalmu. Di bawah ini adalah komitmen
-          privasi serta batasan operasional platform Dengar.in.
+        <p className="text-sm sm:text-base text-ink/80 leading-relaxed max-w-xl font-medium">
+          Dengar.in dibangun di atas privasi mutlak dan transparansi penuh. Kami tidak mengumpulkan data identitasmu, dan kami bukan pengganti penanganan medis darurat.
         </p>
       </div>
 
-      <div className="space-y-5 pt-2">
+      <div className="space-y-4 pt-2">
         {/* Principle 1 */}
-        <div className="flex items-start gap-3.5">
-          <div className="w-8 h-8 rounded-xl bg-calm-100 text-calm-800 flex items-center justify-center shrink-0 mt-0.5 shadow-soft-xs">
-            <ShieldCheck className="w-4 h-4 text-calm-700" />
+        <div className="p-4 bg-white border-2 border-ink rounded-md shadow-hard-sm flex items-start gap-4">
+          <div className="w-10 h-10 rounded-md bg-cobalt text-white flex items-center justify-center shrink-0 border-2 border-ink shadow-hard-sm font-black text-base">
+            01
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-sand-900">1. Privasi Mutlak (Bebas Registrasi)</h3>
-            <p className="text-xs sm:text-sm text-sand-700 leading-relaxed">
-              Kami tidak pernah meminta nama lengkap, alamat email, nomor telepon, atau data
-              identitas kependudukan. Sesi Anda diidentifikasi secara anonim menggunakan kode acak
-              (UUID) yang tersimpan di peramban Anda.
+            <h3 className="text-sm font-black text-ink uppercase tracking-wider">
+              1. Privasi Mutlak (Bebas Registrasi)
+            </h3>
+            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
+              Kami tidak pernah meminta nama lengkap, email, nomor telepon, atau identitas kependudukan. Sesimu diidentifikasi menggunakan kode acak lokal di perambanmu.
             </p>
           </div>
         </div>
 
         {/* Principle 2 */}
-        <div className="flex items-start gap-3.5">
-          <div className="w-8 h-8 rounded-xl bg-warm-100 text-warm-700 flex items-center justify-center shrink-0 mt-0.5 shadow-soft-xs">
-            <AlertCircle className="w-4 h-4 text-warm-600" />
+        <div className="p-4 bg-white border-2 border-ink rounded-md shadow-hard-sm flex items-start gap-4">
+          <div className="w-10 h-10 rounded-md bg-yellow text-ink flex items-center justify-center shrink-0 border-2 border-ink shadow-hard-sm font-black text-base">
+            02
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-sand-900">2. Batasan Layanan Medis & Psikologis</h3>
-            <p className="text-xs sm:text-sm text-sand-700 leading-relaxed">
-              Dengar.in adalah alat pendamping mandiri,{' '}
-              <strong className="text-sand-900 font-semibold">
-                BUKAN pengganti psikolog, psikiater, diagnosis klinis, atau resep obat
-              </strong>
-              . Platform ini juga tidak menyediakan nasihat investasi finansial atau hukum.
+            <h3 className="text-sm font-black text-ink uppercase tracking-wider">
+              2. Batasan Layanan Medis &amp; Klinis
+            </h3>
+            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
+              Dengar.in adalah alat pendamping mandiri, <strong className="text-ink font-bold">BUKAN pengganti psikolog, psikiater, diagnosis klinis, atau resep obat</strong>.
             </p>
           </div>
         </div>
 
         {/* Principle 3 */}
-        <div className="flex items-start gap-3.5">
-          <div className="w-8 h-8 rounded-xl bg-red-100 text-crisis flex items-center justify-center shrink-0 mt-0.5 shadow-soft-xs">
-            <AlertCircle className="w-4 h-4 text-crisis" />
+        <div className="p-4 bg-white border-2 border-ink rounded-md shadow-hard-sm flex items-start gap-4">
+          <div className="w-10 h-10 rounded-md bg-coral text-white flex items-center justify-center shrink-0 border-2 border-ink shadow-hard-sm font-black text-base">
+            03
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-sand-900">3. Protokol Keselamatan Krisis</h3>
-            <p className="text-xs sm:text-sm text-sand-700 leading-relaxed">
-              Jika input teks Anda mengindikasikan krisis akut atau pikiran membahayakan diri, sistem
-              secara otomatis menyajikan kontak bantuan darurat resmi (seperti Kemenkes 119 ext 8) tanpa
-              perantara bot.
+            <h3 className="text-sm font-black text-ink uppercase tracking-wider">
+              3. Protokol Keselamatan Krisis
+            </h3>
+            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
+              Jika input teksmu mengindikasikan krisis akut atau pikiran membahayakan diri, sistem langsung menyajikan kontak darurat resmi (Kemenkes Sejiwa 119 ext 8) tanpa campur tangan AI.
             </p>
           </div>
         </div>
@@ -87,27 +84,29 @@ export default function ConsentPage() {
   );
 
   const rightContent = (
-    <SoftCard variant="white" elevation="medium" className="p-6 sm:p-8 space-y-6 lg:sticky lg:top-24">
-      <div className="space-y-1.5 border-b border-sand-200 pb-4">
-        <h3 className="font-bold text-base text-sand-900">Konfirmasi Pemahaman</h3>
-        <p className="text-xs text-sand-600">Centang kedua pernyataan di bawah untuk memulai sesi anonim.</p>
+    <div className="bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-6 shadow-hard lg:sticky lg:top-24">
+      <div className="space-y-1.5 border-b-2 border-ink pb-4">
+        <h3 className="font-black text-base text-ink uppercase tracking-wider">Konfirmasi Pemahaman</h3>
+        <p className="text-xs text-ink/70 font-medium">Centang kedua pernyataan di bawah untuk memulai sesi anonim.</p>
       </div>
 
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         <button
           type="button"
           role="checkbox"
           aria-checked={agreedTerms}
           onClick={() => setAgreedTerms(!agreedTerms)}
-          className="flex items-start gap-3 text-left w-full cursor-pointer select-none rounded-xl p-2.5 -ml-2.5 hover:bg-sand-50 transition-colors focus-visible:outline-calm-700"
+          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-3 border-2 border-ink transition-all ${
+            agreedTerms ? 'bg-cobalt/10 shadow-hard-sm font-bold' : 'bg-paper hover:bg-paper-dark'
+          }`}
         >
           {agreedTerms ? (
-            <CheckSquare className="w-5 h-5 text-calm-700 shrink-0 mt-0.5" />
+            <CheckSquare className="w-5 h-5 text-cobalt shrink-0 mt-0.5" />
           ) : (
-            <Square className="w-5 h-5 text-sand-400 shrink-0 mt-0.5" />
+            <Square className="w-5 h-5 text-ink/40 shrink-0 mt-0.5" />
           )}
-          <span className="text-xs sm:text-sm text-sand-800 leading-snug">
-            Saya memahami bahwa identitas saya sepenuhnya anonim dan saya dapat memulihkan sesi menggunakan 12-kata kode pemulihan.
+          <span className="text-xs sm:text-sm text-ink leading-snug font-medium">
+            Saya memahami bahwa identitas saya sepenuhnya anonim dan saya dapat memulihkan sesi menggunakan 12-kata kunci pemulihan.
           </span>
         </button>
 
@@ -116,15 +115,17 @@ export default function ConsentPage() {
           role="checkbox"
           aria-checked={agreedDisclaimer}
           onClick={() => setAgreedDisclaimer(!agreedDisclaimer)}
-          className="flex items-start gap-3 text-left w-full cursor-pointer select-none rounded-xl p-2.5 -ml-2.5 hover:bg-sand-50 transition-colors focus-visible:outline-calm-700"
+          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-3 border-2 border-ink transition-all ${
+            agreedDisclaimer ? 'bg-cobalt/10 shadow-hard-sm font-bold' : 'bg-paper hover:bg-paper-dark'
+          }`}
         >
           {agreedDisclaimer ? (
-            <CheckSquare className="w-5 h-5 text-calm-700 shrink-0 mt-0.5" />
+            <CheckSquare className="w-5 h-5 text-cobalt shrink-0 mt-0.5" />
           ) : (
-            <Square className="w-5 h-5 text-sand-400 shrink-0 mt-0.5" />
+            <Square className="w-5 h-5 text-ink/40 shrink-0 mt-0.5" />
           )}
-          <span className="text-xs sm:text-sm text-sand-800 leading-snug">
-            Saya memahami bahwa Dengar.in adalah pendamping mandiri dan bukan layanan penanganan gawat darurat medis.
+          <span className="text-xs sm:text-sm text-ink leading-snug font-medium">
+            Saya memahami bahwa Dengar.in adalah pendamping mandiri dan bukan layanan penanganan gawat darurat medis atau psikologis.
           </span>
         </button>
       </div>
@@ -139,14 +140,14 @@ export default function ConsentPage() {
           icon={<ArrowRight className="w-4 h-4" />}
           className="flex-row-reverse"
         >
-          Lanjutkan ke Pengenalan Konteks
+          SAYA SETUJU, LANJUTKAN →
         </Button>
       </div>
 
-      <p className="text-[11px] text-sand-500 text-center leading-tight">
+      <p className="text-[11px] text-ink/60 text-center leading-tight font-medium">
         Kode pemulihan 12-kata akan dihasilkan secara lokal di akhir proses ini.
       </p>
-    </SoftCard>
+    </div>
   );
 
   return (
@@ -155,3 +156,4 @@ export default function ConsentPage() {
     </PageContainer>
   );
 }
+

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { getAssessmentResult, getAnonymousSession } from '@/lib/storage';
 import type { AssessmentEvaluation } from '@dengarin/types';
-import { PageContainer, ContentColumn, SoftCard, Button, Badge } from '@/components/ui';
+import { PageContainer, ContentColumn, Button, Badge } from '@/components/ui';
 
 export default function AssessmentResultPage() {
   const router = useRouter();
@@ -35,7 +35,7 @@ export default function AssessmentResultPage() {
   if (!evaluation) {
     return (
       <PageContainer size="narrow">
-        <div className="py-20 text-center text-sand-600">Memuat hasil rekomendasi...</div>
+        <div className="py-20 text-center text-ink/70 font-medium">Memuat hasil rekomendasi...</div>
       </PageContainer>
     );
   }
@@ -46,18 +46,15 @@ export default function AssessmentResultPage() {
   const severityBadgeProps = {
     MILD: {
       label: 'Tingkat Beban: Ringan (Mild)',
-      variant: 'calm' as const,
-      colorClass: 'text-sage-700 bg-sage-50 border-sage-200',
+      colorClass: 'bg-lime text-ink border-2 border-ink shadow-hard-sm',
     },
     MODERATE: {
       label: 'Tingkat Beban: Menengah (Moderate)',
-      variant: 'warm' as const,
-      colorClass: 'text-honey-700 bg-honey-50 border-honey-200',
+      colorClass: 'bg-yellow text-ink border-2 border-ink shadow-hard-sm',
     },
     SEVERE: {
       label: 'Tingkat Beban: Intensitas Tinggi (Severe)',
-      variant: 'crisis' as const,
-      colorClass: 'text-crisis bg-red-50 border-red-200',
+      colorClass: 'bg-coral text-white border-2 border-ink shadow-hard-sm',
     },
   }[severity];
 
@@ -67,133 +64,133 @@ export default function AssessmentResultPage() {
         {/* Header */}
         <div className="space-y-3">
           <Badge variant="calm" size="md">
-            <Sparkles className="w-3.5 h-3.5 mr-1 text-terracotta-600" />
+            <Sparkles className="w-3.5 h-3.5 mr-1" />
             Rekomendasi Ruang Dukungan Non-Diagnostik
           </Badge>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-sand-900 tracking-tight leading-tight">
-            Rekomendasi Ruang Pemulihan Anda
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-tight">
+            REKOMENDASI RUANG PEMULIHAN ANDA
           </h1>
 
-          <p className="text-sm sm:text-base text-sand-700 leading-relaxed max-w-xl">
+          <p className="text-sm sm:text-base text-ink/80 leading-relaxed max-w-xl font-medium">
             Berdasarkan respon yang Anda berikan, kami merekomendasikan ruang pendampingan berikut untuk
             membantu menjaga kestabilan dan rasa aman Anda:
           </p>
         </div>
 
         {/* Severity Badge & Feedback Card */}
-        <SoftCard variant="white" elevation="medium" className="p-6 sm:p-8 space-y-5 border-terracotta-200/80">
+        <div className="bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-5 shadow-hard">
           <div className="flex items-center justify-between gap-3">
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${severityBadgeProps.colorClass}`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded text-xs font-black uppercase tracking-wider ${severityBadgeProps.colorClass}`}
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               {severityBadgeProps.label}
             </span>
-            <span className="text-xs text-sand-500 font-medium">Non-Diagnostik</span>
+            <span className="text-xs text-ink/60 font-black uppercase tracking-wider">Non-Diagnostik</span>
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-lg sm:text-xl font-extrabold text-sand-900">
+            <h2 className="text-lg sm:text-xl font-black text-ink uppercase tracking-wide">
               {severity === 'MILD'
                 ? 'Jalur Mandiri & Penguatan Diri'
                 : severity === 'MODERATE'
                 ? 'Jalur Pendampingan Terarah & Regulasi Emosi'
                 : 'Jalur Prioritas Konseling & Dukungan Darurat'}
             </h2>
-            <p className="text-xs sm:text-sm text-sand-700 leading-relaxed">
+            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
               {evaluation.summaryFeedback}
             </p>
           </div>
 
           {/* Recommended Support Spaces Checklist */}
-          <div className="pt-3 border-t border-sand-200/80 space-y-2.5">
-            <h3 className="text-xs font-bold text-sand-900 uppercase tracking-wider">
-              Ruang Pendampingan yang Direkomendasikan untuk Anda:
+          <div className="pt-3 border-t-2 border-ink space-y-2.5">
+            <h3 className="text-xs font-black text-ink uppercase tracking-wider">
+              RUANG PENDAMPINGAN YANG DIREKOMENDASIKAN:
             </h3>
             <ul className="space-y-2">
               {evaluation.recommendedSupportSpaces?.map((space, idx) => (
-                <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-sand-800">
-                  <CheckCircle2 className="w-4 h-4 text-terracotta-600 shrink-0 mt-0.5" />
+                <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-ink font-medium p-2 bg-paper rounded border border-ink">
+                  <CheckCircle2 className="w-4 h-4 text-cobalt shrink-0 mt-0.5" />
                   <span>{space}</span>
                 </li>
               ))}
             </ul>
           </div>
-        </SoftCard>
+        </div>
 
         {/* Tailored Pathway Next Actions */}
         <div className="space-y-4">
-          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-sand-900">
-            Langkah Tindakan yang Dapat Anda Ambil Sekarang:
+          <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-ink">
+            LANGKAH TINDAKAN YANG DAPAT ANDA AMBIL:
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Action 1: Dashboard / Missions */}
-            <Link href="/dashboard" className="block focus-visible:outline-terracotta-500 rounded-2xl">
-              <SoftCard variant="white" elevation="low" hoverEffect className="p-5 space-y-2 h-full flex flex-col justify-between">
-                <div className="space-y-1.5">
-                  <div className="w-8 h-8 rounded-xl bg-terracotta-50 text-terracotta-600 flex items-center justify-center">
-                    <Compass className="w-4 h-4" />
+            <Link href="/dashboard" className="block focus-visible:outline-ink">
+              <div className="bg-white border-2 border-ink rounded-md p-5 space-y-3 h-full flex flex-col justify-between shadow-hard-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all">
+                <div className="space-y-2">
+                  <div className="w-10 h-10 rounded-md bg-yellow text-ink border-2 border-ink shadow-hard-sm flex items-center justify-center font-black">
+                    <Compass className="w-5 h-5" />
                   </div>
-                  <h4 className="font-bold text-sm text-sand-900">Masuk ke Ruang Tenang (Dashboard)</h4>
-                  <p className="text-xs text-sand-600 leading-relaxed">
+                  <h4 className="font-black text-sm text-ink uppercase tracking-wide">Masuk ke Ruang Tenang (Dashboard)</h4>
+                  <p className="text-xs text-ink/80 leading-relaxed font-medium">
                     Mulai misi mikro harian 3–7 menit yang disesuaikan dengan ritmemu.
                   </p>
                 </div>
-                <span className="text-xs font-bold text-terracotta-600 flex items-center gap-1 pt-1">
-                  Buka Dashboard &rarr;
+                <span className="text-xs font-black text-cobalt flex items-center gap-1 pt-2 uppercase tracking-wider">
+                  Buka Dashboard →
                 </span>
-              </SoftCard>
+              </div>
             </Link>
 
             {/* Action 2: Journal or Professional Referral depending on severity */}
             {severity === 'SEVERE' ? (
-              <Link href="/resources" className="block focus-visible:outline-crisis rounded-2xl">
-                <SoftCard variant="white" elevation="low" hoverEffect className="p-5 space-y-2 h-full border-red-200 flex flex-col justify-between">
-                  <div className="space-y-1.5">
-                    <div className="w-8 h-8 rounded-xl bg-red-50 text-crisis flex items-center justify-center">
-                      <PhoneCall className="w-4 h-4" />
+              <Link href="/resources" className="block focus-visible:outline-ink">
+                <div className="bg-white border-2 border-ink rounded-md p-5 space-y-3 h-full flex flex-col justify-between shadow-hard-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all">
+                  <div className="space-y-2">
+                    <div className="w-10 h-10 rounded-md bg-coral text-white border-2 border-ink shadow-hard-sm flex items-center justify-center font-black">
+                      <PhoneCall className="w-5 h-5" />
                     </div>
-                    <h4 className="font-bold text-sm text-sand-900">Direktori Bantuan Terverifikasi</h4>
-                    <p className="text-xs text-sand-600 leading-relaxed">
+                    <h4 className="font-black text-sm text-ink uppercase tracking-wide">Direktori Bantuan Terverifikasi</h4>
+                    <p className="text-xs text-ink/80 leading-relaxed font-medium">
                       Akses kontak resmi Kemenkes Sejiwa 119 ext 8, Lisa Helpline, dan layanan konseling.
                     </p>
                   </div>
-                  <span className="text-xs font-bold text-crisis flex items-center gap-1 pt-1">
-                    Lihat Kontak Bantuan &rarr;
+                  <span className="text-xs font-black text-coral flex items-center gap-1 pt-2 uppercase tracking-wider">
+                    Lihat Kontak Bantuan →
                   </span>
-                </SoftCard>
+                </div>
               </Link>
             ) : (
-              <Link href="/journal" className="block focus-visible:outline-terracotta-500 rounded-2xl">
-                <SoftCard variant="white" elevation="low" hoverEffect className="p-5 space-y-2 h-full flex flex-col justify-between">
-                  <div className="space-y-1.5">
-                    <div className="w-8 h-8 rounded-xl bg-terracotta-50 text-terracotta-600 flex items-center justify-center">
-                      <BookOpen className="w-4 h-4" />
+              <Link href="/journal" className="block focus-visible:outline-ink">
+                <div className="bg-white border-2 border-ink rounded-md p-5 space-y-3 h-full flex flex-col justify-between shadow-hard-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all">
+                  <div className="space-y-2">
+                    <div className="w-10 h-10 rounded-md bg-lime text-ink border-2 border-ink shadow-hard-sm flex items-center justify-center font-black">
+                      <BookOpen className="w-5 h-5" />
                     </div>
-                    <h4 className="font-bold text-sm text-sand-900">Jurnal Refleksi Privat</h4>
-                    <p className="text-xs text-sand-600 leading-relaxed">
+                    <h4 className="font-black text-sm text-ink uppercase tracking-wide">Jurnal Refleksi Privat</h4>
+                    <p className="text-xs text-ink/80 leading-relaxed font-medium">
                       Tuliskan perasaanmu secara bebas di peramban tanpa terhubung ke server manapun.
                     </p>
                   </div>
-                  <span className="text-xs font-bold text-terracotta-600 flex items-center gap-1 pt-1">
-                    Mulai Menulis &rarr;
+                  <span className="text-xs font-black text-cobalt flex items-center gap-1 pt-2 uppercase tracking-wider">
+                    Mulai Menulis →
                   </span>
-                </SoftCard>
+                </div>
               </Link>
             )}
           </div>
         </div>
 
         {/* Strict Ethical Non-Diagnostic Disclaimer */}
-        <div className="p-4 rounded-2xl bg-sand-100/90 border border-sand-200 text-xs text-sand-700 leading-relaxed flex items-start gap-3">
-          <ShieldCheck className="w-4 h-4 text-terracotta-600 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-md bg-yellow/20 border-2 border-ink text-xs text-ink leading-relaxed flex items-start gap-3 shadow-hard-sm font-medium">
+          <ShieldCheck className="w-5 h-5 text-cobalt shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold text-sand-900 block mb-0.5">Penafian Non-Diagnostik:</span>
+            <span className="font-black text-ink block mb-0.5 uppercase tracking-wide">PENAFIAN NON-DIAGNOSTIK:</span>
             <span>
               Hasil ini merupakan panduan triase mandiri non-klinis dan{' '}
-              <strong className="text-sand-900 font-semibold">bukan diagnosis medis</strong> (seperti depresi klinis, gangguan kecemasan, atau PTSD).
+              <strong className="text-ink font-bold">bukan diagnosis medis</strong> (seperti depresi klinis, gangguan kecemasan, atau PTSD).
               Platform ini tidak mengklaim validitas psikometrik atau klinis. Jika Anda membutuhkan diagnosis formal, silakan konsultasikan dengan tenaga profesional kesehatan jiwa berlisensi.
             </span>
           </div>
@@ -207,9 +204,9 @@ export default function AssessmentResultPage() {
               size="lg"
               fullWidth
               icon={<ArrowRight className="w-4 h-4" />}
-              className="flex-row-reverse touch-target-primary shadow-soft-sm"
+              className="flex-row-reverse"
             >
-              Lanjutkan ke Ruang Tenang
+              LANJUTKAN KE RUANG TENANG →
             </Button>
           </Link>
         </div>
@@ -217,3 +214,4 @@ export default function AssessmentResultPage() {
     </PageContainer>
   );
 }
+

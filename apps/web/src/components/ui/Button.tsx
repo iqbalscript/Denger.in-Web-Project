@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'crisis' | 'calm-subtle';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'crisis' | 'calm-subtle' | 'cobalt' | 'lime';
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   isLoading?: boolean;
@@ -25,27 +25,31 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseClasses =
-      'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
+      'inline-flex items-center justify-center font-bold rounded-[4px] border-2 border-[#151515] transition-all duration-120 select-none disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2';
 
     const sizeClasses = {
-      sm: 'px-3.5 py-1.5 text-xs min-h-[38px] gap-1.5',
-      md: 'px-4 py-2.5 text-sm min-h-[44px] gap-2',
-      lg: 'px-6 py-3.5 text-base min-h-[48px] gap-2.5 rounded-2xl',
+      sm: 'px-3 py-1.5 text-xs min-h-[40px] gap-1.5',
+      md: 'px-4 py-2 text-sm min-h-[44px] gap-2',
+      lg: 'px-6 py-3 text-base min-h-[48px] gap-2.5',
     };
 
     const variantClasses = {
       primary:
-        'bg-calm-700 text-white hover:bg-calm-800 focus-visible:outline-calm-700 shadow-soft-xs border border-transparent',
+        'bg-[#B8F34A] text-[#151515] shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
       secondary:
-        'bg-sand-100 text-sand-900 hover:bg-sand-200 focus-visible:outline-sand-700 border border-sand-200/80 shadow-soft-xs',
+        'bg-[#FFFFFF] text-[#151515] shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
+      cobalt:
+        'bg-[#4169FF] text-white shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
+      lime:
+        'bg-[#B8F34A] text-[#151515] shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
       'calm-subtle':
-        'bg-calm-100 text-calm-900 hover:bg-calm-200 focus-visible:outline-calm-700 border border-calm-200/80',
+        'bg-[#FFF8EF] text-[#151515] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515]',
       outline:
-        'border border-sand-300 text-sand-800 hover:bg-sand-50 hover:border-sand-400 focus-visible:outline-calm-700',
+        'bg-transparent text-[#151515] shadow-[2px_2px_0px_#151515] hover:bg-[#FFFFFF] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515]',
       ghost:
-        'text-sand-800 hover:bg-sand-100/70 hover:text-calm-900 focus-visible:outline-calm-700',
+        'border-transparent shadow-none hover:bg-[#151515]/5 active:bg-[#151515]/10 text-[#151515]',
       crisis:
-        'bg-crisis text-white hover:bg-crisis-dark focus-visible:outline-crisis shadow-soft-xs border border-transparent',
+        'bg-[#FF5252] text-white shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
     };
 
     const widthClass = fullWidth ? 'w-full' : '';

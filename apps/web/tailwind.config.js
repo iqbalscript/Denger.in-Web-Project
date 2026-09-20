@@ -6,109 +6,99 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // PRD 2.0 Brand System
+        // PRD-DESIGN.md Canonical Palette
+        paper: '#FFF8EF',
+        ink: '#151515',
+        cobalt: '#4169FF',
+        lime: '#B8F34A',
+        yellow: '#FFD84D',
+        amber: '#FF8A3D',
+        coral: '#FF5252',
+        borderSubtle: '#D8D3C9',
+
+        // Semantic mappings
+        brand: {
+          bg: '#FFF8EF',
+          ink: '#151515',
+          primary: '#4169FF',   // Cobalt
+          cta: '#B8F34A',       // Positive Lime
+          accent: '#FFD84D',    // Sunny Yellow
+          warm: '#FF8A3D',      // Tangerine
+          crisis: '#FF5252',    // Urgent Coral
+          surface: '#FFFFFF',
+          border: '#151515',
+          borderSubtle: '#D8D3C9',
+        },
+
+        // Backward compatibility mappings
         terracotta: {
-          50: '#FDF7F4',
-          100: '#F9ECE5',
-          200: '#F3D7C9',
-          300: '#EBBFA9',
-          400: '#E29E7E',
-          500: '#D97A4E', // PRD Primary Warm Terracotta
-          600: '#C66539',
-          700: '#A85028',
-          800: '#874020',
-          900: '#6C341A',
+          50: '#FFF8EF',
+          100: '#F5ECE0',
+          200: '#EBD9C6',
+          500: '#FF8A3D',
+          600: '#E67528',
+          700: '#CC6017',
+          800: '#A3480B',
+          900: '#151515',
         },
-        honey: {
-          50: '#FCF8F2',
-          100: '#F8F0E2',
-          200: '#F1DFC4',
-          300: '#E8B87A', // PRD Secondary Muted Warm Amber / Honey
-          400: '#DDA35F',
-          500: '#C78C46',
-          600: '#A87133',
-        },
-        sage: {
-          50: '#F5F7F3',
-          100: '#EAEEE6',
-          200: '#D5DFCF',
-          300: '#B8C9B0',
-          400: '#8FA37E', // PRD Accent / Success Gentle Sage Green
-          500: '#768B66',
-          600: '#5C704E',
-        },
-        cream: {
-          DEFAULT: '#FAF6F1', // PRD Background Warm Cream
-          50: '#FDFBF8',
-          100: '#FAF6F1',
-          200: '#F4ECE2',
-          300: '#EDE0D1',
-        },
-        surface: {
-          DEFAULT: '#F3EBE2', // PRD Surface Soft Warm Beige
-          50: '#F9F5F0',
-          100: '#F3EBE2',
-          200: '#E7DCcf',
-          300: '#D9CBBA',
-        },
-        // Backward-compatible calm mapping to PRD Terracotta palette
-        calm: {
-          50: '#FDF7F4',
-          100: '#F9ECE5',
-          200: '#F3D7C9',
-          300: '#EBBFA9',
-          400: '#E29E7E',
-          500: '#D97A4E',
-          600: '#C66539',
-          700: '#D97A4E',  // Primary Brand Warm Terracotta
-          800: '#A85028',
-          900: '#3E332B',  // Warm Dark Brown
-          950: '#2A221C',
-        },
-        // Backward-compatible sand mapping to PRD Warm Cream & Beige
         sand: {
-          50: '#FAF6F1',   // PRD Background Warm Cream
-          100: '#F3EBE2',  // PRD Surface Soft Warm Beige
-          200: '#E8DED3',  // Subtle Borders
-          300: '#D8CABE',
-          400: '#B8A899',
-          500: '#9B8B7C',
-          600: '#7A6E63',  // PRD Secondary Text Muted Warm Gray
-          700: '#685D52',
-          800: '#4E443A',
-          900: '#3E332B',  // PRD Primary Text Warm Dark Brown
+          50: '#FFF8EF',
+          100: '#F7F0E6',
+          200: '#D8D3C9',
+          300: '#C5BFB4',
+          400: '#9E988D',
+          500: '#7A756D',
+          600: '#59544D',
+          700: '#3D3934',
+          800: '#26231F',
+          900: '#151515',
         },
-        warm: {
-          50: '#FCF8F2',
-          100: '#F8F0E2',
-          500: '#E8B87A',  // Honey Amber
-          600: '#DDA35F',
-          700: '#C78C46',
+        calm: {
+          50: '#F0F4FF',
+          100: '#DBE4FE',
+          200: '#BAC9FE',
+          500: '#4169FF',
+          600: '#2B51E6',
+          700: '#4169FF',
+          800: '#1A37B3',
+          900: '#151515',
+          950: '#151515',
         },
         crisis: {
-          light: '#FDF2F0',
-          DEFAULT: '#C75B4A', // PRD Crisis Soft Brick Red
-          dark: '#AA4737',
-          border: '#F2BDB4',
-        }
+          light: '#FFEBEB',
+          DEFAULT: '#FF5252',
+          dark: '#D93838',
+          border: '#151515',
+        },
       },
       boxShadow: {
-        'soft-xs': '0 1px 2px 0 rgba(62, 51, 43, 0.04)',
-        'soft-sm': '0 2px 8px -1px rgba(62, 51, 43, 0.06), 0 1px 3px -1px rgba(62, 51, 43, 0.03)',
-        'soft-md': '0 6px 20px -4px rgba(62, 51, 43, 0.07), 0 2px 6px -2px rgba(62, 51, 43, 0.03)',
-        'soft-lg': '0 12px 32px -6px rgba(62, 51, 43, 0.09), 0 4px 12px -2px rgba(62, 51, 43, 0.04)',
-        'glass': '0 8px 32px 0 rgba(217, 122, 78, 0.06), 0 1px 2px 0 rgba(255, 255, 255, 0.7) inset',
-      },
-      backdropBlur: {
-        'xs': '2px',
+        'hard-sm': '2px 2px 0px #151515',
+        'hard': '3px 3px 0px #151515',
+        'hard-lg': '4px 4px 0px #151515',
+        'hard-xl': '6px 6px 0px #151515',
+        'hard-cobalt': '3px 3px 0px #4169FF',
+        'hard-lime': '3px 3px 0px #B8F34A',
+        'hard-coral': '3px 3px 0px #FF5252',
+        // Backward-compat aliases
+        'soft-xs': '2px 2px 0px #151515',
+        'soft-sm': '2px 2px 0px #151515',
+        'soft-md': '3px 3px 0px #151515',
+        'soft-lg': '4px 4px 0px #151515',
+        'glass': '3px 3px 0px #151515',
       },
       borderRadius: {
-        '2xl': '1.25rem',
-        '3xl': '1.75rem',
+        'xs': '2px',
+        'sm': '4px',
+        'md': '6px',
+        'lg': '8px',
+        'xl': '8px',
+        '2xl': '8px',
+        '3xl': '8px',
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
-      }
+        sans: ['"Space Grotesk"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [],
