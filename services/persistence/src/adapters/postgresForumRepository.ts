@@ -42,24 +42,30 @@ function rowToRecord(row: ForumPostRow): ForumPostRecord {
 export function createPostgresForumRepository(pool: Pool = getPool()): ForumRepository {
   return {
     async create(input: CreateForumPostInput): Promise<ForumPostRecord> {
+      const status = input.initialStatus ?? 'pending_review';
       const result = await pool.query<ForumPostRow>(
-        `INSERT INTO forum_posts (author_pseudonym, domain, title, body)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO forum_posts (author_pseudonym, domain, title, body, moderation_status)
+         VALUES ($1, $2, $3, $4, $5)
          RETURNING id, author_pseudonym, domain, title, body, moderation_status, support_count, created_at`,
-        [input.authorPseudonym, input.domain, input.title, input.body]
+        [input.authorPseudonym, input.domain, input.title, input.body, status]
       );
       return rowToRecord(result.rows[0]);
     },
 
-    async listApproved(limit = 20): Promise<ForumPostRecord[]> {
-      const result = await pool.query<ForumPostRow>(
-        `SELECT id, author_pseudonym, domain, title, body, moderation_status, support_count, created_at
-         FROM forum_posts
-         WHERE moderation_status = 'approved'
-         ORDER BY created_at DESC
-         LIMIT $1`,
-        [limit]
-      );
+    async listApproved(limit = 20, domain?: InterventionDomain): Promise<ForumPostRecord[]> {
+      const query = domain
+        ? `SELECT id, author_pseudonym, domain, title, body, moderation_status, support_count, created_at
+           FROM forum_posts
+           WHERE moderation_status = 'approved' AND domain = $2
+           ORDER BY created_at DESC
+           LIMIT $1`
+        : `SELECT id, author_pseudonym, domain, title, body, moderation_status, support_count, created_at
+           FROM forum_posts
+           WHERE moderation_status = 'approved'
+           ORDER BY created_at DESC
+           LIMIT $1`;
+      const params = domain ? [limit, domain] : [limit];
+      const result = await pool.query<ForumPostRow>(query, params);
       return result.rows.map(rowToRecord);
     },
 
@@ -88,6 +94,20 @@ export function createPostgresForumRepository(pool: Pool = getPool()): ForumRepo
          WHERE id = $1
          RETURNING id, author_pseudonym, domain, title, body, moderation_status, support_count, created_at`,
         [postId, status]
+      );
+      return result.rows[0] ? rowToRecord(result.rows[0]) : undefined;
+    },
+
+    async incrementSupport(postId: string): Promise<ForumPostRecord | undefined> {
+      if (!UUID_PATTERN.test(postId)) {
+        return undefined;
+      }
+      const result = await pool.query<ForumPostRow>(
+        `UPDATE forum_posts
+         SET support_count = support_count + 1
+         WHERE id = $1
+         RETURNING id, author_pseudonym, domain, title, body, moderation_status, support_count, created_at`,
+        [postId]
       );
       return result.rows[0] ? rowToRecord(result.rows[0]) : undefined;
     }

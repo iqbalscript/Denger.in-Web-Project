@@ -108,6 +108,9 @@ Jika pada asesmen awal atau input teks bebas terdeteksi indikasi bahaya diri ata
 - **Verified Directory (`/resources`)**: Direktori kontak darurat, konseling psikologis, perlindungan anak, dan advokasi pinjaman online ilegal dengan filter kategori dan pencarian.
 - **Local Private Journal (`/journal`)**: Ruang menuangkan pikiran secara bebas yang tersimpan privat di peramban tanpa terkirim ke server mana pun.
 - **AI Companion Multi-Brain Chat (`/chat`)**: Antarmuka percakapan empati terpandu dengan arsitektur 3-Brain (*DeepSeek Platform* sebagai Primary Brain, *OpenRouter NVIDIA Nemotron 3 Ultra* sebagai Second Brain / Anti-Bias Reviewer, dan *Google Gemini 3.1 Flash-Lite* sebagai Third Brain / Fallback), dilengkapi kartu aksi interaktif langsung (`suggest_mission`, `open_journal_prompt`, `suggest_forum`, `show_help_directory`, `adjust_path`) serta *Ironclad Maximum Guardrails*.
+- **Ruang Cerita Anonim Solidaritas (`/forum`)**: Ruang baca dan berbagi cerita pengalaman hidup anonim dengan penyaringan gerbang krisis dan moderasi keselamatan otomatis real-time (`moderateForumPost`), filter kategori topik, serta tombol dukungan empati *"Rasakan Hal Serupa"*.
+- **Laporan Kemajuan Mingguan Dinamis (`/report`)**: Evaluasi berkala yang mensintesis data riwayat check-in dan misi lokal klien secara dinamis, visualisasi grafik tren suasana hati 7 hari, distribusi pemicu beban emosional, pengamatan kualitatif AI, dan tombol salin ringkasan untuk konselor.
+- **Sinkronisasi Terenkripsi Ujung-ke-Ujung (E2EE Sync - `/recovery`)**: Pencadangan dan pemulihan data lokal antarperangkat menggunakan enkripsi Web Crypto API (AES-GCM 256-bit + PBKDF2) yang diturunkan langsung dari 12 kata kunci pemulihan pengguna dengan arsitektur *Zero-Knowledge* (server hanya menyimpan *ciphertext* opaque).
 - **Responsive Layout & Accessibility**: Desain responsif mobile/tablet/desktop dengan dukungan keyboard navigation, fokus visual terstandarisasi, dan `@media (prefers-reduced-motion)`.
 
 ### UI / Design System ("Soft Calm Glass")
@@ -115,10 +118,6 @@ Jika pada asesmen awal atau input teks bebas terdeteksi indikasi bahaya diri ata
 - **Soft Material**: Permukaan dengan radius sudut lembut (`rounded-2xl`, `rounded-3xl`), elevasi bayangan halus (*soft shadows*), dan kontras teks tinggi yang ramah aksesibilitas.
 - **Restrained Glassmorphism**: Efek kaca translusen dengan blur lembut (`backdrop-blur-md`, `border-white/70`) yang digunakan **secara selektif** hanya pada navigasi, kartu hero fitur, dan elemen mengambang kontekstual. Permukaan solid tetap digunakan pada konten teks padat, pertanyaan asesmen, dan antarmuka krisis.
 - **Reusable Primitives**: `PageContainer`, `ContentColumn`, `SplitLayout`, `GlassCard`, `SoftCard`, `Button`, `Input`, `Textarea`, `Chip`, `Badge`, `ProgressBar`, `HelpButton`, `MoodSelector`, `MissionCard`.
-
-### Current Skeleton / Planned (Belum Diimplementasikan Penuh)
-- **Ruang Cerita Anonim (`/forum`)**: *Route Skeleton* — Pratinjau antarmuka cerita solidaritas pengguna. Kerangka backend (`/api/forum`, `services/persistence`) sudah tersedia dengan moderasi wajib (`pending_review` default), didukung adapter PostgreSQL sungguhan maupun in-memory; moderasi otomatis AI direncanakan untuk sprint lanjutan.
-- **Laporan Mingguan (`/report`)**: *Route Skeleton* — Pratinjau visual ringkasan kemajuan 7 hari. Kerangka backend stateless (`/api/report/weekly`) sudah tersedia untuk mensintesis ringkasan dari riwayat lokal klien; penyimpanan agregat sisi server direncanakan untuk sprint lanjutan.
 
 ---
 
@@ -330,8 +329,8 @@ Denger.in/
 | `/journal` | Jurnal privat lokal bebas jejak di peramban pengguna | **Implemented (Local-First)** |
 | `/chat` | Antarmuka pendamping interaktif Multi-Brain AI dengan aksi tervalidasi | **Implemented (Live Multi-Brain: DeepSeek + Nemotron + Gemini 3.1)** |
 | `/resources` | Direktori layanan bantuan profesional & hotline terverifikasi | **Implemented** |
-| `/forum` | Ruang cerita solidaritas anonim sesama pengguna | **Skeleton (Sprint 0)**, backend API tersedia |
-| `/report` | Laporan evaluasi sintesis kemajuan mingguan | **Skeleton (Sprint 0)**, backend API tersedia |
+| `/forum` | Ruang cerita solidaritas anonim dengan moderasi keselamatan otomatis | **Implemented** |
+| `/report` | Laporan evaluasi sintesis kemajuan mingguan & grafik suasana hati 7 hari | **Implemented** |
 
 ---
 
@@ -343,16 +342,17 @@ Permukaan HTTP backend diimplementasikan sebagai Next.js Route Handlers di `apps
 |---|---|---|---|
 | `/api/health` | `GET` | Health check layanan backend | **Implemented** |
 | `/api/chat` | `POST` | Gerbang krisis deterministik → Gerbang domain/anti-coding → Multi-Brain AI Pipeline (DeepSeek → Nemotron Debiaser → Gemini 3.1 Fallback) → Maximum Guardrails & PII Redactor | **Implemented (Live Multi-Brain)** |
-| `/api/forum` | `GET`, `POST` | Daftar cerita yang disetujui; kirim cerita baru (otomatis `pending_review`, discan gerbang krisis) | **Implemented** (PostgreSQL, teruji end-to-end) |
-| `/api/forum/[postId]/moderate` | `PATCH` | Setujui/tolak cerita forum | **Implemented** — dilindungi sesi admin (`/api/admin/login`), teruji end-to-end |
-| `/api/report/weekly` | `POST` | Sintesis ringkasan mingguan stateless dari riwayat check-in/misi lokal klien | **Implemented** |
-| `/api/sync` | `GET`, `PUT` | Simpan/ambil blob terenkripsi klien berdasarkan hash frasa pemulihan 12-kata | **Implemented** (PostgreSQL); enkripsi ujung-ke-ujung sisi klien belum diimplementasikan |
+| `/api/forum` | `GET`, `POST` | Filter kategori; kirim cerita baru dengan penyaringan krisis & moderasi keselamatan otomatis (`moderateForumPost`) | **Implemented** (PostgreSQL / in-memory, teruji end-to-end) |
+| `/api/forum/[postId]/support` | `POST` | Tambah dukungan empati komunitas ("Rasakan Hal Serupa") | **Implemented** |
+| `/api/forum/[postId]/moderate` | `PATCH` | Setujui/tolak cerita forum secara manual | **Implemented** — dilindungi sesi admin (`/api/admin/login`), teruji end-to-end |
+| `/api/report/weekly` | `POST` | Sintesis mingguan dinamis & personal dari riwayat check-in/misi klien | **Implemented** |
+| `/api/sync` | `GET`, `PUT` | Simpan/ambil paket terenkripsi ujung-ke-ujung (AES-GCM 256-bit + PBKDF2) klien berdasarkan hash frasa 12-kata | **Implemented (Client-Side Zero-Knowledge E2EE)** |
 | `/api/admin/login` | `POST` | Login admin/moderator (username+password → cookie sesi HMAC httpOnly) | **Implemented**, teruji end-to-end |
 | `/api/admin/logout` | `POST` | Hapus cookie sesi admin | **Implemented** |
 | `/api/admin/me` | `GET` | Cek sesi admin aktif saat ini | **Implemented** |
 
 > [!NOTE]
-> Semua endpoint di atas sudah diuji end-to-end terhadap instance PostgreSQL sungguhan maupun in-memory. Multi-Brain AI didukung penuh secara live menggunakan kredensial yang dikonfigurasi pada `.env.local` (`DEEPSEEK_API_KEY`, `OPENROUTER_API_KEY`, dan `GEMINI_API_KEY`). Jika salah satu provider API tidak tersedia atau mencapai kuota batas, orkestrator secara halus mengalihkan ke model lapis berikutnya hingga ke jaring pengaman deterministik.
+> Semua endpoint di atas sudah diuji end-to-end terhadap instance PostgreSQL sungguhan maupun in-memory. Multi-Brain AI didukung penuh secara live menggunakan kredensial yang dikonfigurasi pada `.env.local` (`DEEPSEEK_API_KEY`, `OPENROUTER_API_KEY`, dan `GEMINI_API_KEY`). Sinkronisasi antarperangkat `/api/sync` sepenuhnya aman dengan enkripsi ujung-ke-ujung (E2EE) berbasis Web Crypto API di sisi klien (server hanya menyimpan ciphertext tanpa mengetahui data asli).
 
 ---
 
@@ -440,16 +440,17 @@ Status validasi otomatis saat ini di repositori:
 | Uji Kelayakan | Cakupan | Hasil |
 |---|---|---|
 | **Crisis Engine Tests** | 33 pengujian (anti-evasi, leetspeak, frasa bunuh diri, false-positive) | **33 / 33 PASS** |
-| **Action Validator Tests** | 28 pengujian (whitelist 6 aksi, blokir blok koding ` ``` `, sensor PII NIK/email/telepon, anti-diagnosis, anti-toxic positivity) | **28 / 28 PASS** |
+| **Action Validator & Moderation Tests** | 35 pengujian (whitelist 6 aksi, blokir blok koding ` ``` `, sensor PII NIK/email/telepon, anti-diagnosis, anti-toxic positivity, dan moderasi konten forum) | **35 / 35 PASS** |
 | **Assessment Tests** | 19 pengujian alur asesmen adaptif | **19 / 19 PASS** |
 | **AI Orchestrator Tests** | 9 pengujian (Domain Gate anti-coding, pipeline Multi-Brain Tier 1/2/3, Nemotron debiaser, fallback aman) | **9 / 9 PASS** |
-| **Persistence Tests (in-memory)** | 6 pengujian repositori forum & sinkronisasi | **6 / 6 PASS** |
+| **Persistence Tests (in-memory)** | 7 pengujian repositori forum & sinkronisasi | **7 / 7 PASS** |
 | **Auth Tests** | 10 pengujian hashing password & sesi admin bertanda tangan | **10 / 10 PASS** |
+| **Crypto E2EE Tests** | 4 pengujian enkripsi/dekripsi AES-GCM 256-bit & PBKDF2 Web Crypto API | **4 / 4 PASS** |
 | **Persistence Tests (PostgreSQL, integrasi)** | 6 pengujian terhadap database sungguhan (skip otomatis tanpa `DATABASE_URL`) | **6 / 6 PASS** (diverifikasi dengan PostgreSQL lokal) |
-| **End-to-End API (manual)** | Alur penuh chat Multi-Brain live, registrasi sesi, krisis, dan moderasi | **PASS** |
+| **End-to-End API (manual)** | Alur penuh chat Multi-Brain live, registrasi sesi, krisis, moderasi forum, dan E2EE sync | **PASS** |
 | **Typecheck** | `tsc --noEmit` pada seluruh paket dan aplikasi monorepo | **0 Errors** |
 | **Lint** | ESLint pada seluruh komponen dan modul TypeScript | **0 Errors, 0 Warnings** |
-| **Production Build** | `next build` App Router + 9 API routes | **SUCCESS** |
+| **Production Build** | `next build` App Router + 10 API routes (26 total routes) | **SUCCESS** |
 
 ---
 
@@ -470,22 +471,23 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
 - **Domain & Anti-Coding Gate (Layer 1)**: Penyaringan pra-LLM instan untuk mencegah pembelokan platform menjadi asisten pemrograman atau penjawab umum.
 - **Second Brain Debiasing (Layer 2)**: Pemeriksaan netralitas emosional dan penghapusan bias kognitif menggunakan NVIDIA Nemotron 3 Ultra 550B sebelum pesan dikirimkan ke pengguna.
 - **Validasi Skema Aksi Ketat & Maximum Guardrails (Layer 3)**: Segala respons kecerdasan buatan disaring melalui whitelist 6 aksi terdefinisi; larangan keras penyertaan blok kode markdown, klaim diagnostik klinis psikiatri, dan penyingkiran *toxic positivity*.
+- **Moderasi Keselamatan Otomatis Forum (`moderateForumPost`)**: Penyaringan multi-kategori yang memeriksa ujaran kebencian, kata-kata kasar, promosi pinjol ilegal/judi, serta klaim medis sebelum cerita dapat tampil di ruang publik.
+- **Enkripsi Ujung-ke-Ujung Sisi Klien (Zero-Knowledge E2EE)**: Data sesi, check-in, dan jurnal dienkripsi menggunakan algoritma AES-GCM 256-bit dan PBKDF2 (100.000 iterasi) langsung di peramban pengguna menggunakan 12 kata kunci pemulihan. Server hanya menerima dan menyimpan *ciphertext opaque*, sehingga privasi pengguna terlindungi secara absolut.
 - **Sensor Data Sensitif (PII Redaction)**: Deteksi dan penyensoran otomatis terhadap alamat surel, nomor telepon Indonesia, serta format 16-digit NIK agar privasi pengguna terlindungi dari kebocoran log.
 - **Sesi Bebas Identitas**: Identitas berbasis UUID acak lokal yang tidak memerlukan database identitas kependudukan.
 - **Data Tersimpan Lokal**: Catatan emosional dan jurnal disimpan di peramban lokal tanpa log server sentral.
 
 ### Fitur Keamanan Direncanakan (Planned)
-- Sinkronisasi awan berbasis enkripsi *zero-knowledge end-to-end*.
-- Sistem moderasi otomatis untuk konten forum komunitas publik sebelum tayang.
+- Rate limiting terdistribusi berbasis token bucket pada jaringan edge.
 
 ---
 
 ## 15. Roadmap
 
-### Completed (Sprint 0, Sprint 1 & Sprint 2)
+### Completed (Sprint 0, Sprint 1, Sprint 2 & Sprint 3+)
 - [x] Fondasi arsitektur monorepo, paket konfigurasi, dan tipe data global.
 - [x] Mesin deteksi krisis deterministik bahasa Indonesia (33 pengujian tervalidasi).
-- [x] Runtime action whitelist validator untuk output AI & Maximum Guardrails (28 pengujian tervalidasi).
+- [x] Runtime action whitelist validator untuk output AI & Maximum Guardrails (35 pengujian tervalidasi).
 - [x] Alur pengguna inti: Landing → Consent → Anonymous UUID → Onboarding → Assessment → Dashboard → Mission → Check-in.
 - [x] Direktori bantuan darurat resmi Indonesia terverifikasi.
 - [x] Redesain sistem visual "Soft Calm Glass" dan restrukturisasi hierarki tata letak 12-kolom responsif.
@@ -505,12 +507,24 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
   - Larangan diagnosis klinis & eliminasi *toxic positivity*.
 - [x] **Interactive Action Cards pada Antarmuka Chat**:
   - Kartu visual interaktif langsung untuk misi harian, prompt jurnal lokal, rekomendasi forum, direktori bantuan darurat, dan penyesuaian jalur 14 hari.
+- [x] **Ruang Cerita Anonim Solidaritas (`/forum`) Live**:
+  - Feed cerita antar-pengguna dengan filter kategori domain.
+  - Modal interaktif "Bagikan Cerita Anonim" dengan generator nama samaran tanpa PII.
+  - Moderasi keselamatan otomatis lapis ganda (Gerbang Krisis + Anti-Toksik/Spam/Scam).
+  - Tombol empati interaktif *"Rasakan Hal Serupa"* dengan pelacakan status lokal.
+- [x] **Laporan Kemajuan Mingguan Dinamis (`/report`)**:
+  - Evaluasi berbasis data aktual peramban (`getDailyCheckins`, misi harian, catatan jurnal).
+  - Grafik visual tren suasana hati 7 hari (*7-Day Mood Trend Chart*) interaktif.
+  - Sintesis pola emosi kualitatif & pesan penguat via endpoint `/api/report/weekly`.
+  - Tombol salin ringkasan evaluasi untuk keperluan konsultasi profesional.
+- [x] **Sinkronisasi Antarperangkat Terenkripsi Ujung-ke-Ujung (Client-Side E2EE Sync)**:
+  - Enkripsi Web Crypto API (AES-GCM 256-bit + PBKDF2) dari 12 kata kunci pemulihan.
+  - Tombol "Cadangkan ke Cloud (E2EE)" pada halaman `/recovery`.
+  - Tombol "Dekripsi & Pulihkan Sesi" untuk memulihkan seluruh riwayat check-in dan jurnal di perangkat baru secara *zero-knowledge*.
 
-### Planned (Sprint 3+)
-- [ ] Moderasi keselamatan otomatis (ML/heuristik tambahan) untuk Ruang Cerita Anonim (`/forum`) — saat ini moderasi manual via `/api/admin`.
-- [ ] Penyimpanan agregat sisi server & analitik historis untuk Laporan Kemajuan Mingguan (`/report`) — saat ini stateless dari riwayat lokal klien.
-- [ ] Enkripsi ujung-ke-ujung sungguhan (sisi klien) untuk opsi sinkronisasi antarperangkat menggunakan frasa 12-kata — kontrak penyimpanan (`/api/sync`) dan tabelnya sudah berjalan penuh di PostgreSQL.
-- [ ] Rate limiting terdistribusi (mis. Redis) menggantikan limiter in-memory per-instance saat ini.
+### Planned (Sprint 4+ / Future Scale)
+- [ ] Rate limiting terdistribusi (mis. Redis / Upstash) menggantikan limiter in-memory per-instance saat ini.
+- [ ] Opsi bookmark cerita komunitas ke dalam jurnal refleksi pribadi lokal.
 
 ---
 

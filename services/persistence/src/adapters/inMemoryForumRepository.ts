@@ -23,16 +23,16 @@ export function createInMemoryForumRepository(): ForumRepository {
         title: input.title,
         body: input.body,
         createdAt: new Date().toISOString(),
-        moderationStatus: 'pending_review',
+        moderationStatus: input.initialStatus ?? 'pending_review',
         supportCount: 0
       };
       posts.set(record.id, record);
       return record;
     },
 
-    async listApproved(limit = 20): Promise<ForumPostRecord[]> {
+    async listApproved(limit = 20, domain?: import('@dengarin/types').InterventionDomain): Promise<ForumPostRecord[]> {
       return [...posts.values()]
-        .filter((post) => post.moderationStatus === 'approved')
+        .filter((post) => post.moderationStatus === 'approved' && (!domain || post.domain === domain))
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
         .slice(0, limit);
     },
@@ -53,6 +53,19 @@ export function createInMemoryForumRepository(): ForumRepository {
         return undefined;
       }
       const updated: ForumPostRecord = { ...existing, moderationStatus: status };
+      posts.set(postId, updated);
+      return updated;
+    },
+
+    async incrementSupport(postId: string): Promise<ForumPostRecord | undefined> {
+      const existing = posts.get(postId);
+      if (!existing) {
+        return undefined;
+      }
+      const updated: ForumPostRecord = {
+        ...existing,
+        supportCount: (existing.supportCount || 0) + 1
+      };
       posts.set(postId, updated);
       return updated;
     }
