@@ -10,10 +10,12 @@ import type {
 } from '@dengarin/types';
 import { DOMAIN_MISSION_TEMPLATES } from '@dengarin/config';
 
-const STORAGE_KEY = 'dengarin_anonymous_session';
-const CHECKINS_KEY = 'dengarin_checkins';
-const DRAFT_STORAGE_KEY = 'dengarin_assessment_draft';
-const MISSION_KEY_PREFIX = 'dengarin_mission_';
+/** Every browser record owned by the anonymous application uses this prefix. */
+export const DENGARIN_STORAGE_PREFIX = 'dengarin_';
+const STORAGE_KEY = `${DENGARIN_STORAGE_PREFIX}anonymous_session`;
+const CHECKINS_KEY = `${DENGARIN_STORAGE_PREFIX}checkins`;
+const DRAFT_STORAGE_KEY = `${DENGARIN_STORAGE_PREFIX}assessment_draft`;
+const MISSION_KEY_PREFIX = `${DENGARIN_STORAGE_PREFIX}mission_`;
 
 // Curated non-PII words for anonymous identity generation (e.g. "Bunga Tenang #2481")
 const ALIAS_NOUNS = [
@@ -297,19 +299,18 @@ export function getTodayMissionReflection(): string {
 }
 
 /**
- * Wipe anonymous data completely
+ * Wipe every localStorage record owned by the anonymous application. This
+ * includes dated mission keys from prior days, recovery metadata, and markers.
+ * Cloud backups deliberately remain available to the recovery phrase.
  */
 export function clearAnonymousSession(): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(CHECKINS_KEY);
-    localStorage.removeItem(DRAFT_STORAGE_KEY);
-    localStorage.removeItem('dengarin_journal_entries');
-    // Clear mission keys
-    const todayStr = new Date().toISOString().slice(0, 10);
-    localStorage.removeItem(`${MISSION_KEY_PREFIX}${todayStr}_completed`);
-    localStorage.removeItem(`${MISSION_KEY_PREFIX}${todayStr}_reflection`);
+    // Iterate backwards because removing an entry changes Storage indexes.
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith(DENGARIN_STORAGE_PREFIX)) localStorage.removeItem(key);
+    }
   } catch (err) {
     console.error('Failed to wipe anonymous data:', err);
   }
