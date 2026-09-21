@@ -19,8 +19,8 @@ export function Chip({
   ...props
 }: ChipProps) {
   const sizeClasses = {
-    sm: 'px-2.5 py-1 text-xs gap-1 min-h-[34px]',
-    md: 'px-3.5 py-1.5 text-sm gap-1.5 min-h-[40px]',
+    sm: 'px-2.5 py-1 text-xs gap-1 min-h-[44px] sm:min-h-[34px]',
+    md: 'px-3.5 py-1.5 text-sm gap-1.5 min-h-[44px] sm:min-h-[40px]',
   };
 
   const unselectedVariants = {

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { CheckCircle2, Clock, ArrowLeft, Sparkles } from 'lucide-react';
 import {
   getAnonymousSession,
@@ -56,11 +55,14 @@ export default function MissionPage() {
       <ContentColumn size="md" className="space-y-8 text-left">
         {/* Top: Breadcrumb / Back */}
         <div>
-          <Link href="/dashboard" className="inline-block">
-            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              KEMBALI KE DASHBOARD
-            </Button>
-          </Link>
+          <Button
+            href="/dashboard"
+            variant="outline"
+            size="sm"
+            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+          >
+            KEMBALI KE DASHBOARD
+          </Button>
         </div>
 
         {/* Center: THE MISSION HERO */}
@@ -137,11 +139,9 @@ export default function MissionPage() {
                   </p>
                 </div>
               </div>
-              <Link href="/dashboard" className="shrink-0 w-full sm:w-auto">
-                <Button variant="primary" size="md" fullWidth>
-                  KEMBALI KE DASHBOARD →
-                </Button>
-              </Link>
+              <Button href="/dashboard" variant="primary" size="md" className="shrink-0 w-full sm:w-auto">
+                KEMBALI KE DASHBOARD →
+              </Button>
             </div>
           ) : (
             <Button

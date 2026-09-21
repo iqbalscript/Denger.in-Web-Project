@@ -56,6 +56,7 @@ export default function ChatPage() {
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   // Auto-scroll to bottom when new messages appear
   useEffect(() => {
@@ -77,7 +78,8 @@ export default function ChatPage() {
 
   const sendMessageWithText = async (textToSend: string) => {
     const userText = textToSend.trim();
-    if (!userText || isTyping) return;
+    if (!userText || isTyping || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
 
     // 1. DETERMINISTIC SAFETY GATE (Step 0 — client-side pre-check, ZERO AI)
     const crisisCheck = evaluateCrisisInput(userText, session?.ageBracket || '18-24');
@@ -119,26 +121,33 @@ export default function ChatPage() {
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => null);
 
-      // Rate-limited
-      if (res.status === 429) {
+      // Server-side crisis redirect check
+      if (json?.data?.crisis) {
+        window.location.href = '/crisis';
+        return;
+      }
+
+      // Handle non-OK status codes (413, 429, 400, etc.)
+      if (!res.ok) {
+        const errorText =
+          json?.error ||
+          (res.status === 413
+            ? 'Pesan terlalu panjang (maksimum 2.000 karakter).'
+            : res.status === 429
+              ? 'Terlalu banyak permintaan. Coba lagi sebentar lagi.'
+              : 'Maaf, terjadi kendala saat memproses respons. Silakan coba kirim kembali.');
+
         setMessages((prev) => [
           ...prev,
           {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',
-            text: json?.error ?? 'Terlalu banyak permintaan. Coba lagi sebentar lagi.',
+            text: errorText,
             isError: true,
           },
         ]);
-        setIsTyping(false);
-        return;
-      }
-
-      // Server-side crisis redirect
-      if (json?.data?.crisis) {
-        window.location.href = '/crisis';
         return;
       }
 
@@ -195,6 +204,7 @@ export default function ChatPage() {
         },
       ]);
     } finally {
+      isSubmittingRef.current = false;
       setIsTyping(false);
     }
   };
@@ -215,11 +225,9 @@ export default function ChatPage() {
             </div>
             {action.reason && <p className="text-ink/80 text-[11px] leading-relaxed font-medium">{action.reason}</p>}
             <div className="pt-1">
-              <Link href="/mission">
-                <Button size="sm" variant="primary" className="text-xs py-1 px-2.5 h-7">
-                  Buka Modul Misi →
-                </Button>
-              </Link>
+              <Button href="/mission" size="sm" variant="primary" className="text-xs py-1 px-2.5 h-7">
+                Buka Modul Misi →
+              </Button>
             </div>
           </div>
         );
@@ -243,11 +251,9 @@ export default function ChatPage() {
               </div>
             )}
             <div className="pt-1">
-              <Link href="/journal">
-                <Button size="sm" variant="primary" className="text-xs py-1 px-2.5 h-7">
-                  Tulis di Jurnal →
-                </Button>
-              </Link>
+              <Button href="/journal" size="sm" variant="primary" className="text-xs py-1 px-2.5 h-7">
+                Tulis di Jurnal →
+              </Button>
             </div>
           </div>
         );
@@ -263,11 +269,9 @@ export default function ChatPage() {
               Temukan cerita dan saling menyemangati dengan teman sebaya yang memahami situasi serupa.
             </p>
             <div className="pt-1">
-              <Link href="/forum">
-                <Button size="sm" variant="primary" className="text-xs py-1 px-2.5 h-7">
-                  Kunjungi Forum →
-                </Button>
-              </Link>
+              <Button href="/forum" size="sm" variant="primary" className="text-xs py-1 px-2.5 h-7">
+                Kunjungi Forum →
+              </Button>
             </div>
           </div>
         );
@@ -283,11 +287,9 @@ export default function ChatPage() {
               Akses daftar layanan konseling, hotline, dan pendampingan resmi yang telah dikurasi.
             </p>
             <div className="pt-1">
-              <Link href="/resources">
-                <Button size="sm" variant="primary" className="text-xs py-1 px-2.5 h-7">
-                  Lihat Direktori Bantuan →
-                </Button>
-              </Link>
+              <Button href="/resources" size="sm" variant="primary" className="text-xs py-1 px-2.5 h-7">
+                Lihat Direktori Bantuan →
+              </Button>
             </div>
           </div>
         );
@@ -313,11 +315,14 @@ export default function ChatPage() {
       <ContentColumn size="md" className="space-y-6">
         {/* Top Navigation & Safety Indicator */}
         <div className="flex items-center justify-between gap-3">
-          <Link href="/dashboard" className="inline-block">
-            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              KEMBALI KE DASHBOARD
-            </Button>
-          </Link>
+          <Button
+            href="/dashboard"
+            variant="outline"
+            size="sm"
+            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+          >
+            KEMBALI KE DASHBOARD
+          </Button>
 
           <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-2.5 py-1 bg-yellow border-2 border-ink rounded shadow-hard-sm text-ink">
             <ShieldCheck className="w-3.5 h-3.5 text-ink" />
@@ -326,7 +331,7 @@ export default function ChatPage() {
         </div>
 
         {/* Chat Container */}
-        <div className="flex flex-col h-[640px] bg-white border-2 border-ink rounded-lg shadow-hard overflow-hidden text-left">
+        <div className="flex flex-col h-[calc(100dvh-220px)] min-h-[480px] max-h-[640px] sm:h-[640px] bg-white border-2 border-ink rounded-lg shadow-hard overflow-hidden text-left">
           {/* Chat Header */}
           <div className="p-4 border-b-2 border-ink bg-paper flex items-center justify-between gap-2">
             <div className="flex items-center gap-3">
@@ -470,7 +475,7 @@ export default function ChatPage() {
                   key={prompt}
                   type="button"
                   onClick={() => sendMessageWithText(prompt)}
-                  className="text-[11px] bg-white hover:bg-paper-dark text-ink border-2 border-ink rounded-md px-3 py-1.5 shadow-hard-sm text-left font-medium transition-all"
+                  className="text-[11px] bg-white hover:bg-paper-dark text-ink border-2 border-ink rounded-md px-3 py-1.5 shadow-hard-sm text-left font-medium transition-all min-h-[44px] sm:min-h-[36px] flex items-center"
                 >
                   {prompt}
                 </button>

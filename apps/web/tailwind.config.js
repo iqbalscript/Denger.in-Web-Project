@@ -13,6 +13,7 @@ module.exports = {
         lime: '#B8F34A',
         yellow: '#FFD84D',
         amber: '#FF8A3D',
+        tangerine: '#FF8A3D',
         coral: '#FF5252',
         borderSubtle: '#D8D3C9',
 

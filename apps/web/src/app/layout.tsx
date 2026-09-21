@@ -22,7 +22,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen flex flex-col bg-[#FFF8EF] text-[#151515] font-sans selection:bg-[#B8F34A] selection:text-[#151515]">
         <Navbar />
-        <main className="flex-1">
+        <main className="flex-1 pb-20 lg:pb-0">
           {children}
         </main>
         <Footer />

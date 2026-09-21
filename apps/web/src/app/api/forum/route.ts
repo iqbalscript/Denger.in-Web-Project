@@ -17,9 +17,14 @@ interface CreateForumPostBody {
 
 /** GET /api/forum — publicly readable, approved posts only (optional domain filter). */
 export async function GET(request: NextRequest) {
-  const domainParam = request.nextUrl.searchParams.get('domain') as InterventionDomain | null;
-  const posts = await forumRepository.listApproved(50, domainParam || undefined);
-  return jsonOk({ posts });
+  try {
+    const domainParam = request.nextUrl.searchParams.get('domain') as InterventionDomain | null;
+    const posts = await forumRepository.listApproved(50, domainParam || undefined);
+    return jsonOk({ posts });
+  } catch (err) {
+    console.error('Failed to list forum posts:', err);
+    return jsonError('Gagal memuat cerita forum. Silakan coba lagi sebentar lagi.', 500);
+  }
 }
 
 /**
@@ -64,13 +69,18 @@ export async function POST(request: NextRequest) {
     return jsonError(moderation.reason || 'Konten tidak memenuhi panduan komunitas kami.', 422);
   }
 
-  const post = await forumRepository.create({
-    authorPseudonym,
-    domain: body.domain,
-    title: body.title.trim(),
-    body: body.body.trim(),
-    initialStatus: moderation.status
-  });
+  try {
+    const post = await forumRepository.create({
+      authorPseudonym,
+      domain: body.domain,
+      title: body.title.trim(),
+      body: body.body.trim(),
+      initialStatus: moderation.status
+    });
 
-  return jsonOk({ crisis: false, post, moderation }, { status: 201 });
+    return jsonOk({ crisis: false, post, moderation }, { status: 201 });
+  } catch (err) {
+    console.error('Failed to create forum post:', err);
+    return jsonError('Terjadi kendala saat menyimpan cerita ke database. Silakan coba lagi sebentar lagi.', 500);
+  }
 }

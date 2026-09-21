@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
   BarChart3,
   ArrowLeft,
@@ -108,8 +107,9 @@ export default function ReportPage() {
 
         if (res.ok) {
           const data = await res.json();
-          if (data.summary) {
-            setSummary(data.summary);
+          const summaryData = data?.data?.summary ?? data?.summary;
+          if (summaryData) {
+            setSummary(summaryData);
           }
         }
       } catch (err) {
@@ -159,11 +159,14 @@ Catatan: ${summary.encouragementNote}
     <PageContainer size="narrow">
       <ContentColumn size="md" className="space-y-8 text-left">
         <div className="flex items-center justify-between">
-          <Link href="/dashboard" className="inline-block">
-            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              KEMBALI KE DASHBOARD
-            </Button>
-          </Link>
+          <Button
+            href="/dashboard"
+            variant="outline"
+            size="sm"
+            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+          >
+            KEMBALI KE DASHBOARD
+          </Button>
 
           <Button
             variant="primary"
@@ -338,11 +341,9 @@ Catatan: ${summary.encouragementNote}
             </p>
           </div>
 
-          <Link href="/dashboard" className="shrink-0 w-full sm:w-auto">
-            <Button variant="primary" size="md" fullWidth>
-              LANJUT KE HARI INI →
-            </Button>
-          </Link>
+          <Button href="/dashboard" variant="primary" size="md" className="shrink-0 w-full sm:w-auto">
+            LANJUT KE HARI INI →
+          </Button>
         </div>
       </ContentColumn>
     </PageContainer>

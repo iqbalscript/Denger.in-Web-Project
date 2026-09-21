@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Users,
   ArrowLeft,
@@ -107,6 +106,7 @@ export default function ForumPage() {
   const [authorPseudonym, setAuthorPseudonym] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitNotice, setSubmitNotice] = useState<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
+  const isSubmittingRef = useRef(false);
 
   // Supported posts tracking in local storage
   const [supportedPosts, setSupportedPosts] = useState<Set<string>>(new Set());
@@ -130,15 +130,16 @@ export default function ForumPage() {
         : '/api/forum';
       const res = await fetch(url);
       if (res.ok) {
-        const data = await res.json();
-        if (data.posts && Array.isArray(data.posts)) {
-          if (data.posts.length === 0) {
+        const json = await res.json();
+        const postsList = json.data?.posts ?? json.posts;
+        if (Array.isArray(postsList)) {
+          if (postsList.length === 0) {
             const filteredSeed = selectedDomain && selectedDomain !== 'all'
               ? INITIAL_FALLBACK_POSTS.filter((p) => p.domain === selectedDomain)
               : INITIAL_FALLBACK_POSTS;
             setPosts(filteredSeed);
           } else {
-            setPosts(data.posts);
+            setPosts(postsList);
           }
         }
       }
@@ -164,6 +165,9 @@ export default function ForumPage() {
   const handleSupport = async (postId: string) => {
     if (supportedPosts.has(postId)) return;
 
+    const prevSupported = new Set(supportedPosts);
+    const prevPosts = posts;
+
     setPosts((prev) =>
       prev.map((p) => (p.id === postId ? { ...p, supportCount: p.supportCount + 1 } : p))
     );
@@ -179,15 +183,34 @@ export default function ForumPage() {
 
     if (!postId.startsWith('seed-')) {
       try {
-        await fetch(`/api/forum/${postId}/support`, { method: 'POST' });
+        const res = await fetch(`/api/forum/${postId}/support`, { method: 'POST' });
+        if (!res.ok) {
+          // Revert optimistic update on failure
+          setPosts(prevPosts);
+          setSupportedPosts(prevSupported);
+          try {
+            localStorage.setItem('dengarin_supported_posts', JSON.stringify(Array.from(prevSupported)));
+          } catch {
+            // ignore
+          }
+        }
       } catch {
-        // silent fail
+        // Revert on network failure
+        setPosts(prevPosts);
+        setSupportedPosts(prevSupported);
+        try {
+          localStorage.setItem('dengarin_supported_posts', JSON.stringify(Array.from(prevSupported)));
+        } catch {
+          // ignore
+        }
       }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setSubmitting(true);
     setSubmitNotice(null);
 
@@ -203,52 +226,66 @@ export default function ForumPage() {
         }),
       });
 
-      const data = await res.json();
+      const json = await res.json().catch(() => null);
 
       if (!res.ok) {
         setSubmitNotice({
           type: 'error',
-          message: data.error || 'Gagal mengirim cerita. Mohon periksa kembali tulisanmu.',
+          message: json?.error || json?.message || 'Gagal mengirim cerita. Mohon periksa kembali tulisanmu.',
         });
-        setSubmitting(false);
         return;
       }
 
-      if (data.crisis) {
+      const payload = (json?.data ?? json) as any;
+
+      if (payload?.crisis) {
         setSubmitNotice({
           type: 'warning',
           message: 'Tulisanmu mengindikasikan beban berat. Silakan buka halaman Bantuan Darurat untuk berbicara langsung dengan tenaga ahli.',
         });
-        setSubmitting(false);
         return;
       }
 
-      if (data.moderation?.status === 'approved') {
-        if (data.post) {
-          setPosts((prev) => [data.post, ...prev]);
+      if (payload?.moderation?.status === 'approved') {
+        if (payload.post) {
+          setPosts((prev) => [payload.post, ...prev]);
         }
         setSubmitNotice({
           type: 'success',
-          message: 'Ceritamu lolos verifikasi keselamatan dan langsung tayang di ruang solidaritas. Terima kasih telah berbagi!',
+          message: 'Ceritamu berhasil dipublikasikan secara anonim! Terima kasih telah saling menguatkan.',
         });
         setTimeout(() => {
           setIsModalOpen(false);
-        }, 1500);
-      } else {
+          setTitle('');
+          setBody('');
+          setAuthorPseudonym('');
+          setSubmitNotice(null);
+        }, 2000);
+      } else if (payload?.moderation?.status === 'pending_review') {
         setSubmitNotice({
           type: 'warning',
-          message: 'Ceritamu telah tersimpan dan sedang menunggu tinjauan tim kurasi kami demi kenyamanan dan rasa aman bersama.',
+          message: 'Ceritamu sedang dalam peninjauan moderasi untuk memastikan keamanan komunitas.',
         });
         setTimeout(() => {
           setIsModalOpen(false);
-        }, 2000);
+          setTitle('');
+          setBody('');
+          setAuthorPseudonym('');
+          setSubmitNotice(null);
+        }, 3000);
+      } else {
+        setSubmitNotice({
+          type: 'error',
+          message: payload?.moderation?.reason || 'Konten tidak memenuhi panduan komunitas kami.',
+        });
       }
     } catch {
       setSubmitNotice({
         type: 'error',
-        message: 'Terjadi kendala jaringan saat mengirim cerita. Coba sesaat lagi.',
+        message: 'Koneksi terputus. Pastikan kamu terhubung ke internet dan coba lagi.',
       });
     } finally {
+      isSubmittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -257,11 +294,9 @@ export default function ForumPage() {
     <PageContainer size="narrow">
       <ContentColumn size="md" className="space-y-8 text-left">
         <div>
-          <Link href="/dashboard" className="inline-block">
-            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              KEMBALI KE DASHBOARD
-            </Button>
-          </Link>
+          <Button href="/dashboard" variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
+            KEMBALI KE DASHBOARD
+          </Button>
         </div>
 
         {/* Header Intro */}
@@ -323,64 +358,86 @@ export default function ForumPage() {
         </div>
 
         {/* Story Stream */}
-        <div className="space-y-4">
-          {posts.map((post) => {
-            const hasSupported = supportedPosts.has(post.id);
-            const categoryLabel = CATEGORIES.find((c) => c.domain === post.domain)?.label || 'Beban Pikiran';
+        {loading ? (
+          <div className="bg-white border-2 border-ink rounded-lg p-8 text-center text-xs text-ink/70 font-bold shadow-hard-sm">
+            Memuat cerita ruang solidaritas...
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="bg-white border-2 border-ink rounded-lg p-8 sm:p-12 text-center space-y-4 shadow-hard-sm">
+            <div className="w-12 h-12 rounded-full bg-paper border-2 border-ink flex items-center justify-center mx-auto text-ink">
+              <MessageCircleHeart className="w-6 h-6 text-cobalt" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-black text-base text-ink uppercase tracking-wide">Belum Ada Cerita di Topik Ini</h3>
+              <p className="text-xs sm:text-sm text-ink/70 max-w-md mx-auto font-medium">
+                Jadilah yang pertama berbagi pengalaman atau beban pikiranmu secara aman dan anonim.
+              </p>
+            </div>
+            <Button variant="primary" size="sm" onClick={handleOpenModal} icon={<PlusCircle className="w-4 h-4" />}>
+              TULIS CERITA PERTAMA →
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {posts.map((post) => {
+              const hasSupported = supportedPosts.has(post.id);
+              const categoryLabel = CATEGORIES.find((c) => c.domain === post.domain)?.label || 'Beban Pikiran';
 
-            return (
-              <div
-                key={post.id}
-                className="bg-white border-2 border-ink rounded-lg p-6 space-y-3.5 shadow-hard-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
-              >
-                <div className="flex items-center justify-between gap-2 text-xs">
-                  <span className="text-[11px] font-black uppercase px-2 py-0.5 bg-paper border border-ink rounded text-ink">
-                    {post.authorPseudonym}
-                  </span>
-                  <span className="text-[11px] text-ink/60 font-bold uppercase tracking-wide">
-                    {categoryLabel}
-                  </span>
-                </div>
-
-                <h3 className="font-black text-base text-ink uppercase tracking-wide leading-snug">
-                  {post.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-ink/80 leading-relaxed whitespace-pre-line font-medium">
-                  {post.body}
-                </p>
-
-                <div className="pt-3 flex items-center justify-between text-xs text-ink/70 border-t-2 border-ink">
-                  <button
-                    onClick={() => handleSupport(post.id)}
-                    className={`flex items-center gap-1.5 font-bold py-1 px-2.5 rounded border-2 border-ink transition-all ${
-                      hasSupported
-                        ? 'bg-coral/20 text-coral shadow-hard-sm'
-                        : 'bg-white hover:bg-paper text-ink shadow-hard-sm'
-                    }`}
-                  >
-                    <Heart
-                      className={`w-3.5 h-3.5 ${
-                        hasSupported ? 'fill-coral text-coral' : 'text-ink'
-                      }`}
-                    />
-                    <span>
-                      {hasSupported
-                        ? `Kamu & ${post.supportCount - 1 > 0 ? post.supportCount - 1 : 0} orang merasakan hal serupa`
-                        : `${post.supportCount} orang merasakan hal serupa`}
+              return (
+                <div
+                  key={post.id}
+                  className="bg-white border-2 border-ink rounded-lg p-6 space-y-3.5 shadow-hard-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+                >
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="text-[11px] font-black uppercase px-2 py-0.5 bg-paper border border-ink rounded text-ink">
+                      {post.authorPseudonym}
                     </span>
-                  </button>
+                    <span className="text-[11px] text-ink/60 font-bold uppercase tracking-wide">
+                      {categoryLabel}
+                    </span>
+                  </div>
 
-                  <span className="text-[11px] text-ink/50 font-bold">
-                    {new Date(post.createdAt).toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
-                  </span>
+                  <h3 className="font-black text-base text-ink uppercase tracking-wide leading-snug">
+                    {post.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-ink/80 leading-relaxed whitespace-pre-line font-medium">
+                    {post.body}
+                  </p>
+
+                  <div className="pt-3 flex items-center justify-between text-xs text-ink/70 border-t-2 border-ink">
+                    <button
+                      type="button"
+                      onClick={() => handleSupport(post.id)}
+                      className={`flex items-center gap-1.5 font-bold py-1 px-2.5 rounded border-2 border-ink transition-all ${
+                        hasSupported
+                          ? 'bg-coral/20 text-coral shadow-hard-sm'
+                          : 'bg-white hover:bg-paper text-ink shadow-hard-sm'
+                      }`}
+                    >
+                      <Heart
+                        className={`w-3.5 h-3.5 ${
+                          hasSupported ? 'fill-coral text-coral' : 'text-ink'
+                        }`}
+                      />
+                      <span>
+                        {hasSupported
+                          ? `Kamu & ${post.supportCount - 1 > 0 ? post.supportCount - 1 : 0} orang merasakan hal serupa`
+                          : `${post.supportCount} orang merasakan hal serupa`}
+                      </span>
+                    </button>
+
+                    <span className="text-[11px] text-ink/50 font-bold">
+                      {new Date(post.createdAt).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Modal: Bagikan Cerita Anonim */}
         {isModalOpen && (
