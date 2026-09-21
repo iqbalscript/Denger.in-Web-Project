@@ -105,6 +105,8 @@ Jika pada asesmen awal atau input teks bebas terdeteksi indikasi bahaya diri ata
 - **Daily Mood Check-in (`/checkin`)**: Pemilih suasana hati taktil 5-tingkat, penggeser tingkat energi 1–10, chip pemicu tekanan, catatan singkat, dan riwayat check-in.
 - **Local Browser Persistence**: Penyimpanan data sesi, misi, refleksi, jurnal, dan check-in sepenuhnya di `localStorage` peramban.
 - **Permanent Data Wipe**: Utilitas pembersihan total data lokal di menu `/recovery` untuk menjaga kerahasiaan saat berbagi perangkat.
+- **API Abuse & Rate Limit Controls**: Pembatas permintaan berbasis jendela tetap (*fixed-window*) per rute (`chat`, `admin-login`, `forum-write`, `forum-support`, `weekly-report`, `sync-read`, `sync-write`), batas konkurensi 4 panggilan `/chat` simultan, serta validasi ukuran payload/pesan/riwayat chat (`apps/web/src/lib/api/rateLimit.ts` & `requestLimits.ts`). Bersifat *process-local* per instance — lihat `docs/M01_RATE_LIMITING.md` untuk keterbatasan pada deployment multi-instance.
+- **Forum Pseudonym Anti-Abuse Moderation**: Validasi nama samaran cerita forum yang menolak alamat kontak (email, nomor telepon, tautan/domain, termasuk varian Unicode penyamaran), ajakan judi/pinjol ilegal, ujaran kasar, dan markup HTML sebelum cerita tersimpan (`services/validator/src/contentModerator.ts`).
 - **Verified Directory (`/resources`)**: Direktori kontak darurat, konseling psikologis, perlindungan anak, dan advokasi pinjaman online ilegal dengan filter kategori dan pencarian.
 - **Local Private Journal (`/journal`)**: Ruang menuangkan pikiran secara bebas yang tersimpan privat di peramban tanpa terkirim ke server mana pun.
 - **AI Companion Multi-Brain Chat (`/chat`)**: Antarmuka percakapan empati terpandu dengan arsitektur 3-Brain (*DeepSeek Platform* sebagai Primary Brain, *OpenRouter NVIDIA Nemotron 3 Ultra* sebagai Second Brain / Anti-Bias Reviewer, dan *Google Gemini 3.1 Flash-Lite* sebagai Third Brain / Fallback), dilengkapi kartu aksi interaktif langsung (`suggest_mission`, `open_journal_prompt`, `suggest_forum`, `show_help_directory`, `adjust_path`) serta *Ironclad Maximum Guardrails*.
@@ -305,7 +307,9 @@ Denger.in/
 │   ├── persistence/              # Pengujian repositori forum & sinkronisasi in-memory
 │   ├── persistence-pg/           # Pengujian integrasi terhadap PostgreSQL sungguhan (skip otomatis tanpa DATABASE_URL)
 │   └── auth/                     # 10 pengujian hashing password & sesi admin
-├── docs/                        # Dokumentasi arsitektur, PRD, kebijakan keselamatan, dan UX
+├── docs/                        # Dokumentasi arsitektur, PRD, kebijakan keselamatan, UX, rate limiting (M01), & migrasi recovery
+├── supabase/
+│   └── migrations/              # Migrasi skema Supabase tambahan (mis. synced_sessions_v2 dengan RLS untuk secure sync v2)
 ├── .env.example                 # Contoh variabel lingkungan backend (kunci AI, DATABASE_URL, ADMIN_SESSION_SECRET)
 ├── package.json                 # Konfigurasi monorepo root & script eksekusi
 └── tsconfig.base.json           # Konfigurasi TypeScript dasar monorepo
@@ -321,6 +325,7 @@ Denger.in/
 | `/consent` | Persetujuan batasan hukum, privasi, dan non-medis | **Implemented** |
 | `/onboarding` | Panduan pemilihan kelompok usia, peran, dan domain beban hidup | **Implemented** |
 | `/assessment` | Kuesioner evaluasi beban emosional bertahap dengan filter keselamatan | **Implemented** |
+| `/assessment/result` | Ringkasan hasil evaluasi & rekomendasi jalur lanjutan pasca-asesmen | **Implemented** |
 | `/crisis` | Saluran tanggap darurat resmi dengan tombol telepon 1-tap | **Implemented** |
 | `/dashboard` | Dasbor utama: misi harian aktif, status check-in, dan alat bantuan | **Implemented** |
 | `/mission` | Panduan langkah misi intervensi harian dengan kolom refleksi | **Implemented** |
@@ -417,7 +422,7 @@ ADMIN_SEED_USERNAME=admin ADMIN_SEED_PASSWORD=ganti-ini-dengan-yang-kuat npm run
 
 ### Menjalankan Seluruh Validasi Otomatis
 ```bash
-# 1. Menjalankan seluruh rangkaian unit & integrasi test (105+ pengujian)
+# 1. Menjalankan seluruh rangkaian unit & integrasi test (157+ pengujian, termasuk suite keamanan M-01/M-02/M-03)
 npm run test
 
 # 2. Validasi tipe TypeScript di seluruh monorepo
@@ -439,18 +444,21 @@ Status validasi otomatis saat ini di repositori:
 
 | Uji Kelayakan | Cakupan | Hasil |
 |---|---|---|
-| **Crisis Engine Tests** | 33 pengujian (anti-evasi, leetspeak, frasa bunuh diri, false-positive) | **33 / 33 PASS** |
+| **Crisis Engine Tests** | 54 pengujian (33 deteksi inti: anti-evasi, leetspeak, frasa bunuh diri, false-positive; 21 regresi tambahan) | **54 / 54 PASS** |
 | **Action Validator & Moderation Tests** | 35 pengujian (whitelist 6 aksi, blokir blok koding ` ``` `, sensor PII NIK/email/telepon, anti-diagnosis, anti-toxic positivity, dan moderasi konten forum) | **35 / 35 PASS** |
 | **Assessment Tests** | 19 pengujian alur asesmen adaptif | **19 / 19 PASS** |
 | **AI Orchestrator Tests** | 9 pengujian (Domain Gate anti-coding, pipeline Multi-Brain Tier 1/2/3, Nemotron debiaser, fallback aman) | **9 / 9 PASS** |
 | **Persistence Tests (in-memory)** | 7 pengujian repositori forum & sinkronisasi | **7 / 7 PASS** |
 | **Auth Tests** | 10 pengujian hashing password & sesi admin bertanda tangan | **10 / 10 PASS** |
-| **Crypto E2EE Tests** | 4 pengujian enkripsi/dekripsi AES-GCM 256-bit & PBKDF2 Web Crypto API | **4 / 4 PASS** |
-| **Persistence Tests (PostgreSQL, integrasi)** | 6 pengujian terhadap database sungguhan (skip otomatis tanpa `DATABASE_URL`) | **6 / 6 PASS** (diverifikasi dengan PostgreSQL lokal) |
+| **Crypto & Recovery Sync Security Tests** | 9 pengujian (4 enkripsi/dekripsi AES-GCM 256-bit & PBKDF2 Web Crypto API, 5 keamanan sinkronisasi v2: bukti tulis anti-replay, migrasi backup lama) | **9 / 9 PASS** |
+| **Security M-01: Rate Limit & Request Boundary Tests** | Uji limiter jendela tetap per-rute, batas konkurensi 4 panggilan `/chat` simultan, batas ukuran pesan/riwayat/payload JSON | **PASS** (proses-lokal; lihat `docs/M01_RATE_LIMITING.md` untuk keterbatasan multi-instance) |
+| **Security M-02: Forum Pseudonym Anti-Abuse Tests** | 7 pengujian penolakan alamat kontak, tautan, ajakan judi/pinjol, ujaran kasar, dan markup HTML pada nama samaran forum | **7 / 7 PASS** |
+| **Security M-03: Anonymous Data Wipe Tests** | 3 pengujian penghapusan total data lokal berawalan `dengarin_` lintas tanggal tanpa menyentuh data situs lain | **3 / 3 PASS** |
+| **Persistence Tests (PostgreSQL, integrasi)** | Pengujian repositori & konfigurasi TLS koneksi database terhadap instance sungguhan (skip otomatis tanpa `DATABASE_URL`) | **PASS** (diverifikasi dengan PostgreSQL lokal) |
 | **End-to-End API (manual)** | Alur penuh chat Multi-Brain live, registrasi sesi, krisis, moderasi forum, dan E2EE sync | **PASS** |
 | **Typecheck** | `tsc --noEmit` pada seluruh paket dan aplikasi monorepo | **0 Errors** |
 | **Lint** | ESLint pada seluruh komponen dan modul TypeScript | **0 Errors, 0 Warnings** |
-| **Production Build** | `next build` App Router + 10 API routes (26 total routes) | **SUCCESS** |
+| **Production Build** | `next build` App Router + 10 API routes (27 total routes) | **SUCCESS** |
 
 ---
 
@@ -476,9 +484,12 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
 - **Sensor Data Sensitif (PII Redaction)**: Deteksi dan penyensoran otomatis terhadap alamat surel, nomor telepon Indonesia, serta format 16-digit NIK agar privasi pengguna terlindungi dari kebocoran log.
 - **Sesi Bebas Identitas**: Identitas berbasis UUID acak lokal yang tidak memerlukan database identitas kependudukan.
 - **Data Tersimpan Lokal**: Catatan emosional dan jurnal disimpan di peramban lokal tanpa log server sentral.
+- **Kontrol Anti-Abuse API (M-01)**: Limiter jendela tetap (*fixed-window*) per rute publik (`/api/chat`, `/api/admin/login`, `/api/forum`, `/api/forum/[postId]/support`, `/api/report/weekly`, `/api/sync`), batas konkurensi 4 panggilan `/chat` simultan, serta pembatasan ukuran payload/pesan/riwayat chat. **Catatan**: limiter ini bersifat *process-local* — kuota tidak terkoordinasi lintas instance server dan direset saat restart; lihat `docs/M01_RATE_LIMITING.md` untuk analisis keterbatasan lengkap pada deployment produksi multi-instance.
+- **Moderasi Anti-Abuse Nama Samaran Forum (M-02)**: Penolakan otomatis alamat kontak, tautan/domain (termasuk penyamaran karakter Unicode), ajakan judi/pinjol ilegal, dan ujaran kasar pada nama samaran cerita forum sebelum tersimpan.
+- **Verifikasi Penghapusan Data Total (M-03)**: Pengujian otomatis yang memastikan seluruh kunci `localStorage` berawalan `dengarin_` (sesi, check-in, jurnal, draf asesmen, metadata sinkronisasi) terhapus tuntas oleh utilitas *Hapus Permanen*.
 
 ### Fitur Keamanan Direncanakan (Planned)
-- Rate limiting terdistribusi berbasis token bucket pada jaringan edge.
+- Rate limiting terdistribusi (mis. Redis / Upstash pada jaringan edge) untuk menggantikan limiter in-memory per-instance saat ini, guna menjamin kuota adil per klien pada deployment multi-instance.
 
 ---
 
@@ -521,6 +532,11 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
   - Enkripsi Web Crypto API (AES-GCM 256-bit + PBKDF2) dari 12 kata kunci pemulihan.
   - Tombol "Cadangkan ke Cloud (E2EE)" pada halaman `/recovery`.
   - Tombol "Dekripsi & Pulihkan Sesi" untuk memulihkan seluruh riwayat check-in dan jurnal di perangkat baru secara *zero-knowledge*.
+- [x] **Kontrol Anti-Abuse & Keamanan Tambahan (M-01, M-02, M-03)**:
+  - Rate limiting jendela tetap per-rute & batas konkurensi chat, dengan validasi ukuran payload/pesan/riwayat (`apps/web/src/lib/api/rateLimit.ts`, `requestLimits.ts`).
+  - Moderasi anti-abuse nama samaran forum (kontak, tautan, judi/pinjol, ujaran kasar, markup HTML).
+  - Verifikasi penghapusan data lokal total pasca-*Hapus Permanen* dan migrasi backup lama ke sinkronisasi v2 (lihat `docs/RECOVERY_MIGRATION.md`).
+  - 3 suite pengujian keamanan baru (`tests/security/`) menambah cakupan validasi otomatis repositori.
 
 ### Planned (Sprint 4+ / Future Scale)
 - [ ] Rate limiting terdistribusi (mis. Redis / Upstash) menggantikan limiter in-memory per-instance saat ini.
@@ -555,4 +571,4 @@ Proyek ini dirancang untuk mendemonstrasikan bagaimana teknologi web modern dapa
 
 ## 19. License
 
-License: Not yet specified.
+License: **MIT** (dideklarasikan pada `package.json`). Berkas `LICENSE` formal belum ditambahkan ke repositori.
