@@ -43,7 +43,7 @@ function computeDominantMood(checkins: DailyCheckin[]): MoodScore {
  * reading from a server-side database.
  */
 export async function POST(request: NextRequest) {
-  if (isRateLimited('weekly-report')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('weekly-report')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
   const parsed = await readJsonLimited(request, 64 * 1024);
   if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
   const body = parsed.value as WeeklyReportRequestBody | null;

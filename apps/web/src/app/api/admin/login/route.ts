@@ -19,7 +19,7 @@ interface LoginBody {
  * signed session cookie consumed by verifyAdminRequest().
  */
 export async function POST(request: NextRequest) {
-  if (isRateLimited('admin-login')) return jsonError('Terlalu banyak percobaan login. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('admin-login')) return jsonError('Terlalu banyak percobaan login. Coba lagi sebentar lagi.', 429);
   const parsed = await readJsonLimited(request, 4096);
   if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
   const body = parsed.value as LoginBody | null;
