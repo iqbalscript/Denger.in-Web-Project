@@ -25,6 +25,7 @@ function hasPseudonymContactOrMarkup(value: string): boolean {
   const normalized = pseudonymForInspection(value);
   return /\p{Cf}/u.test(value) ||
     !/^[\p{L}\p{M}\p{N} #'’-]+$/u.test(normalized) ||
+    (normalized.match(/\d/gu)?.length ?? 0) > 4 ||
     /\b(?:https?|hxxps?):\s*\/\s*\/|\bwww\./iu.test(normalized) ||
     /\b(?:[\p{L}\p{N}-]+\.)+[\p{L}]{2,}\b/iu.test(normalized) ||
     /\b[\p{L}\p{N}-]+\s+(?:dot|titik)\s+(?:com|net|org|id|co|io|me|xyz)\b/iu.test(normalized) ||

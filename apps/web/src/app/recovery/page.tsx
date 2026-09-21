@@ -244,11 +244,18 @@ export default function RecoveryPage() {
   const handleWipe = () => {
     if (
       confirm(
-        'Apakah Anda yakin ingin menghapus seluruh data anonim di peramban ini? Tindakan ini tidak dapat dibatalkan.'
+        'Apakah Anda yakin ingin menghapus seluruh data anonim yang tersimpan lokal di peramban ini? Tindakan ini tidak dapat dibatalkan. Cadangan cloud terenkripsi dan kunci yang pernah disalin ke clipboard tidak dihapus.'
       )
     ) {
       clearAnonymousSession();
-      window.location.href = '/';
+      // Clear sensitive React state before replacing this history entry, so a
+      // browser back-forward cache cannot redisplay the recovery phrase.
+      setSession(null);
+      setRestoreInput('');
+      setLastBackupTime(null);
+      setBackupNotice(null);
+      setRestoreStatus(null);
+      window.location.replace('/');
     }
   };
 
@@ -425,7 +432,7 @@ export default function RecoveryPage() {
               <span>Zona Bahaya: Bersihkan Data Lokal</span>
             </h4>
             <p className="text-xs text-[#59544D] leading-relaxed font-medium">
-              Menghapus seluruh identitas anonim, jurnal, dan riwayat check-in dari browser ini.
+              Menghapus seluruh data anonim yang tersimpan lokal di browser ini, termasuk jurnal, riwayat, refleksi misi, dan metadata cadangan. Cadangan cloud dan kunci yang pernah disalin ke clipboard tidak dihapus.
             </p>
           </div>
           <Button

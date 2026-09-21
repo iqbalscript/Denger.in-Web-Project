@@ -33,14 +33,15 @@ describe('M-02 forum pseudonym boundary', () => {
       'anon@example.com', 'wa 0812-3456-7890', '+62 812 3456 7890',
       'https://t.me/anon', 'www.example.org', 'example.com',
       '＠kontak', 'ｈｔｔｐｓ：／／example.com', 'telegram teman',
-      'example dot com', 'IG teman123'
+      'example dot com', 'IG teman123', 'kontak 021 78945678'
     ]) {
       assert.equal(moderate(alias).status, 'rejected', alias);
     }
   });
 
   it('routes a crisis alias through the deterministic crisis engine', () => {
-    assert.equal(evaluateCrisisInput(`${clean.title}\n${clean.body}\nAku mau bunuh diri malam ini`).isCrisis, true);
+    assert.equal(evaluateCrisisInput('Aku mau bunuh diri malam ini').isCrisis, true);
+    assert.equal(evaluateCrisisInput('Aku ingin mengakhiri hidupku malam ini').isCrisis, true);
   });
 
   it('rejects oversized aliases without truncating them', () => {

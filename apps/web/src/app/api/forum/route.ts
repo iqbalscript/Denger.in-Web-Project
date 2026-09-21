@@ -43,9 +43,13 @@ export async function POST(request: NextRequest) {
   const authorPseudonym = body.authorPseudonym?.trim() || 'Sahabat Anonim';
 
   // Layer 0: Crisis Gate
-  const { cleared, evaluation } = runCrisisGate(`${body.title}\n${body.body}\n${authorPseudonym}`);
-  if (!cleared) {
-    return jsonOk({ crisis: true, evaluation });
+  const pseudonymCrisis = runCrisisGate(authorPseudonym);
+  if (!pseudonymCrisis.cleared) {
+    return jsonOk({ crisis: true, evaluation: pseudonymCrisis.evaluation });
+  }
+  const storyCrisis = runCrisisGate(`${body.title}\n${body.body}`);
+  if (!storyCrisis.cleared) {
+    return jsonOk({ crisis: true, evaluation: storyCrisis.evaluation });
   }
 
   // Layer 1: Automated Content & Quality Moderation
