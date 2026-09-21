@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   BarChart3,
   ArrowLeft,
@@ -16,15 +17,20 @@ import {
   BookOpen,
   Target
 } from 'lucide-react';
+import { evaluateCrisisInput } from '@dengarin/crisis-engine';
 import {
   PageContainer,
   ContentColumn,
   Button,
   Badge,
-  ProgressBar
+  ProgressBar,
+  CelebrationToast,
+  Textarea,
 } from '@/components/ui';
 import { getDailyCheckins, getAnonymousSession } from '@/lib/storage';
-import type { DailyCheckin, MoodScore, WeeklyReportSummary } from '@dengarin/types';
+import { awardLangkah, loadGamificationState } from '@/lib/gamification';
+import { getLocalWeekId } from '@/lib/calendar';
+import type { DailyCheckin, MoodScore, WeeklyReportSummary, CelebrationData } from '@dengarin/types';
 
 const MOOD_META: Record<MoodScore, { label: string; icon: React.ReactNode; color: string; score: number }> = {
   sangat_baik: { label: 'Sangat Baik', icon: <Smile className="w-4 h-4 text-ink" />, color: 'bg-lime text-ink border-2 border-ink shadow-hard-sm', score: 5 },
@@ -41,6 +47,7 @@ interface DaySlot {
 }
 
 export default function ReportPage() {
+  const router = useRouter();
   const [checkins, setCheckins] = useState<DailyCheckin[]>([]);
   const [journalCount, setJournalCount] = useState(0);
   const [currentDay, setCurrentDay] = useState(1);
@@ -48,6 +55,25 @@ export default function ReportPage() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [last7Days, setLast7Days] = useState<DaySlot[]>([]);
+  const [reflectionMarked, setReflectionMarked] = useState(false);
+  const [weeklyReflectionText, setWeeklyReflectionText] = useState('');
+  const [savedWeeklyReflection, setSavedWeeklyReflection] = useState<string | null>(null);
+  const [celebration, setCelebration] = useState<CelebrationData | null>(null);
+
+  // Check if weekly reflection was already marked for this week
+  useEffect(() => {
+    const weekId = getLocalWeekId();
+    const state = loadGamificationState();
+    if (state.eventLedger.some(e => e.id === `weekly_reflection:${weekId}`)) {
+      setReflectionMarked(true);
+    }
+    try {
+      const storedNote = localStorage.getItem(`dengarin_weekly_reflection_${weekId}`);
+      if (storedNote) setSavedWeeklyReflection(storedNote);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     // 1. Read real local data
@@ -330,6 +356,96 @@ Catatan: ${summary.encouragementNote}
           )}
         </div>
 
+        {/* Weekly Reflection Action — explicit reflection action per Section 1 */}
+        {!loading && !reflectionMarked && (
+          <div className="bg-white border-2 border-ink rounded-lg p-6 space-y-4 shadow-hard-sm text-left">
+            <div className="space-y-1">
+              <h3 className="text-xs font-black uppercase tracking-wider text-ink flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-cobalt" />
+                <span>REFLEKSI PEKANAN MANDIRI (+20 LANGKAH)</span>
+              </h3>
+              <p className="text-xs text-ink/70 font-medium leading-relaxed">
+                Apa satu hal yang paling kamu sadari atau pelajari tentang dinamika emosimu selama sepekan terakhir?
+              </p>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (weeklyReflectionText.trim().length < 20) return;
+
+                // Crisis screening before any save or award
+                const session = getAnonymousSession();
+                const check = evaluateCrisisInput(weeklyReflectionText, session?.ageBracket || '18-24');
+                if (check.isCrisis) {
+                  router.push('/crisis');
+                  return;
+                }
+
+                const weekId = getLocalWeekId();
+                const cleanNote = weeklyReflectionText.trim();
+                localStorage.setItem(`dengarin_weekly_reflection_${weekId}`, cleanNote);
+                setSavedWeeklyReflection(cleanNote);
+
+                const res = awardLangkah('weekly_reflection', `weekly_reflection:${weekId}`);
+                if (res) setCelebration(res);
+                setReflectionMarked(true);
+              }}
+              className="space-y-3"
+            >
+              <Textarea
+                value={weeklyReflectionText}
+                onChange={(e) => {
+                  const text = e.target.value;
+                  setWeeklyReflectionText(text);
+
+                  // Live crisis check
+                  const session = getAnonymousSession();
+                  const check = evaluateCrisisInput(text, session?.ageBracket || '18-24');
+                  if (check.isCrisis) {
+                    router.push('/crisis');
+                  }
+                }}
+                rows={3}
+                placeholder="Tuliskan catatan refleksimu di sini (minimal 20 karakter)..."
+              />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <span className="text-[10px] text-ink/60 font-bold uppercase tracking-wider">
+                  {weeklyReflectionText.trim().length < 20
+                    ? `${weeklyReflectionText.trim().length}/20 karakter minimal`
+                    : '✓ Syarat refleksi terpenuhi'}
+                </span>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  disabled={weeklyReflectionText.trim().length < 20}
+                  className="w-full sm:w-auto"
+                >
+                  SIMPAN REFLEKSI PEKANAN →
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {reflectionMarked && (
+          <div className="bg-lime border-2 border-ink rounded-lg p-5 shadow-hard-sm text-left space-y-2">
+            <div className="flex items-center gap-2 text-xs font-black text-ink uppercase tracking-wider">
+              <Check className="w-4 h-4" />
+              <span>REFLEKSI MINGGU INI TELAH TERSIMPAN</span>
+            </div>
+            {savedWeeklyReflection && (
+              <p className="text-xs text-ink/90 italic font-medium bg-white/70 p-3 rounded border border-ink/20">
+                &quot;{savedWeeklyReflection}&quot;
+              </p>
+            )}
+            <p className="text-[11px] text-ink/80 font-medium">
+              Terima kasih sudah meluangkan waktu untuk mengevaluasi diri secara bermakna.
+            </p>
+          </div>
+        )}
+
         {/* 6. Next Focus */}
         <div className="rounded-lg border-2 border-ink bg-lime p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-hard text-left">
           <div className="text-xs space-y-1 max-w-md">
@@ -346,6 +462,8 @@ Catatan: ${summary.encouragementNote}
           </Button>
         </div>
       </ContentColumn>
+
+      <CelebrationToast celebration={celebration} onDismiss={() => setCelebration(null)} />
     </PageContainer>
   );
 }

@@ -26,8 +26,13 @@
     "test:security-m04": "node --experimental-strip-types tests/security/m04MedicalOutput.test.mjs",
     "test:integration-audit": "node --experimental-strip-types tests/security/integrationAuditRegression.test.mjs",
     "test:persistence-pg": "node --experimental-strip-types tests/persistence-pg/tlsSecurity.test.mjs && node --experimental-strip-types tests/persistence-pg/postgresRepositories.test.mjs",
+<<<<<<< Updated upstream
     "test:redis": "bash scripts/test-redis.sh",
     "test": "npm run test:crisis && npm run test:validator && npm run test:assessment && npm run test:orchestrator && npm run test:persistence && npm run test:auth && npm run test:crypto && npm run test:persistence-pg && npm run test:security-m01 && npm run test:security-m02 && npm run test:security-m03 && npm run test:security-m04 && npm run test:integration-audit",
+=======
+    "test:gamification": "node --experimental-strip-types tests/gamification/gamification.test.mjs",
+    "test": "npm run test:crisis && npm run test:validator && npm run test:assessment && npm run test:orchestrator && npm run test:persistence && npm run test:auth && npm run test:crypto && npm run test:persistence-pg && npm run test:security-m01 && npm run test:security-m02 && npm run test:security-m03 && npm run test:security-m04 && npm run test:integration-audit && npm run test:gamification",
+>>>>>>> Stashed changes
     "db:migrate": "npm run db:migrate --workspace=services/persistence",
     "db:seed-admin": "npm run db:seed-admin --workspace=services/persistence",
     "supabase:migration:list": "npx supabase migration list",

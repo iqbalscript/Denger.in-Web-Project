@@ -17,6 +17,7 @@ import {
   Key,
   Trash2,
   MessageSquare,
+  Footprints,
 } from 'lucide-react';
 import { QuickExitButton } from './ui';
 
@@ -173,6 +174,14 @@ export function Navbar() {
             </div>
 
             <div className="border-t-2 border-[#151515]/20 pt-3 flex flex-col gap-2">
+              <Link
+                href="/perjalanan"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-2.5 rounded-[4px] text-xs font-bold bg-white border-2 border-[#151515]"
+              >
+                <Footprints className="w-4 h-4 text-[#4169FF] shrink-0" />
+                <span>Perjalanan Kecil</span>
+              </Link>
               <Link
                 href="/report"
                 onClick={() => setMobileMenuOpen(false)}

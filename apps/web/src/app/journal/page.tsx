@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { BookOpen, Plus, Trash2, ArrowLeft, Lock, Calendar } from 'lucide-react';
 import { evaluateCrisisInput } from '@dengarin/crisis-engine';
 import { getAnonymousSession } from '@/lib/storage';
-import type { JournalEntry } from '@dengarin/types';
-import { PageContainer, ContentColumn, Button, Input, Textarea } from '@/components/ui';
+import type { JournalEntry, CelebrationData } from '@dengarin/types';
+import { PageContainer, ContentColumn, Button, Input, Textarea, CelebrationToast } from '@/components/ui';
+import { awardLangkah, isJournalEligibleForReward, loadGamificationState } from '@/lib/gamification';
+import { getLocalDateString } from '@/lib/calendar';
 
 export default function JournalPage() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function JournalPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [celebration, setCelebration] = useState<CelebrationData | null>(null);
   const isSubmittingRef = useRef(false);
 
   useEffect(() => {
@@ -67,6 +70,14 @@ export default function JournalPage() {
     setEntries(updated);
     if (typeof window !== 'undefined') {
       localStorage.setItem('dengarin_journal_entries', JSON.stringify(updated));
+    }
+
+    // Gamification: award journal Langkah (idempotent, capped at 2/day, min 20 chars)
+    const gamState = loadGamificationState();
+    const localDate = getLocalDateString();
+    if (isJournalEligibleForReward(content, gamState, localDate)) {
+      const res = awardLangkah('journal_entry', `journal:${newEntry.id}`, localDate);
+      if (res) setCelebration(res);
     }
 
     setTitle('');
@@ -215,6 +226,8 @@ export default function JournalPage() {
           )}
         </div>
       </ContentColumn>
+
+      <CelebrationToast celebration={celebration} onDismiss={() => setCelebration(null)} />
     </PageContainer>
   );
 }
