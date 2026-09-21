@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'crisis' | 'calm-subtle' | 'cobalt' | 'lime';
@@ -6,6 +7,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   fullWidth?: boolean;
   isLoading?: boolean;
   icon?: React.ReactNode;
+  href?: string;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -20,6 +22,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled = false,
       icon,
       type = 'button',
+      href,
       ...props
     },
     ref
@@ -28,7 +31,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       'inline-flex items-center justify-center font-bold rounded-[4px] border-2 border-[#151515] transition-all duration-120 select-none disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2';
 
     const sizeClasses = {
-      sm: 'px-3 py-1.5 text-xs min-h-[40px] gap-1.5',
+      sm: 'px-3 py-1.5 text-xs min-h-[44px] sm:min-h-[40px] gap-1.5',
       md: 'px-4 py-2 text-sm min-h-[44px] gap-2',
       lg: 'px-6 py-3 text-base min-h-[48px] gap-2.5',
     };
@@ -53,21 +56,36 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const widthClass = fullWidth ? 'w-full' : '';
+    const combinedClasses = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass} ${className}`;
 
-    return (
-      <button
-        ref={ref}
-        type={type}
-        disabled={disabled || isLoading}
-        className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass} ${className}`}
-        {...props}
-      >
+    const content = (
+      <>
         {isLoading ? (
           <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
         ) : (
           icon && <span className="shrink-0">{icon}</span>
         )}
         <span>{children}</span>
+      </>
+    );
+
+    if (href && !disabled && !isLoading) {
+      return (
+        <Link href={href} className={combinedClasses} aria-label={props['aria-label']}>
+          {content}
+        </Link>
+      );
+    }
+
+    return (
+      <button
+        ref={ref}
+        type={type}
+        disabled={disabled || isLoading}
+        className={combinedClasses}
+        {...props}
+      >
+        {content}
       </button>
     );
   }

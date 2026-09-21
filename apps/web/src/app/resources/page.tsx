@@ -1,10 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { PhoneCall, MessageCircle, ExternalLink, ArrowLeft, Search } from 'lucide-react';
 import { EMERGENCY_CONTACTS } from '@dengarin/config';
 import { PageContainer, Button, Badge, Chip } from '@/components/ui';
+
+function getDialableTel(phone?: string): string {
+  if (!phone) return '';
+  const baseNumber = phone.split(/\s*ext/i)[0] || '';
+  return baseNumber.replace(/[^0-9]/g, '');
+}
 
 export default function ResourcesPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -30,11 +35,14 @@ export default function ResourcesPage() {
     <PageContainer size="default" className="space-y-8">
       {/* Top Nav */}
       <div>
-        <Link href="/dashboard" className="inline-block">
-          <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-            KEMBALI KE DASHBOARD
-          </Button>
-        </Link>
+        <Button
+          href="/dashboard"
+          variant="outline"
+          size="sm"
+          icon={<ArrowLeft className="w-3.5 h-3.5" />}
+        >
+          KEMBALI KE DASHBOARD
+        </Button>
       </div>
 
       {/* Header */}
@@ -104,8 +112,8 @@ export default function ResourcesPage() {
             <div className="pt-2 flex flex-wrap items-center gap-2 border-t-2 border-ink">
               {item.phone && (
                 <a
-                  href={`tel:${item.phone.replace(/[^0-9]/g, '')}`}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-cobalt hover:bg-cobalt-dark text-white text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[38px]"
+                  href={`tel:${getDialableTel(item.phone)}`}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-cobalt hover:bg-cobalt-dark text-white text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[44px]"
                 >
                   <PhoneCall className="w-3.5 h-3.5" />
                   <span>{item.phone}</span>
@@ -116,7 +124,7 @@ export default function ResourcesPage() {
                   href={`https://wa.me/62${item.whatsapp.replace(/^0/, '').replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-lime text-ink text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[38px]"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-lime text-ink text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[44px]"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   <span>WA: {item.whatsapp}</span>
@@ -127,7 +135,7 @@ export default function ResourcesPage() {
                   href={item.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-paper hover:bg-paper-dark text-ink rounded border-2 border-ink shadow-hard-sm transition-all ml-auto min-h-[38px] min-w-[38px] flex items-center justify-center"
+                  className="p-2 bg-paper hover:bg-paper-dark text-ink rounded border-2 border-ink shadow-hard-sm transition-all ml-auto min-h-[44px] min-w-[44px] flex items-center justify-center"
                   title="Buka Website"
                   aria-label={`Buka website resmi ${item.name}`}
                 >

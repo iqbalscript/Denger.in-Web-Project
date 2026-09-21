@@ -15,6 +15,8 @@ import {
   Users,
   BarChart3,
   Key,
+  Trash2,
+  MessageSquare,
 } from 'lucide-react';
 import { QuickExitButton } from './ui';
 
@@ -34,6 +36,7 @@ export function Navbar() {
   // All links for mobile drawer
   const mobileNavLinks = [
     ...centerLinks,
+    { href: '/chat', label: 'Teman Bicara', icon: MessageSquare },
     { href: '/resources', label: 'Bantuan', icon: HelpCircle },
   ];
 
@@ -41,7 +44,7 @@ export function Navbar() {
     <>
       <header className="sticky top-0 z-40 bg-[#FFF8EF] border-b-2 border-[#151515]">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4">
+          <div className="flex items-center justify-between h-16 gap-2 xl:gap-4">
             {/* LEFT: Dengar.in logo & 100% ANONIM */}
             <div className="flex items-center gap-3 shrink-0">
               <Link
@@ -72,7 +75,7 @@ export function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs xl:text-sm font-bold whitespace-nowrap rounded-[4px] transition-colors duration-120 ${
+                    className={`inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-xs xl:text-sm font-bold whitespace-nowrap rounded-[4px] transition-colors duration-120 ${
                       isActive
                         ? 'bg-[#B8F34A] text-[#151515] border-2 border-[#151515] shadow-[2px_2px_0px_#151515]'
                         : 'text-[#151515] hover:text-[#4169FF] hover:bg-[#151515]/5'
@@ -86,11 +89,11 @@ export function Navbar() {
             </nav>
 
             {/* RIGHT: Action Group (Bantuan, Keluar Cepat + ESC, Bantuan Darurat) */}
-            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 xl:gap-2.5 shrink-0">
               {/* Bantuan (Desktop) */}
               <Link
                 href="/resources"
-                className={`hidden lg:inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-[4px] text-xs font-bold border-2 border-[#151515] shadow-[2px_2px_0px_#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] whitespace-nowrap ${
+                className={`hidden lg:inline-flex items-center justify-center gap-1.5 h-9 px-2.5 xl:px-3 rounded-[4px] text-xs font-bold border-2 border-[#151515] shadow-[2px_2px_0px_#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] whitespace-nowrap ${
                   pathname === '/resources'
                     ? 'bg-[#B8F34A] text-[#151515]'
                     : 'bg-white text-[#151515] hover:bg-[#FFF8EF]'
@@ -108,12 +111,12 @@ export function Navbar() {
               {/* Bantuan Darurat (Persistent Call-to-Action) */}
               <Link
                 href="/crisis"
-                className="inline-flex items-center justify-center gap-1.5 h-9 px-3 sm:px-3.5 rounded-[4px] text-xs font-bold bg-[#FF5252] text-white border-2 border-[#151515] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] transition-all duration-120 whitespace-nowrap"
+                className="inline-flex items-center justify-center gap-1.5 h-9 px-2.5 sm:px-3.5 rounded-[4px] text-xs font-bold bg-[#FF5252] text-white border-2 border-[#151515] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] transition-all duration-120 whitespace-nowrap"
                 aria-label="Akses Bantuan Darurat Krisis"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-white shrink-0" />
-                <span className="hidden md:inline">BANTUAN DARURAT</span>
-                <span className="md:hidden">DARURAT</span>
+                <span className="hidden xl:inline">BANTUAN DARURAT</span>
+                <span className="xl:hidden">DARURAT</span>
               </Link>
 
               {/* Mobile Menu Toggle */}
@@ -130,9 +133,19 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile dropdown drawer */}
+        {/* Mobile dropdown drawer (PRD-DESIGN.md Section 14.2) */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-[#FFF8EF] border-t-2 border-[#151515] px-4 pt-3 pb-5 space-y-3">
+            {/* Pinned Emergency Action at top of mobile sheet */}
+            <Link
+              href="/crisis"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-center gap-2 p-3 rounded-[4px] text-xs font-bold bg-[#FF5252] text-white border-2 border-[#151515] shadow-[2px_2px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px]"
+            >
+              <PhoneCall className="w-4 h-4 text-white shrink-0" />
+              <span>HUBUNGI BANTUAN DARURAT (119 EXT 8)</span>
+            </Link>
+
             <div className="grid grid-cols-2 gap-2">
               {mobileNavLinks.map((item) => {
                 const Icon = item.icon;
@@ -175,6 +188,14 @@ export function Navbar() {
               >
                 <Key className="w-4 h-4 text-[#FF8A3D] shrink-0" />
                 <span>Pemulihan Sesi (12-Kata)</span>
+              </Link>
+              <Link
+                href="/recovery"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-2.5 rounded-[4px] text-xs font-bold bg-white text-[#FF5252] border-2 border-[#FF5252]"
+              >
+                <Trash2 className="w-4 h-4 text-[#FF5252] shrink-0" />
+                <span>Hapus Data Lokal</span>
               </Link>
             </div>
           </div>

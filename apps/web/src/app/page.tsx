@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck,
   ArrowRight,
@@ -14,12 +13,19 @@ import {
 } from 'lucide-react';
 import { PageContainer, Button, Badge } from '@/components/ui';
 import { TOPIC_PILLARS } from '@dengarin/config';
-import { initAnonymousSession, saveDailyCheckin } from '@/lib/storage';
+import { initAnonymousSession, saveDailyCheckin, getTodayCheckin } from '@/lib/storage';
 import type { MoodScore } from '@dengarin/types';
 
 export default function LandingPage() {
   const [selectedQuickMood, setSelectedQuickMood] = useState<MoodScore | null>(null);
   const [moodSavedNotice, setMoodSavedNotice] = useState(false);
+
+  useEffect(() => {
+    const today = getTodayCheckin();
+    if (today) {
+      setSelectedQuickMood(today.mood);
+    }
+  }, []);
 
   const moodOptions: Array<{ id: MoodScore; emoji: string; label: string; color: string }> = [
     { id: 'sangat_baik', emoji: '😊', label: 'Bertenaga', color: '#B8F34A' },
@@ -113,29 +119,27 @@ export default function LandingPage() {
 
               {/* Primary Call to Action Buttons */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
-                <Link href="/consent" className="flex-1 sm:flex-initial">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    icon={<ArrowRight className="w-4 h-4" />}
-                    className="flex-row-reverse text-[#151515] font-bold uppercase tracking-wide"
-                  >
-                    Mulai Tanpa Akun →
-                  </Button>
-                </Link>
+                <Button
+                  href="/consent"
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  icon={<ArrowRight className="w-4 h-4" />}
+                  className="flex-row-reverse text-[#151515] font-bold uppercase tracking-wide flex-1 sm:flex-initial"
+                >
+                  Mulai Tanpa Akun →
+                </Button>
 
-                <Link href="/resources" className="flex-1 sm:flex-initial">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    fullWidth
-                    icon={<PhoneCall className="w-4 h-4 text-[#FF5252]" />}
-                    className="font-bold uppercase tracking-wide"
-                  >
-                    Bantuan Darurat
-                  </Button>
-                </Link>
+                <Button
+                  href="/resources"
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  icon={<PhoneCall className="w-4 h-4 text-[#FF5252]" />}
+                  className="font-bold uppercase tracking-wide flex-1 sm:flex-initial"
+                >
+                  Bantuan Darurat
+                </Button>
               </div>
 
               {/* Anonymity Guarantee Reassurance */}
@@ -296,11 +300,16 @@ export default function LandingPage() {
             </div>
 
             <div className="shrink-0 w-full sm:w-auto">
-              <Link href="/crisis" className="block w-full sm:w-auto">
-                <Button variant="crisis" size="md" fullWidth icon={<PhoneCall className="w-4 h-4" />}>
-                  Akses Saluran Darurat
-                </Button>
-              </Link>
+              <Button
+                href="/crisis"
+                variant="crisis"
+                size="md"
+                fullWidth
+                icon={<PhoneCall className="w-4 h-4" />}
+                className="w-full sm:w-auto"
+              >
+                Akses Saluran Darurat
+              </Button>
             </div>
           </div>
         </PageContainer>

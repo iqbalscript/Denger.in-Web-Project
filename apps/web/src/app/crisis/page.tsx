@@ -1,12 +1,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { PhoneCall, MessageCircle, ShieldAlert, ArrowLeft, Heart, ExternalLink } from 'lucide-react';
 import { getAnonymousSession } from '@/lib/storage';
 import { EMERGENCY_CONTACTS } from '@dengarin/config';
 import type { AgeBracket } from '@dengarin/types';
 import { PageContainer, ContentColumn, Button } from '@/components/ui';
+
+function getDialableTel(phone?: string): string {
+  if (!phone) return '';
+  const baseNumber = phone.split(/\s*ext/i)[0] || '';
+  return baseNumber.replace(/[^0-9]/g, '');
+}
 
 export default function CrisisPage() {
   const [ageBracket, setAgeBracket] = useState<AgeBracket>('18-24');
@@ -46,7 +51,7 @@ export default function CrisisPage() {
         </div>
 
         {/* Middle: PRIMARY IMMEDIATE-HELP ACTION (VISUALLY DOMINANT) */}
-        <div className="rounded-lg border-3 border-ink bg-white p-6 sm:p-8 shadow-hard-lg space-y-5">
+        <div className="rounded-lg border-2 border-ink bg-white p-6 sm:p-8 shadow-hard-lg space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs font-black uppercase tracking-wider text-white bg-coral px-3 py-1 rounded border-2 border-ink shadow-hard-sm">
               SALURAN UTAMA NASIONAL (PRIORITAS)
@@ -67,8 +72,8 @@ export default function CrisisPage() {
 
           <div className="pt-2">
             <a
-              href={`tel:${primaryContact.phone?.replace(/[^0-9]/g, '')}`}
-              className="w-full inline-flex items-center justify-center gap-3 py-4 px-6 bg-coral hover:bg-coral-dark text-white font-black text-base sm:text-lg rounded-md border-3 border-ink shadow-hard transition-all focus-visible:outline-ink active:translate-x-[2px] active:translate-y-[2px] active:shadow-none uppercase tracking-wider min-h-[56px]"
+              href={`tel:${getDialableTel(primaryContact.phone)}`}
+              className="w-full inline-flex items-center justify-center gap-3 py-4 px-6 bg-coral hover:bg-coral-dark text-white font-black text-base sm:text-lg rounded-md border-2 border-ink shadow-hard transition-all focus-visible:outline-ink active:translate-x-[2px] active:translate-y-[2px] active:shadow-none uppercase tracking-wider min-h-[56px]"
             >
               <PhoneCall className="w-6 h-6" />
               <span>TELEPON SEKARANG: {primaryContact.phone}</span>
@@ -111,8 +116,8 @@ export default function CrisisPage() {
                 <div className="pt-2 flex items-center gap-2 border-t-2 border-ink">
                   {contact.phone && (
                     <a
-                      href={`tel:${contact.phone.replace(/[^0-9]/g, '')}`}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-cobalt hover:bg-cobalt-dark text-white text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[40px]"
+                      href={`tel:${getDialableTel(contact.phone)}`}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-cobalt hover:bg-cobalt-dark text-white text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[44px]"
                     >
                       <PhoneCall className="w-3.5 h-3.5" />
                       <span>{contact.phone}</span>
@@ -124,7 +129,7 @@ export default function CrisisPage() {
                       href={`https://wa.me/62${contact.whatsapp.replace(/^0/, '').replace(/[^0-9]/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-lime text-ink text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[40px]"
+                      className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-lime text-ink text-xs font-black uppercase rounded border-2 border-ink shadow-hard-sm transition-all min-h-[44px]"
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
                       <span>WA</span>
@@ -136,7 +141,7 @@ export default function CrisisPage() {
                       href={contact.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 bg-paper hover:bg-paper-dark text-ink rounded border-2 border-ink shadow-hard-sm transition-all min-h-[40px] min-w-[40px] flex items-center justify-center"
+                      className="p-2 bg-paper hover:bg-paper-dark text-ink rounded border-2 border-ink shadow-hard-sm transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
                       title="Kunjungi Website"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -155,11 +160,14 @@ export default function CrisisPage() {
             <span>Filter keselamatan aktif tanpa keterlibatan AI.</span>
           </div>
 
-          <Link href="/dashboard">
-            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              KEMBALI KE DASHBOARD
-            </Button>
-          </Link>
+          <Button
+            href="/dashboard"
+            variant="outline"
+            size="sm"
+            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+          >
+            KEMBALI KE DASHBOARD
+          </Button>
         </div>
       </ContentColumn>
     </PageContainer>

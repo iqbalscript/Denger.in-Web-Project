@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -33,6 +32,7 @@ export default function CheckinPage() {
   const [briefNote, setBriefNote] = useState('');
   const [saved, setSaved] = useState(false);
   const [history, setHistory] = useState<DailyCheckin[]>([]);
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     setHistory(getDailyCheckins());
@@ -75,7 +75,8 @@ export default function CheckinPage() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMood) return;
+    if (!selectedMood || saved || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
 
     // Safety check on note
     if (briefNote.trim()) {
@@ -109,11 +110,14 @@ export default function CheckinPage() {
     <PageContainer size="narrow">
       <ContentColumn size="md" className="space-y-8 text-left">
         <div>
-          <Link href="/dashboard" className="inline-block">
-            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              KEMBALI KE DASHBOARD
-            </Button>
-          </Link>
+          <Button
+            href="/dashboard"
+            variant="outline"
+            size="sm"
+            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+          >
+            KEMBALI KE DASHBOARD
+          </Button>
         </div>
 
         {/* Heading */}
@@ -144,7 +148,7 @@ export default function CheckinPage() {
                     key={m.id}
                     type="button"
                     onClick={() => setSelectedMood(m.id)}
-                    className={`p-4 rounded-md border-2 border-ink flex flex-col items-center justify-center gap-1 transition-all cursor-pointer focus-visible:outline-ink min-h-[96px] ${
+                    className={`p-4 rounded-md border-2 border-ink flex flex-col items-center justify-center gap-1 transition-all cursor-pointer focus-visible:outline-ink min-h-[96px] last:col-span-2 sm:last:col-span-1 ${
                       isSelected
                         ? `${m.activeClass} shadow-hard font-black translate-x-[1px] translate-y-[1px]`
                         : 'bg-white hover:bg-paper font-bold shadow-hard-sm text-ink'

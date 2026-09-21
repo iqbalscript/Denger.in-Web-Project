@@ -198,17 +198,15 @@ export default function AssessmentResultPage() {
 
         {/* Bottom Button */}
         <div className="pt-2 text-center">
-          <Link href="/dashboard" className="inline-block w-full sm:w-auto">
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              icon={<ArrowRight className="w-4 h-4" />}
-              className="flex-row-reverse"
-            >
-              LANJUTKAN KE RUANG TENANG →
-            </Button>
-          </Link>
+          <Button
+            href="/dashboard"
+            variant="primary"
+            size="lg"
+            icon={<ArrowRight className="w-4 h-4" />}
+            className="flex-row-reverse w-full sm:w-auto"
+          >
+            LANJUTKAN KE RUANG TENANG →
+          </Button>
         </div>
       </ContentColumn>
     </PageContainer>

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { BookOpen, Plus, Trash2, ArrowLeft, Lock, Calendar } from 'lucide-react';
 import { evaluateCrisisInput } from '@dengarin/crisis-engine';
 import { getAnonymousSession } from '@/lib/storage';
@@ -9,11 +9,13 @@ import type { JournalEntry } from '@dengarin/types';
 import { PageContainer, ContentColumn, Button, Input, Textarea } from '@/components/ui';
 
 export default function JournalPage() {
+  const router = useRouter();
   const session = getAnonymousSession();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -35,13 +37,22 @@ export default function JournalPage() {
     // Live safety filter
     const check = evaluateCrisisInput(text, session?.ageBracket || '18-24');
     if (check.isCrisis) {
-      window.location.href = '/crisis';
+      router.push('/crisis');
     }
   };
 
   const handleSaveEntry = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || isSubmittingRef.current) return;
+
+    // Safety filter check before saving
+    const check = evaluateCrisisInput(content, session?.ageBracket || '18-24');
+    if (check.isCrisis) {
+      router.push('/crisis');
+      return;
+    }
+
+    isSubmittingRef.current = true;
 
     const newEntry: JournalEntry = {
       id: Date.now().toString(),
@@ -61,6 +72,7 @@ export default function JournalPage() {
     setTitle('');
     setContent('');
     setIsCreating(false);
+    isSubmittingRef.current = false;
   };
 
   const handleDelete = (id: string) => {
@@ -75,11 +87,14 @@ export default function JournalPage() {
     <PageContainer size="narrow">
       <ContentColumn size="md" className="space-y-6 text-left">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/dashboard" className="inline-block">
-            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              KEMBALI KE DASHBOARD
-            </Button>
-          </Link>
+          <Button
+            href="/dashboard"
+            variant="outline"
+            size="sm"
+            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+          >
+            KEMBALI KE DASHBOARD
+          </Button>
 
           <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-2.5 py-1 bg-yellow border-2 border-ink rounded shadow-hard-sm text-ink">
             <Lock className="w-3.5 h-3.5 text-ink" />

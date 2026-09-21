@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
   Key,
   Copy,
@@ -263,11 +262,14 @@ export default function RecoveryPage() {
     <PageContainer size="narrow">
       <ContentColumn size="md" className="space-y-8 text-left">
         <div>
-          <Link href="/dashboard" className="inline-block">
-            <Button variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              Kembali ke Dashboard
-            </Button>
-          </Link>
+          <Button
+            href="/dashboard"
+            variant="outline"
+            size="sm"
+            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+          >
+            Kembali ke Dashboard
+          </Button>
         </div>
 
         {/* Heading */}
