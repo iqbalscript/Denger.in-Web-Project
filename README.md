@@ -484,12 +484,12 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
 - **Sensor Data Sensitif (PII Redaction)**: Deteksi dan penyensoran otomatis terhadap alamat surel, nomor telepon Indonesia, serta format 16-digit NIK agar privasi pengguna terlindungi dari kebocoran log.
 - **Sesi Bebas Identitas**: Identitas berbasis UUID acak lokal yang tidak memerlukan database identitas kependudukan.
 - **Data Tersimpan Lokal**: Catatan emosional dan jurnal disimpan di peramban lokal tanpa log server sentral.
-- **Kontrol Anti-Abuse API (M-01)**: Limiter jendela tetap (*fixed-window*) per rute publik (`/api/chat`, `/api/admin/login`, `/api/forum`, `/api/forum/[postId]/support`, `/api/report/weekly`, `/api/sync`), batas konkurensi 4 panggilan `/chat` simultan, serta pembatasan ukuran payload/pesan/riwayat chat. **Catatan**: limiter ini bersifat *process-local* — kuota tidak terkoordinasi lintas instance server dan direset saat restart; lihat `docs/M01_RATE_LIMITING.md` untuk analisis keterbatasan lengkap pada deployment produksi multi-instance.
+- **Kontrol Anti-Abuse API (M-01)**: Limiter jendela tetap (*fixed-window*) per rute publik (`/api/chat`, `/api/admin/login`, `/api/forum`, `/api/forum/[postId]/support`, `/api/report/weekly`, `/api/sync`), batas konkurensi 4 panggilan `/chat` simultan, serta pembatasan ukuran payload/pesan/riwayat chat. **Catatan**: saat `REDIS_URL` aktif, kuota per-rute dibagi lintas instance dan bertahan sampai window berakhir meski aplikasi restart. Saat Redis tidak tersedia, limiter memakai fallback memori lokal; batas konkurensi tetap lokal. Lihat [panduan Redis](docs/REDIS.md) dan [hasil pengujian](docs/REDIS_TESTING_CHECKLIST.md).
 - **Moderasi Anti-Abuse Nama Samaran Forum (M-02)**: Penolakan otomatis alamat kontak, tautan/domain (termasuk penyamaran karakter Unicode), ajakan judi/pinjol ilegal, dan ujaran kasar pada nama samaran cerita forum sebelum tersimpan.
 - **Verifikasi Penghapusan Data Total (M-03)**: Pengujian otomatis yang memastikan seluruh kunci `localStorage` berawalan `dengarin_` (sesi, check-in, jurnal, draf asesmen, metadata sinkronisasi) terhapus tuntas oleh utilitas *Hapus Permanen*.
 
 ### Fitur Keamanan Direncanakan (Planned)
-- Rate limiting terdistribusi (mis. Redis / Upstash pada jaringan edge) untuk menggantikan limiter in-memory per-instance saat ini, guna menjamin kuota adil per klien pada deployment multi-instance.
+- Verifikasi konfigurasi Redis di lingkungan deployment: TLS, autentikasi, akses jaringan, serta batas memori. Kuota Redis yang sudah diterapkan bersifat anonim per-rute, bukan per-klien.
 
 ---
 
@@ -539,7 +539,7 @@ Visual Dengar.in menerapkan konsep identitas **"Soft Calm Glass"**:
   - 3 suite pengujian keamanan baru (`tests/security/`) menambah cakupan validasi otomatis repositori.
 
 ### Planned (Sprint 4+ / Future Scale)
-- [ ] Rate limiting terdistribusi (mis. Redis / Upstash) menggantikan limiter in-memory per-instance saat ini.
+- [x] Rate limiting Redis per-rute dengan fallback memori; tes dua instance dan restart aplikasi lulus. Lihat [checklist Redis](docs/REDIS_TESTING_CHECKLIST.md).
 - [ ] Opsi bookmark cerita komunitas ke dalam jurnal refleksi pribadi lokal.
 
 ---
