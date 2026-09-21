@@ -1,5 +1,5 @@
 import type { AgeBracket, InterventionDomain, ValidatedAIAction } from '@dengarin/types';
-import { validateAIOutput } from '@dengarin/validator';
+import { STANDARD_DISCLAIMER, validateAIOutput } from '@dengarin/validator';
 import { buildChatSystemPrompt, buildChatUserPrompt } from '@dengarin/prompts';
 import type { LLMProvider } from './providers/types.ts';
 import { createDeepseekProvider } from './providers/deepseekProvider.ts';
@@ -54,6 +54,14 @@ export interface OrchestratorDependencies {
 const DEFAULT_TIMEOUT_MS = 15000;
 const TIER_LABELS: OrchestratorTier[] = ['primary', 'tertiary'];
 
+function safeDeterministicAction(): ValidatedAIAction {
+  return {
+    action: 'chat',
+    message: 'Aku di sini menemanimu. Coba ambil satu napas perlahan dan pilih langkah kecil yang terasa aman saat ini.',
+    disclaimer: STANDARD_DISCLAIMER
+  };
+}
+
 function parseJsonSafely(rawText: string): unknown {
   try {
     return JSON.parse(rawText);
@@ -73,10 +81,11 @@ export async function runOrchestrator(
   // Intercept pure technical/programming queries (e.g. coding requests) and redirect empathetically
   const domainCheck = evaluateDomainGate(request.message);
   if (domainCheck.isOutOfDomain && domainCheck.action) {
+    const validation = validateAIOutput(domainCheck.action);
     return {
       tier: 'primary',
       providerId: 'guardrail:domain-gate',
-      action: domainCheck.action,
+      action: validation.isValid && validation.action ? validation.action : safeDeterministicAction(),
       debiased: false,
       warnings: [domainCheck.reason ?? 'Dicegat oleh domain gate (bukan pertanyaan kesejahteraan mental)']
     };
@@ -140,10 +149,18 @@ export async function runOrchestrator(
           warnings.push(...debiasResult.warnings);
         }
 
+        // A transformed candidate must cross the same final validation boundary
+        // before it becomes user-visible.
+        const finalValidation = validateAIOutput(finalAction);
+        if (!finalValidation.isValid || !finalValidation.action) {
+          warnings.push(`${provider.id} menghasilkan output akhir tidak aman: ${finalValidation.errors.join('; ')}`);
+          continue;
+        }
+
         return {
           tier,
           providerId: wasDebiased ? `${provider.id}+${debiaserProvider.id}` : provider.id,
-          action: finalAction,
+          action: finalValidation.action,
           debiased: wasDebiased,
           warnings
         };
@@ -157,10 +174,12 @@ export async function runOrchestrator(
 
   warnings.push('Seluruh tier AI gagal atau tidak dikonfigurasi; menggunakan fallback deterministik.');
 
+  const fallback = buildDeterministicFallbackAction(request.domain);
+  const fallbackValidation = validateAIOutput(fallback);
   return {
     tier: 'fallback',
     providerId: 'deterministic-fallback',
-    action: buildDeterministicFallbackAction(request.domain),
+    action: fallbackValidation.isValid && fallbackValidation.action ? fallbackValidation.action : safeDeterministicAction(),
     debiased: false,
     warnings
   };
