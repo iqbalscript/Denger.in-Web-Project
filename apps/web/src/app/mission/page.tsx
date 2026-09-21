@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { CheckCircle2, Clock, ArrowLeft, Sparkles } from 'lucide-react';
+import { evaluateCrisisInput } from '@dengarin/crisis-engine';
 import {
   getAnonymousSession,
   getTodayMission,
@@ -10,15 +12,19 @@ import {
   getTodayMissionReflection,
 } from '@/lib/storage';
 import { DOMAIN_CONFIGS } from '@dengarin/config';
-import type { DailyMission } from '@dengarin/types';
-import { PageContainer, ContentColumn, Button, Input } from '@/components/ui';
+import type { DailyMission, CelebrationData } from '@dengarin/types';
+import { PageContainer, ContentColumn, Button, Input, CelebrationToast } from '@/components/ui';
+import { awardLangkah } from '@/lib/gamification';
+import { getLocalDateString } from '@/lib/calendar';
 
 export default function MissionPage() {
+  const router = useRouter();
   const [mission, setMission] = useState<DailyMission | null>(null);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [reflectionText, setReflectionText] = useState<string>('');
   const [currentDay, setCurrentDay] = useState<number>(1);
   const [domainLabel, setDomainLabel] = useState<string>('Umum');
+  const [celebration, setCelebration] = useState<CelebrationData | null>(null);
 
   useEffect(() => {
     const session = getAnonymousSession();
@@ -34,10 +40,52 @@ export default function MissionPage() {
     }
   }, []);
 
+  const handleReflectionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+    setReflectionText(text);
+
+    // Live safety filter
+    const session = getAnonymousSession();
+    const check = evaluateCrisisInput(text, session?.ageBracket || '18-24');
+    if (check.isCrisis) {
+      router.push('/crisis');
+    }
+  };
+
   const handleComplete = () => {
     if (!mission) return;
+
+    // Safety check: evaluate reflection text for crisis triggers
+    if (reflectionText.trim()) {
+      const session = getAnonymousSession();
+      const check = evaluateCrisisInput(reflectionText, session?.ageBracket || '18-24');
+      if (check.isCrisis) {
+        router.push('/crisis');
+        return;
+      }
+    }
+
     completeTodayMission(reflectionText);
     setIsCompleted(true);
+
+    // Gamification: award mission completion Langkah
+    const localDate = getLocalDateString();
+    const missionRes = awardLangkah('mission_complete', `mission:${localDate}`, localDate);
+
+    // Optional reflection bonus
+    let reflectionRes: CelebrationData | null = null;
+    if (reflectionText.trim().length > 0) {
+      reflectionRes = awardLangkah('mission_reflection', `reflection:${localDate}`, localDate);
+    }
+
+    if (reflectionRes) {
+      setCelebration({
+        ...reflectionRes,
+        langkahAwarded: (missionRes?.langkahAwarded ?? 0) + reflectionRes.langkahAwarded,
+      });
+    } else if (missionRes) {
+      setCelebration(missionRes);
+    }
   };
 
   if (!mission) {
@@ -120,7 +168,7 @@ export default function MissionPage() {
           <Input
             label={`Refleksi Singkat: ${mission.reflectionQuestion}`}
             value={reflectionText}
-            onChange={(e) => setReflectionText(e.target.value)}
+            onChange={handleReflectionChange}
             disabled={isCompleted}
             placeholder="Tuliskan 1 kalimat respon atau perasaanmu setelah menjalani langkah di atas..."
           />
@@ -156,6 +204,8 @@ export default function MissionPage() {
           )}
         </div>
       </ContentColumn>
+
+      <CelebrationToast celebration={celebration} onDismiss={() => setCelebration(null)} />
     </PageContainer>
   );
 }

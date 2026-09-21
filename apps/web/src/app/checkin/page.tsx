@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { evaluateCrisisInput } from '@dengarin/crisis-engine';
 import { getAnonymousSession, saveDailyCheckin, getDailyCheckins } from '@/lib/storage';
-import type { MoodScore, DailyCheckin } from '@dengarin/types';
+import type { MoodScore, DailyCheckin, CelebrationData } from '@dengarin/types';
 import {
   PageContainer,
   ContentColumn,
@@ -20,7 +20,10 @@ import {
   Badge,
   Chip,
   Textarea,
+  CelebrationToast,
 } from '@/components/ui';
+import { awardLangkah } from '@/lib/gamification';
+import { getLocalDateString } from '@/lib/calendar';
 
 export default function CheckinPage() {
   const router = useRouter();
@@ -32,6 +35,7 @@ export default function CheckinPage() {
   const [briefNote, setBriefNote] = useState('');
   const [saved, setSaved] = useState(false);
   const [history, setHistory] = useState<DailyCheckin[]>([]);
+  const [celebration, setCelebration] = useState<CelebrationData | null>(null);
   const isSubmittingRef = useRef(false);
 
   useEffect(() => {
@@ -101,9 +105,16 @@ export default function CheckinPage() {
     setHistory((prev) => [newCheckin, ...prev]);
     setSaved(true);
 
+    // Gamification: award daily check-in Langkah (idempotent per local day)
+    const localDate = getLocalDateString();
+    const result = awardLangkah('daily_checkin', `checkin:${localDate}`, localDate);
+    if (result) {
+      setCelebration(result);
+    }
+
     setTimeout(() => {
       router.push('/dashboard');
-    }, 600);
+    }, 1200);
   };
 
   return (
@@ -288,6 +299,8 @@ export default function CheckinPage() {
           </div>
         )}
       </ContentColumn>
+
+      <CelebrationToast celebration={celebration} onDismiss={() => setCelebration(null)} />
     </PageContainer>
   );
 }

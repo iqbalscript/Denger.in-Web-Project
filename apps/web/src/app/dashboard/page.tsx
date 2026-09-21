@@ -22,8 +22,15 @@ import {
   getTodayCheckin,
   isTodayMissionCompleted,
 } from '@/lib/storage';
+import {
+  loadGamificationState,
+  getCurrentLevelInfo,
+  getRitme,
+  WEEKLY_QUEST_REQUIREMENTS,
+  LEVEL_THRESHOLDS,
+} from '@/lib/gamification';
 import { DOMAIN_CONFIGS, AGE_BRACKET_CONFIGS, OCCUPATION_OPTIONS } from '@dengarin/config';
-import type { AnonymousUserSession, DailyMission, DailyCheckin } from '@dengarin/types';
+import type { AnonymousUserSession, DailyMission, DailyCheckin, GamificationStateV1 } from '@dengarin/types';
 import { PageContainer, Button } from '@/components/ui';
 
 export default function DashboardPage() {
@@ -31,6 +38,7 @@ export default function DashboardPage() {
   const [todayMission, setTodayMission] = useState<DailyMission | null>(null);
   const [todayCheckin, setTodayCheckin] = useState<DailyCheckin | null>(null);
   const [isMissionDone, setIsMissionDone] = useState<boolean>(false);
+  const [gamState, setGamState] = useState<GamificationStateV1 | null>(null);
 
   useEffect(() => {
     let current = getAnonymousSession();
@@ -43,6 +51,15 @@ export default function DashboardPage() {
     setTodayMission(mission);
     setIsMissionDone(isTodayMissionCompleted());
     setTodayCheckin(getTodayCheckin());
+    setGamState(loadGamificationState());
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'dengarin_gamification_v1' || e.key === null) {
+        setGamState(loadGamificationState());
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const ageInfo = session?.ageBracket ? AGE_BRACKET_CONFIGS[session.ageBracket] : null;
@@ -192,36 +209,83 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Weekly Rhythm / Continuity Indicator */}
-            <div className="bg-white border-2 border-ink rounded-lg p-4 space-y-2 text-left shadow-hard-sm">
+            {/* Perjalanan Kecil — Compact Progress Widget */}
+            <div className="bg-white border-2 border-ink rounded-lg p-4 space-y-3 text-left shadow-hard-sm">
               <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-ink border-b-2 border-ink pb-2">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-cobalt" />
-                  Ritme Pekan Ini
+                  Perjalanan Kecil
                 </span>
-                <span className="bg-yellow px-1.5 py-0.5 rounded border border-ink text-[10px]">Pekan 1</span>
+                <Link href="/perjalanan" className="text-[10px] text-cobalt hover:underline">
+                  DETAIL →
+                </Link>
               </div>
-              <div className="grid grid-cols-7 gap-1.5 pt-1">
-                {[1, 2, 3, 4, 5, 6, 7].map((d) => {
-                  const isPast = d < currentDay;
-                  const isCurrent = d === currentDay;
-                  return (
-                    <div
-                      key={d}
-                      className={`h-8 rounded flex items-center justify-center text-[10px] font-black border-2 border-ink transition-all ${
-                        isCurrent
-                          ? 'bg-cobalt text-white shadow-hard-sm'
-                          : isPast
-                          ? 'bg-lime text-ink'
-                          : 'bg-paper text-ink/40'
-                      }`}
-                      title={`Hari ${d}`}
-                    >
-                      H{d}
+
+              {gamState && (() => {
+                const levelInfo = getCurrentLevelInfo(gamState);
+                const ritme = getRitme();
+                const activeCount = ritme.filter(d => d.active).length;
+                return (
+                  <div className="space-y-3">
+                    {/* Langkah & Level */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-black text-ink">{gamState.totalLangkah}</span>
+                        <span className="text-[10px] font-black text-cobalt uppercase bg-cobalt/10 px-1.5 py-0.5 rounded border border-cobalt/30">
+                          {levelInfo.name}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-ink/60 font-bold uppercase tracking-wider">LANGKAH</span>
+                      {/* Progress bar to next level */}
+                      {levelInfo.nextThreshold && (
+                        <div className="w-full h-2 bg-paper border border-ink rounded-sm overflow-hidden">
+                          <div
+                            className="h-full bg-cobalt transition-all duration-300"
+                            style={{ width: `${levelInfo.progress}%` }}
+                            role="progressbar"
+                            aria-valuenow={gamState.totalLangkah}
+                            aria-valuemin={LEVEL_THRESHOLDS[gamState.currentLevel].threshold}
+                            aria-valuemax={levelInfo.nextThreshold}
+                            aria-label={`Progress ke level ${LEVEL_THRESHOLDS[gamState.currentLevel + 1]?.name}`}
+                          />
+                        </div>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
+
+                    {/* Ritme 7 Hari */}
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-ink/60 font-bold uppercase tracking-wider">
+                        RITME 7 HARI — {activeCount}/7
+                      </span>
+                      <div className="grid grid-cols-7 gap-1.5">
+                        {ritme.map((day) => (
+                          <div
+                            key={day.date}
+                            className={`h-6 rounded flex items-center justify-center text-[9px] font-black border-2 border-ink ${
+                              day.active
+                                ? 'bg-lime text-ink'
+                                : 'bg-paper text-ink/30'
+                            }`}
+                            title={`${day.dayLabel} ${day.date}${day.active ? ' — Aktif' : ''}`}
+                          >
+                            {day.dayLabel.slice(0, 2)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Weekly Quest Progress (compact) */}
+                    <div className="text-[10px] text-ink/60 font-bold uppercase tracking-wider space-y-0.5">
+                      <span>QUEST MINGGU INI</span>
+                      <div className="flex gap-2 text-ink">
+                        <span>✓ {gamState.questProgress.checkinDays}/{WEEKLY_QUEST_REQUIREMENTS.checkinDays} check-in</span>
+                        <span>✓ {gamState.questProgress.missionsCompleted}/{WEEKLY_QUEST_REQUIREMENTS.missionsCompleted} misi</span>
+                        <span>✓ {gamState.questProgress.journalEntries}/{WEEKLY_QUEST_REQUIREMENTS.journalEntries} jurnal</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

@@ -300,3 +300,69 @@ export interface AnonymousForumPostSkeleton {
   createdAt: string;
   supportCount: number;
 }
+
+// ==========================================
+// 9. Supportive Gamification — "Perjalanan Kecil" V1
+// ==========================================
+
+export type GamificationEventType =
+  | 'daily_checkin'
+  | 'mission_complete'
+  | 'journal_entry'
+  | 'mission_reflection'
+  | 'weekly_quest_complete'
+  | 'weekly_reflection';
+
+export interface GamificationEvent {
+  /** Idempotency key, e.g. "checkin:2026-09-21" */
+  id: string;
+  type: GamificationEventType;
+  langkah: number;
+  timestamp: string;
+  /** YYYY-MM-DD in user's local timezone at time of event */
+  localDate: string;
+}
+
+export interface WeeklyQuestProgress {
+  checkinDays: number;
+  missionsCompleted: number;
+  journalEntries: number;
+}
+
+export interface GamificationStateV1 {
+  version: 1;
+  /** Append-only idempotent event ledger */
+  eventLedger: GamificationEvent[];
+  /** Cached sum — re-derivable from ledger */
+  totalLangkah: number;
+  /** 0-indexed into LEVEL_THRESHOLDS */
+  currentLevel: number;
+  /** Badge IDs that have been unlocked */
+  unlockedBadgeIds: string[];
+  /** ISO week ID of the active quest, e.g. "2026-W38" */
+  activeQuestWeekId: string;
+  /** Current quest progress (derived from ledger) */
+  questProgress: WeeklyQuestProgress;
+  /** Week IDs where the quest was completed */
+  completedQuestWeekIds: string[];
+}
+
+export interface CelebrationData {
+  langkahAwarded: number;
+  totalLangkah: number;
+  levelUp?: number;
+  newBadges?: string[];
+  questCompleted?: boolean;
+}
+
+export interface LevelDefinition {
+  name: string;
+  threshold: number;
+}
+
+export interface BadgeDefinition {
+  id: string;
+  name: string;
+  description: string;
+}
+

@@ -32,13 +32,14 @@ import {
   decryptSessionData,
   normalizeMnemonic
 } from '@/lib/crypto/e2ee';
-import type { AnonymousUserSession, DailyCheckin, JournalEntry } from '@dengarin/types';
+import type { AnonymousUserSession, DailyCheckin, JournalEntry, GamificationStateV1 } from '@dengarin/types';
 import { PageContainer, ContentColumn, Button, Badge, Textarea } from '@/components/ui';
 
 interface DecryptedBackupPayload {
   session: AnonymousUserSession;
   checkins: DailyCheckin[];
   journals: JournalEntry[];
+  gamification?: GamificationStateV1;
   backupAt: string;
 }
 
@@ -98,6 +99,14 @@ export default function RecoveryPage() {
         // ignore
       }
 
+      let gamification: GamificationStateV1 | undefined;
+      try {
+        const storedGamification = localStorage.getItem('dengarin_gamification_v1');
+        if (storedGamification) gamification = JSON.parse(storedGamification);
+      } catch {
+        // ignore
+      }
+
       // A legacy phrase remains valid for reading its old backup, but its hash
       // cannot prove write ownership. Rotate only when creating a new backup.
       const backupSession = isModernRecoveryPhrase(session.recoveryMnemonic)
@@ -106,6 +115,7 @@ export default function RecoveryPage() {
         session: backupSession,
         checkins,
         journals,
+        gamification,
         backupAt: new Date().toISOString()
       };
 
@@ -201,6 +211,9 @@ export default function RecoveryPage() {
           }
           if (Array.isArray(payload.journals)) {
             localStorage.setItem('dengarin_journal_entries', JSON.stringify(payload.journals));
+          }
+          if (payload.gamification && typeof payload.gamification === 'object') {
+            localStorage.setItem('dengarin_gamification_v1', JSON.stringify(payload.gamification));
           }
 
           setRestoreStatus({

@@ -14,6 +14,8 @@ import {
 import { PageContainer, Button, Badge } from '@/components/ui';
 import { TOPIC_PILLARS } from '@dengarin/config';
 import { initAnonymousSession, saveDailyCheckin, getTodayCheckin } from '@/lib/storage';
+import { awardLangkah } from '@/lib/gamification';
+import { getLocalDateString } from '@/lib/calendar';
 import type { MoodScore } from '@dengarin/types';
 
 export default function LandingPage() {
@@ -46,6 +48,12 @@ export default function LandingPage() {
       energyLevel: mood === 'sangat_baik' ? 9 : mood === 'baik' ? 7 : mood === 'netral' ? 5 : mood === 'berat' ? 3 : 2,
       stressorTags: ['Quick Mood Landing Check-in'],
     });
+
+    // Gamification: same canonical idempotency key as /checkin
+    // First eligible check-in of the local calendar day = +10 Langkah
+    const localDate = getLocalDateString();
+    awardLangkah('daily_checkin', `checkin:${localDate}`, localDate);
+
     setMoodSavedNotice(true);
     setTimeout(() => {
       setMoodSavedNotice(false);
