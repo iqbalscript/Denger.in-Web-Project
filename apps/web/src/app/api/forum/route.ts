@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
  *    - Rejected -> returns helpful feedback.
  */
 export async function POST(request: NextRequest) {
-  if (isRateLimited('forum-write')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('forum-write')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
   const parsed = await readJsonLimited(request, 8192);
   if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
   const body = parsed.value as CreateForumPostBody | null;

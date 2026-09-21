@@ -12,7 +12,7 @@ interface RouteContext {
  * Increments the community empathy counter ("Rasakan Hal Serupa") for an approved post.
  */
 export async function POST(_request: NextRequest, context: RouteContext) {
-  if (isRateLimited('forum-support')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('forum-support')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
   const { postId } = await context.params;
   if (!postId) {
     return jsonError('Parameter "postId" wajib disertakan.', 400);

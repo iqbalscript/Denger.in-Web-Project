@@ -14,7 +14,7 @@ import { readJsonLimited } from '@/lib/api/requestLimits';
  * client-side; this route only demonstrates the storage contract.
  */
 export async function GET(request: NextRequest) {
-  if (isRateLimited('sync-read')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('sync-read')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
   const backupId = request.nextUrl.searchParams.get('backupId');
   if (backupId) {
     if (!HEX_256.test(backupId)) return jsonError('backupId tidak valid.');
@@ -45,7 +45,7 @@ interface SyncPutBody {
 }
 
 export async function PUT(request: NextRequest) {
-  if (isRateLimited('sync-write')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('sync-write')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
   const parsed = await readJsonLimited(request, 4 * 1024 * 1024);
   if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
   const body = parsed.value as SyncPutBody | null;
