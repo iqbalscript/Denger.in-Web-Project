@@ -572,3 +572,7 @@ Proyek ini dirancang untuk mendemonstrasikan bagaimana teknologi web modern dapa
 ## 19. License
 
 License: **MIT** (dideklarasikan pada `package.json`). Berkas `LICENSE` formal belum ditambahkan ke repositori.
+
+### Panduan penyuntingan teks
+
+Untuk mengubah kata-kata website, lihat [Panduan Scriptwriter](docs/Scriptwrite.md): peta file setiap halaman, sumber teks bersama, contoh edit, dan checklist penyerahan.
