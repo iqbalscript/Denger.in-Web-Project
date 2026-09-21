@@ -23,6 +23,60 @@ export const ALLOWED_ACTIONS: readonly WhitelistedAIAction[] = [
 
 export const STANDARD_DISCLAIMER =
   'Dengar.in adalah pendamping mandiri berbasis kecerdasan buatan, bukan pengganti tenaga profesional kesehatan jiwa.';
+const MAX_ACTION_TEXT_LENGTH = 1500;
+const MAX_SUGGESTED_TAGS = 8;
+
+/**
+ * Normalizes generated prose for deterministic safety checks without changing
+ * the text delivered to the user. These checks target direct clinical advice,
+ * not discussion of medication or general psychoeducation.
+ */
+function normalizeSafetyText(value: string): string {
+  return value.normalize('NFKC').toLocaleLowerCase('id-ID')
+    .replace(/\p{Cf}/gu, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+function containsUnsafeMedicalAdvice(value: string): boolean {
+  const text = normalizeSafetyText(value);
+  const compact = text.replace(/\s+/g, '');
+  const condition = '(?:bipolar|depresi(?:\\s+mayor)?|skizofrenia|gangguan\\s+kecemasan|anxiety\\s+disorder|adhd|gad|ocd|ptsd)';
+  const medication = '(?:obat(?:ku|mu|nya)?|medikasi|medication|dosis(?:ku|mu|nya)?|dose|antidepresan|antipsikotik|xanax|sertraline|fluoxetine|alprazolam|zoloft|prozac|pil\\s+tidur|pills?|tablets?)';
+
+  const definitiveDiagnosis = new RegExp(
+    `\\b(?:kamu|anda|lu|loe|you)\\s+(?:(?:pasti|jelas|memang|definitely|certainly)\\s+)?(?:mengalami|menderita|mengidap|terkena|terdiagnosis|didiagnosis|memiliki|have|has|are)\\s+${condition}\\b|\\b(?:kamu|anda|lu|loe|you)\\s+(?:(?:pasti|jelas|definitely|certainly)\\s+|(?:adalah|itu)\\s+)?${condition}\\b`,
+    'iu'
+  );
+  const medicationInstruction = new RegExp(
+    `\\b(?:berhenti(?:lah)?|hentikan|stop|jangan\\s+(?:lagi\\s+)?(?:minum|konsumsi|consume|take)|mulai(?:lah)?|start|naikkan|tingkatkan|increase|turunkan|kurangi|reduce|double|ganti(?:kan)?|switch|ubah|gabungkan|kombinasikan|combine|mix|skip|lewati|minumlah|minum|konsumsi|consume|take|ambil(?:lah)?|gunakan|pakai)\\b(?:\\s+\\p{L}+){0,4}\\s+${medication}\\b`,
+    'iu'
+  );
+  const clinician = '(?:dokter(?:ku|mu|nya)?|doctor(?:s)?|psikiater(?:ku|mu|nya)?|apoteker(?:ku|mu|nya)?|tenaga\\s+kesehatan|clinician)';
+  const override = '(?:abaikan|ignore|jangan\\s+(?:ikuti|dengarkan|dengerin)|tak\\s+perlu\\s+ikuti|lawan)';
+  const professionalOverride = new RegExp(`\\b${override}\\b.{0,48}\\b${clinician}\\b|\\b${clinician}\\b.{0,48}\\b${override}\\b`, 'iu');
+  const medicalTreatmentDirective = /\b(?:(?:kamu|anda|lu|loe|you)?\s*(?:harus|perlu|wajib)\s+(?:(?:menjalani|mulai|minum)\s+)?|(?:lakukan|jalani|mulai|cobalah)\s+)(?:pengobatan|treatment|terapi\s+(?:medis|cbt|paparan|elektrokonvulsif)|rawat\s+inap|ect|terapi\s+kejut)\b|\brawat\s+inap\s+(?:sekarang|hari\s+ini|minggu\s+ini)\b/iu;
+
+  const reportedByClinician = /\b(?:oleh|dari)\s+(?:dokter|psikiater|psikolog|tenaga\s+kesehatan)\b/iu.test(text);
+  return (definitiveDiagnosis.test(text) && !reportedByClinician) || medicationInstruction.test(text) ||
+    professionalOverride.test(text) || medicalTreatmentDirective.test(text) ||
+    // Obvious spacing/punctuation evasions of high-risk medication directives.
+    /(?:stop|minum|naikkan|turunkan|ganti|double)(?:minum|take)?(?:obat|medikasi|medication|dosis|dose)/iu.test(compact);
+}
+
+function validateGeneratedText(value: unknown, field: string, errors: string[], required = false, enforceMaxLength = true): void {
+  if (value === undefined && !required) return;
+  if (typeof value !== 'string' || (required && value.trim().length === 0)) {
+    errors.push(`Aksi ditolak: ${field} harus berupa teks`);
+    return;
+  }
+  if (enforceMaxLength && value.length > MAX_ACTION_TEXT_LENGTH) {
+    errors.push(`Aksi ditolak: ${field} melebihi batas panjang`);
+  }
+  if (containsUnsafeMedicalAdvice(value)) {
+    errors.push(`Aksi ditolak: ${field} memuat diagnosis psikiatris atau instruksi medis yang tidak aman`);
+  }
+}
 
 export function validateAIOutput(rawInput: unknown): ValidationResult {
   const errors: string[] = [];
@@ -57,11 +111,9 @@ export function validateAIOutput(rawInput: unknown): ValidationResult {
   }
 
   // 2. Disclaimer Verification & Sanitization
-  let disclaimer = payload.disclaimer as string | undefined;
-  if (!disclaimer || typeof disclaimer !== 'string' || disclaimer.trim().length === 0) {
-    disclaimer = STANDARD_DISCLAIMER;
-    sanitized = true;
-  }
+  const suppliedDisclaimer = payload.disclaimer;
+  const disclaimer = STANDARD_DISCLAIMER;
+  if (suppliedDisclaimer !== STANDARD_DISCLAIMER) sanitized = true;
 
   // Detect extra unexpected fields and sanitize them away
   const allowedKeysByAction: Record<WhitelistedAIAction, string[]> = {
@@ -95,12 +147,10 @@ export function validateAIOutput(rawInput: unknown): ValidationResult {
           errors.push('Aksi "chat" ditolak: balasan memuat blok kode/skrip pemrograman (melanggar guardrail anti-koding)');
         }
 
-        // Guardrail: Anti-Diagnostic / Psychiatric Creep Blocker
-        const clinicalPattern = /\b(?:kamu|anda)\s+(?:terdiagnosis|didiagnosis|mengidap|menderita)\s+(?:depresi|bipolar|skizofrenia|gad|anxiety\s*disorder|ocd)\b/i;
-        const medicationPattern = /\b(?:resep|dosis|minum)\s+(?:obat\s*antidepresan|antipsikotik|xanax|sertraline|fluoxetine|alprazolam)\b/i;
-        if (clinicalPattern.test(message) || medicationPattern.test(message)) {
-          errors.push('Aksi "chat" ditolak: balasan memuat klaim diagnosis psikiatris klinis atau anjuran obat medis');
-        }
+        // Guardrail: contextual anti-diagnosis and anti-prescription boundary.
+        // Preserve the established short-response behavior: inspect the full
+        // message for unsafe advice, then truncate only safe chat prose.
+        validateGeneratedText(message, 'message', errors, true, false);
 
         // Guardrail: Anti-Toxic Positivity & Invalidation Blocker
         const toxicPositivityPattern = /\b(?:kamu|anda)\s+(?:harus\s*lebih\s*bersyukur|kurang\s*bersyukur|lebay|cengeng)\b|\b(?:masalahmu\s*belum\s*seberapa|jangan\s*manja)\b/i;
@@ -122,8 +172,8 @@ export function validateAIOutput(rawInput: unknown): ValidationResult {
         }
 
         // Guardrail: Max Length Enforcer (prevent runaway walls of text)
-        if (message.length > 1500) {
-          message = message.slice(0, 1500).trim() + '...';
+        if (message.length > MAX_ACTION_TEXT_LENGTH) {
+          message = message.slice(0, MAX_ACTION_TEXT_LENGTH).trim() + '...';
           sanitized = true;
         }
       }
@@ -138,10 +188,12 @@ export function validateAIOutput(rawInput: unknown): ValidationResult {
 
     case 'suggest_mission': {
       const missionId = payload.missionId as string;
-      const reason = (payload.reason as string) || 'Rekomendasi langkah kecil hari ini';
+      const reason = payload.reason === undefined || payload.reason === '' ? 'Rekomendasi langkah kecil hari ini' : payload.reason as string;
       if (!missionId || typeof missionId !== 'string') {
         errors.push('Aksi "suggest_mission" membutuhkan properti "missionId"');
       }
+      validateGeneratedText(missionId, 'missionId', errors, true);
+      validateGeneratedText(reason, 'reason', errors, true);
       validatedAction = {
         action: 'suggest_mission',
         missionId: missionId || '',
@@ -153,11 +205,16 @@ export function validateAIOutput(rawInput: unknown): ValidationResult {
 
     case 'open_journal_prompt': {
       const prompt = payload.prompt as string;
-      const suggestedTags = Array.isArray(payload.suggestedTags)
-        ? (payload.suggestedTags as string[])
-        : ['refleksi'];
+      const suppliedTags = payload.suggestedTags;
+      const suggestedTags = suppliedTags === undefined ? ['refleksi'] : suppliedTags as string[];
       if (!prompt || typeof prompt !== 'string') {
         errors.push('Aksi "open_journal_prompt" membutuhkan properti "prompt"');
+      }
+      validateGeneratedText(prompt, 'prompt', errors, true);
+      if (!Array.isArray(suggestedTags) || suggestedTags.length > MAX_SUGGESTED_TAGS) {
+        errors.push('Aksi "open_journal_prompt" membutuhkan suggestedTags yang valid');
+      } else {
+        for (const tag of suggestedTags) validateGeneratedText(tag, 'suggestedTags', errors, true);
       }
       validatedAction = {
         action: 'open_journal_prompt',
@@ -173,6 +230,7 @@ export function validateAIOutput(rawInput: unknown): ValidationResult {
       if (!topicSlug || typeof topicSlug !== 'string') {
         errors.push('Aksi "suggest_forum" membutuhkan properti "topicSlug"');
       }
+      validateGeneratedText(topicSlug, 'topicSlug', errors, true);
       validatedAction = {
         action: 'suggest_forum',
         topicSlug: topicSlug || '',
@@ -183,10 +241,11 @@ export function validateAIOutput(rawInput: unknown): ValidationResult {
 
     case 'adjust_path': {
       const pace = payload.recommendedPace as 'slower' | 'standard' | 'accelerated';
-      const reason = payload.reason as string;
+      const reason = payload.reason === undefined || payload.reason === '' ? 'Penyesuaian kecepatan langkah' : payload.reason as string;
       if (!['slower', 'standard', 'accelerated'].includes(pace)) {
         errors.push('Aksi "adjust_path" membutuhkan recommendedPace yang valid');
       }
+      validateGeneratedText(reason, 'reason', errors, true);
       validatedAction = {
         action: 'adjust_path',
         recommendedPace: pace || 'standard',
