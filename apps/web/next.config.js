@@ -28,6 +28,14 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(), payment=(), usb=()' },
         ],
       },
+      // Ruang Ngobrol uses the same browser-native microphone capability as
+      // /chat. The global policy remains deny-by-default everywhere else.
+      {
+        source: '/ruang-ngobrol',
+        headers: [
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(), payment=(), usb=()' },
+        ],
+      },
       {
         source: '/api/:path*',
         headers: [

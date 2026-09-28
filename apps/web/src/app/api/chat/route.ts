@@ -15,6 +15,12 @@ interface ChatRequestBody {
   history?: Array<{ sender: 'user' | 'assistant'; text: string }>;
   ageBracket?: AgeBracket;
   domain?: InterventionDomain;
+  /**
+   * Ruang Ngobrol keeps its conversation memory-only. This opt-out is checked
+   * only after both deterministic crisis gates; it changes caching, never the
+   * safety or provider pipeline.
+   */
+  noStore?: boolean;
 }
 
 /**
@@ -46,24 +52,27 @@ export async function POST(request: NextRequest) {
   // BATAS KEAMANAN: cache dibaca SETELAH crisis gate, tidak pernah sebelumnya.
   // Gate deterministik itu wajib jalan di setiap request; cache hanya boleh
   // memangkas panggilan LLM, tidak boleh memangkas deteksi krisis.
-  const cacheKey = aiCacheKey({
+  const cacheEnabled = body.noStore !== true;
+  const cacheKey = cacheEnabled ? aiCacheKey({
     message: body.message,
     history: screened.history,
     ageBracket: body.ageBracket,
     domain: body.domain
-  });
+  }) : null;
 
-  const cached = await readAiCache(cacheKey);
-  if (cached) {
-    return jsonOk({
-      crisis: false,
-      tier: cached.tier,
-      providerId: cached.providerId,
-      action: cached.action,
-      disclaimer: CLINICAL_DISCLAIMER,
-      warnings: cached.warnings,
-      cached: true
-    });
+  if (cacheKey) {
+    const cached = await readAiCache(cacheKey);
+    if (cached) {
+      return jsonOk({
+        crisis: false,
+        tier: cached.tier,
+        providerId: cached.providerId,
+        action: cached.action,
+        disclaimer: CLINICAL_DISCLAIMER,
+        warnings: cached.warnings,
+        cached: true
+      });
+    }
   }
 
   const release = acquireChatSlot();
@@ -78,7 +87,7 @@ export async function POST(request: NextRequest) {
     });
   } finally { release(); }
 
-  await writeAiCache(cacheKey, result);
+  if (cacheKey) await writeAiCache(cacheKey, result);
 
   return jsonOk({
     crisis: false,
