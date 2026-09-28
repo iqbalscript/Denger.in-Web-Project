@@ -3,11 +3,13 @@ import { runOrchestrator } from '@dengarin/orchestrator';
 import { CLINICAL_DISCLAIMER } from '@dengarin/config';
 import type { AgeBracket, InterventionDomain } from '@dengarin/types';
 import { runCrisisGate } from '@/lib/api/crisisGate';
-import { acquireChatSlot, isRateLimited } from '@/lib/api/rateLimit';
+import { acquireChatSlot, acquireTtsSlot, isRateLimited } from '@/lib/api/rateLimit';
 import { CHAT_MAX_BYTES, chatInputWithinLimits, readJsonLimited } from '@/lib/api/requestLimits';
 import { jsonError, jsonOk } from '@/lib/api/response';
 import { screenChatContext } from '@/lib/api/chatHistory';
 import { aiCacheKey, readAiCache, writeAiCache } from '@/lib/api/aiCache';
+import { createGeminiTtsProvider } from '@/lib/api/geminiTts';
+import { validatedActionDisplayText } from '@/lib/voiceRoom';
 
 interface ChatRequestBody {
   sessionId?: string;
@@ -15,6 +17,8 @@ interface ChatRequestBody {
   history?: Array<{ sender: 'user' | 'assistant'; text: string }>;
   ageBracket?: AgeBracket;
   domain?: InterventionDomain;
+  /** Untrusted UI hint; it enables a post-validation enhancement only. */
+  voiceMode?: 'ruang-ngobrol';
   /**
    * Ruang Ngobrol keeps its conversation memory-only. This opt-out is checked
    * only after both deterministic crisis gates; it changes caching, never the
@@ -89,6 +93,27 @@ export async function POST(request: NextRequest) {
 
   if (cacheKey) await writeAiCache(cacheKey, result);
 
+  // This untrusted request flag never authorizes arbitrary text synthesis. It
+  // merely asks for an optional enhancement after the canonical orchestrator
+  // has returned a validated action. noStore is mandatory for room audio so no
+  // response or audio is added to the shared Redis cache.
+  const wantsRoomTts = body.voiceMode === 'ruang-ngobrol' && body.noStore === true;
+  let roomAudio: { data: string; mimeType: 'audio/wav' } | undefined;
+  if (wantsRoomTts) {
+    const displayText = validatedActionDisplayText(result.action);
+    if (displayText && !(await isRateLimited('room-tts'))) {
+      const releaseTts = acquireTtsSlot();
+      if (releaseTts) {
+        try {
+          const tts = await createGeminiTtsProvider().synthesizeValidatedText(displayText, request.signal);
+          if (tts.ok) roomAudio = { data: tts.data, mimeType: tts.mimeType };
+        } finally {
+          releaseTts();
+        }
+      }
+    }
+  }
+
   return jsonOk({
     crisis: false,
     tier: result.tier,
@@ -96,6 +121,7 @@ export async function POST(request: NextRequest) {
     action: result.action,
     disclaimer: CLINICAL_DISCLAIMER,
     warnings: result.warnings,
-    cached: false
+    cached: false,
+    roomAudio
   });
 }

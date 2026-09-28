@@ -28,9 +28,12 @@ export function createRateLimiter(windowMs = WINDOW_MS, maxEntries = 32, now = D
 }
 
 const limiter = createRateLimiter();
-export type PublicRoute = 'chat' | 'admin-login' | 'forum-write' | 'forum-support' | 'weekly-report' | 'sync-read' | 'sync-write';
+export type PublicRoute = 'chat' | 'room-tts' | 'admin-login' | 'forum-write' | 'forum-support' | 'weekly-report' | 'sync-read' | 'sync-write';
 const limits: Record<PublicRoute, number> = {
   chat: 30,
+  // Additional quota for expensive, optional Gemini TTS. This is intentionally
+  // separate from text chat and remains Redis-backed when Redis is available.
+  'room-tts': 8,
   'admin-login': 20,
   'forum-write': 60,
   'forum-support': 120,
@@ -87,4 +90,18 @@ export function acquireChatSlot(): (() => void) | null {
   activeChat += 1;
   let released = false;
   return () => { if (!released) { activeChat -= 1; released = true; } };
+}
+
+let activeTts = 0;
+const MAX_ACTIVE_TTS = 1;
+/**
+ * Process-local concurrent TTS limit. Like the existing chat slot, it protects
+ * one server process; Redis rate limiting supplies the cross-instance quota
+ * when Redis is available.
+ */
+export function acquireTtsSlot(): (() => void) | null {
+  if (activeTts >= MAX_ACTIVE_TTS) return null;
+  activeTts += 1;
+  let released = false;
+  return () => { if (!released) { activeTts -= 1; released = true; } };
 }

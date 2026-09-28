@@ -11,6 +11,8 @@ export const VOICE_ROOM_MAX_SESSION_MS = 10 * 60 * 1000;
 export const VOICE_ROOM_EXPIRY_WARNING_MS = 60 * 1000;
 export const VOICE_ROOM_MAX_CAPTIONS = 8;
 export const VOICE_ROOM_MAX_HISTORY = 6;
+export const VOICE_ROOM_PRIVACY_DISCLOSURE =
+  'Suaramu diproses oleh fitur suara browser/perangkatmu; dukungan dan pemrosesan dapat berbeda tergantung browser. Suara Dengar.in dibuat Google Gemini dari respons asisten yang sudah divalidasi. Dengar.in tidak sengaja menyimpan rekaman mikrofon atau audio suara yang dibuat.';
 
 export type VoiceRoomState =
   | 'IDLE'

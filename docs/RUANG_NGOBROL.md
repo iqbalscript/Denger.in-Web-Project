@@ -13,7 +13,8 @@ final browser SpeechRecognition transcript
   -> server context crisis screen + deterministic crisis gate
   -> existing orchestrator, provider, and output validation
   -> validated displayed text
-  -> optional browser speechSynthesis
+  -> optional server-side Gemini TTS (unary WAV)
+  -> browser playback, with browser speechSynthesis fallback
 ```
 
 Client screening is defense-in-depth. The server performs its mandatory
@@ -27,11 +28,18 @@ routes to `/crisis`.
 - Browser speech recognition may be processed by the browser or its vendor;
   the UI discloses this before microphone activation.
 - Only cleared text is sent through the existing Dengar.in text AI pipeline.
+- Gemini receives no microphone audio. For the optional AI voice, it receives
+  only server-derived display text from the final validated assistant action.
+- The selected server-controlled voice is `Vindemiatrix` through
+  `gemini-3.8-flash-lite-tts`. Audio is returned transiently in the same
+  no-store chat response, played from a memory-only Blob URL, and revoked on
+  completion, replacement, end, crisis, or navigation.
 - Captions and room history stay in React memory and are cleared on end or
   navigation. They are not written to browser storage, recovery, analytics,
   databases, or Supabase.
 - Room requests send `noStore: true`, so the existing Redis AI-response cache
-  is skipped for both reads and writes.
+  is skipped for both reads and writes. Audio is not cached in Redis, files,
+  browser storage, recovery, analytics, databases, or Supabase.
 
 ## Limits and compatibility
 
@@ -40,8 +48,16 @@ boundary, not a substitute for the existing server-side rate limit. Speech
 recognition and browser TTS degrade independently; text chat remains available
 when either is unsupported or unavailable.
 
-No Gemini Live WebSocket, browser Gemini key, token endpoint, audio endpoint,
-or additional environment variable is used.
+Gemini TTS is an optional enhancement: provider timeout, quota, malformed WAV,
+or playback failure leaves the validated text visible and uses browser
+speechSynthesis when available. It has a separate server-side TTS rate and
+single-process concurrency guard. Redis-backed limits are shared when Redis is
+available; the existing process-local fallback (M-01) is not distributed.
+
+The current Gemini TTS free tier is subject to Google's quotas and terms and
+is not a permanent Rp0 guarantee. No Gemini Live WebSocket, browser Gemini
+key, token endpoint, generic audio endpoint, or additional environment
+variable is used.
 
 ## Route security
 
