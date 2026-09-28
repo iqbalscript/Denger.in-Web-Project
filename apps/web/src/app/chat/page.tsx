@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Send,
@@ -14,12 +14,28 @@ import {
   MessageSquare,
   ExternalLink,
   Zap,
-  Tag
+  Tag,
+  Mic,
+  Square,
+  Volume2
 } from 'lucide-react';
 import { evaluateCrisisInput } from '@dengarin/crisis-engine';
 import { STANDARD_DISCLAIMER } from '@dengarin/validator';
 import type { ValidatedAIAction } from '@dengarin/types';
 import { getAnonymousSession } from '@/lib/storage';
+import {
+  BROWSER_VOICE_PRIVACY_DISCLOSURE,
+  applyFinalTranscript,
+  cancelSpeech,
+  getFinalTranscript,
+  getSpeechRecognitionConstructor,
+  isSpeechRecognitionSupported,
+  isSpeechSynthesisSupported,
+  selectIndonesianVoice,
+  speakOneAtATime,
+  speechRecognitionErrorMessage,
+  type BrowserSpeechRecognition,
+} from '@/lib/browserSpeech';
 import { PageContainer, ContentColumn, Button } from '@/components/ui';
 
 interface Message {
@@ -32,6 +48,8 @@ interface Message {
   debiased?: boolean;
   action?: ValidatedAIAction;
   isError?: boolean;
+  /** Only server-validated assistant output is eligible for browser TTS. */
+  ttsEligible?: boolean;
 }
 
 const STARTER_PROMPTS = [
@@ -56,14 +74,130 @@ export default function ChatPage() {
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(false);
+  const [speechSynthesisSupported, setSpeechSynthesisSupported] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState('');
+  const [showVoiceDisclosure, setShowVoiceDisclosure] = useState(false);
+  const [hasAcknowledgedVoiceDisclosure, setHasAcknowledgedVoiceDisclosure] = useState(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
   const isSubmittingRef = useRef(false);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const activeSpeechMessageIdRef = useRef<string | null>(null);
 
   // Auto-scroll to bottom when new messages appear
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
+  // Browser APIs are inspected only after hydration. Both capabilities degrade
+  // independently, so text chat never depends on either one being available.
+  useEffect(() => {
+    setSpeechRecognitionSupported(isSpeechRecognitionSupported(window));
+    setSpeechSynthesisSupported(isSpeechSynthesisSupported(window));
+
+    return () => {
+      recognitionRef.current?.abort();
+      recognitionRef.current = null;
+      activeSpeechMessageIdRef.current = null;
+      cancelSpeech(window.speechSynthesis);
+    };
+  }, []);
+
+  const stopListening = useCallback(() => {
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+    setVoiceStatus('Pendengaran dihentikan. Periksa dan edit teks sebelum mengirim.');
+    setIsListening(false);
+    try {
+      recognition.stop();
+    } catch {
+      recognition.abort();
+    }
+  }, []);
+
+  const startListening = useCallback(() => {
+    const Recognition = getSpeechRecognitionConstructor(window);
+    if (!Recognition) {
+      setVoiceStatus('Fitur Bicara belum didukung oleh browser ini. Kamu tetap bisa menulis pesan.');
+      return;
+    }
+
+    recognitionRef.current?.abort();
+    const recognition = new Recognition();
+    recognition.lang = 'id-ID';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event) => {
+      // Recognition may only update the editable text field. It has no submit,
+      // fetch, crisis-routing, or gamification side effect.
+      applyFinalTranscript(setInputText, getFinalTranscript(event));
+      setVoiceStatus('Teks suara sudah ditambahkan. Periksa dan edit teks sebelum mengirim.');
+    };
+    recognition.onerror = (event) => {
+      setVoiceStatus(speechRecognitionErrorMessage(event.error));
+      setIsListening(false);
+    };
+    recognition.onend = () => {
+      if (recognitionRef.current === recognition) recognitionRef.current = null;
+      setIsListening(false);
+    };
+    recognitionRef.current = recognition;
+    setVoiceStatus('● LAGI DENGERIN...');
+    setIsListening(true);
+    try {
+      // This is reached only from the person explicitly choosing "Mulai bicara".
+      recognition.start();
+    } catch {
+      recognitionRef.current = null;
+      setIsListening(false);
+      setVoiceStatus('Pengenalan suara tidak dapat dimulai. Kamu tetap bisa menulis pesan.');
+    }
+  }, []);
+
+  const requestListening = useCallback(() => {
+    if (!hasAcknowledgedVoiceDisclosure) {
+      setShowVoiceDisclosure(true);
+      return;
+    }
+    startListening();
+  }, [hasAcknowledgedVoiceDisclosure, startListening]);
+
+  const stopSpeaking = useCallback(() => {
+    activeSpeechMessageIdRef.current = null;
+    cancelSpeech(window.speechSynthesis);
+    setSpeakingMessageId(null);
+  }, []);
+
+  const speakMessage = useCallback((message: Message) => {
+    if (!isSpeechSynthesisSupported(window)) return;
+    const Utterance = window.SpeechSynthesisUtterance;
+    if (!Utterance || !window.speechSynthesis) return;
+
+    const utterance = new Utterance(message.text);
+    utterance.lang = 'id-ID';
+    const indonesianVoice = selectIndonesianVoice(window.speechSynthesis.getVoices());
+    if (indonesianVoice) utterance.voice = indonesianVoice;
+    activeSpeechMessageIdRef.current = message.id;
+    setSpeakingMessageId(message.id);
+    utterance.onend = () => {
+      if (activeSpeechMessageIdRef.current === message.id) {
+        activeSpeechMessageIdRef.current = null;
+        setSpeakingMessageId(null);
+      }
+    };
+    utterance.onerror = () => {
+      if (activeSpeechMessageIdRef.current === message.id) {
+        activeSpeechMessageIdRef.current = null;
+        setSpeakingMessageId(null);
+      }
+    };
+    speakOneAtATime(window.speechSynthesis, utterance);
+  }, []);
+
   const handleResetChat = () => {
+    stopSpeaking();
     setMessages([
       {
         id: 'welcome-' + Date.now(),
@@ -180,6 +314,7 @@ export default function ChatPage() {
           providerId,
           debiased,
           action,
+          ttsEligible: true,
         };
         setMessages((prev) => [...prev, botMsg]);
       } else {
@@ -436,6 +571,26 @@ export default function ChatPage() {
                     </div>
                   )}
 
+                  {msg.sender === 'assistant' && msg.ttsEligible && speechSynthesisSupported && (
+                    <div className="px-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => speakingMessageId === msg.id ? stopSpeaking() : speakMessage(msg)}
+                        aria-label={speakingMessageId === msg.id ? 'Berhenti membacakan respons' : 'Dengarkan respons'}
+                        aria-pressed={speakingMessageId === msg.id}
+                        className="min-h-[44px] px-3 text-xs"
+                      >
+                        {speakingMessageId === msg.id ? (
+                          <><Square className="w-3.5 h-3.5" /> Berhenti</>
+                        ) : (
+                          <><Volume2 className="w-3.5 h-3.5" /> Dengarkan</>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
                   {msg.disclaimer && (
                     <p className="text-[10px] text-ink/60 px-1 italic leading-tight font-medium">
                       * {msg.disclaimer}
@@ -484,25 +639,90 @@ export default function ChatPage() {
           )}
 
           {/* Input Form */}
-          <form onSubmit={handleSendMessage} className="p-3 border-t-2 border-ink bg-paper flex gap-2">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Tulis apa yang kamu rasakan (dilindungi filter keselamatan deterministik)..."
-              aria-label="Tulis pesan"
-              disabled={isTyping}
-              className="flex-1 px-4 py-2.5 rounded-md border-2 border-ink text-xs sm:text-sm bg-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={!inputText.trim() || isTyping}
-              icon={<Send className="w-4 h-4" />}
-            >
-              KIRIM
-            </Button>
+          <form onSubmit={handleSendMessage} className="p-3 border-t-2 border-ink bg-paper space-y-2">
+            {showVoiceDisclosure && (
+              <div className="border-2 border-ink bg-white p-3 text-xs font-medium leading-relaxed shadow-hard-sm" role="status">
+                <p>{BROWSER_VOICE_PRIVACY_DISCLOSURE}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowVoiceDisclosure(false)}
+                    className="min-h-[44px]"
+                  >
+                    Batal
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="calm-subtle"
+                    size="sm"
+                    onClick={() => {
+                      setHasAcknowledgedVoiceDisclosure(true);
+                      setShowVoiceDisclosure(false);
+                      startListening();
+                    }}
+                    className="min-h-[44px]"
+                  >
+                    Mulai bicara
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <p className="sr-only" role="status" aria-live="polite">{voiceStatus}</p>
+            {!speechRecognitionSupported && (
+              <p className="text-[11px] text-ink/70 font-medium" aria-live="polite">
+                Fitur Bicara belum didukung oleh browser ini. Kamu tetap bisa menulis pesan.
+              </p>
+            )}
+            {speechRecognitionSupported && voiceStatus && (
+              <p className="text-[11px] text-ink/70 font-bold uppercase tracking-wide" aria-live="polite">
+                {voiceStatus}
+              </p>
+            )}
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Tulis apa yang kamu rasakan (dilindungi filter keselamatan deterministik)..."
+                aria-label="Tulis pesan"
+                disabled={isTyping}
+                className="min-h-[44px] flex-1 px-4 py-2.5 rounded-md border-2 border-ink text-xs sm:text-sm bg-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              />
+              <div className="flex gap-2">
+                {speechRecognitionSupported && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={isListening ? stopListening : requestListening}
+                    disabled={isTyping}
+                    aria-label={isListening ? 'Berhenti mendengarkan' : 'Bicara menggunakan mikrofon'}
+                    aria-pressed={isListening}
+                    className="min-h-[44px] flex-1 sm:flex-none"
+                  >
+                    {isListening ? (
+                      <><Square className="w-3.5 h-3.5" /> Berhenti</>
+                    ) : (
+                      <><Mic className="w-3.5 h-3.5" /> Bicara</>
+                    )}
+                  </Button>
+                )}
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  disabled={!inputText.trim() || isTyping}
+                  icon={<Send className="w-4 h-4" />}
+                  className="min-h-[44px] flex-1 sm:flex-none"
+                >
+                  KIRIM
+                </Button>
+              </div>
+            </div>
           </form>
         </div>
       </ContentColumn>
