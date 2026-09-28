@@ -60,3 +60,14 @@ If STT is unavailable, the microphone button is not shown and the person can con
 The microphone starts only through an explicit **Bicara** action followed by the first-use disclosure confirmation. The interface exposes a visible listening status and **Berhenti** control. Permission denial, no speech, aborted, network, and generic errors leave the editable text path available.
 
 TTS has explicit **Dengarkan** and **Berhenti** controls. Starting one message cancels any previous utterance. Recognition is aborted and synthesis is cancelled when the chat component unmounts or the person navigates away.
+
+## Verified manual QA
+
+Manual checks have been completed successfully on the following browsers and devices:
+
+| Environment | Result | Verified behavior |
+| --- | --- | --- |
+| Chrome Desktop | PASS | Voice V1 manual QA completed successfully. |
+| Android browser/device | PASS | HTTPS access, privacy disclosure, microphone permission, start/stop, Indonesian recognition, editable transcript, explicit KIRIM, existing safety/chat flow, TTS Dengarkan/Berhenti, and mobile layout. |
+
+Safari/iOS, Firefox, and Edge have not yet been manually verified. They retain the documented progressive-enhancement text fallback.
