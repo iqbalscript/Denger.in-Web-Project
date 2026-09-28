@@ -89,6 +89,7 @@ describe('Ruang Ngobrol safe turn controller', () => {
 
   it('uses no-store room requests while retaining the existing server safety order', () => {
     assert.match(roomPage, /noStore:\s*true/);
+    assert.match(roomPage, /voiceMode:\s*'ruang-ngobrol'/);
     const gateInvocation = chatRoute.indexOf('const { cleared, evaluation } = runCrisisGate');
     const orchestratorInvocation = chatRoute.indexOf('result = await runOrchestrator');
     assert.ok(gateInvocation >= 0 && gateInvocation < orchestratorInvocation);
@@ -101,13 +102,15 @@ describe('Ruang Ngobrol safe turn controller', () => {
     assert.match(roomPage, /speechGenerationRef\.current \+= 1/);
     assert.match(roomPage, /stopRecognition\(true\)/);
     assert.match(roomPage, /cancelSpeech\(/);
+    assert.match(roomPage, /stopRoomAudio\(\)/);
+    assert.match(roomPage, /URL\.revokeObjectURL/);
     assert.match(roomPage, /requestAbortRef\.current\?\.abort\(\)/);
     assert.match(roomPage, /generation !== generationRef\.current/);
   });
 
   it('requires explicit privacy acknowledgement and keeps the ten-minute cap', () => {
     assert.match(roomPage, /if \(!hasAcknowledgedDisclosure\)/);
-    assert.match(roomPage, /BROWSER_VOICE_PRIVACY_DISCLOSURE/);
+    assert.match(roomPage, /VOICE_ROOM_PRIVACY_DISCLOSURE/);
     assert.match(roomPage, /VOICE_ROOM_MAX_SESSION_MS/);
     assert.equal(VOICE_ROOM_MAX_SESSION_MS, 600000);
   });
@@ -120,5 +123,23 @@ describe('Ruang Ngobrol safe turn controller', () => {
   it('contains no gamification mutation or reward import', () => {
     assert.doesNotMatch(roomPage, /awardLangkah|gamification|badge|streak|completeTodayMission/);
     assert.doesNotMatch(roomPage, /<Link[^>]*>\s*<Button/i);
+  });
+
+  it('uses only a server-issued roomAudio payload and falls back to browser speech', () => {
+    assert.match(roomPage, /const roomAudio = json\?\.data\?\.roomAudio/);
+    assert.match(roomPage, /playGeminiAudio\(roomAudio, displayText, generation\)/);
+    assert.match(roomPage, /speakValidatedResponse\(displayText, generation\)/);
+    assert.doesNotMatch(roomPage, /fetch\([^)]*tts|synthesizeValidatedText|generativelanguage/);
+  });
+
+  it('adds the optional synthesis only after both server crisis gates and a validated action', () => {
+    const contextGate = chatRoute.indexOf('const screened = screenChatContext');
+    const crisisGate = chatRoute.indexOf('const { cleared, evaluation } = runCrisisGate');
+    const orchestrator = chatRoute.indexOf('result = await runOrchestrator');
+    const displayText = chatRoute.indexOf('const displayText = validatedActionDisplayText(result.action)');
+    const tts = chatRoute.indexOf('synthesizeValidatedText(displayText, request.signal)');
+    assert.ok(contextGate >= 0 && crisisGate > contextGate && orchestrator > crisisGate && displayText > orchestrator && tts > displayText);
+    assert.match(chatRoute, /body\.voiceMode === 'ruang-ngobrol' && body\.noStore === true/);
+    assert.doesNotMatch(chatRoute, /ttsText|audioText|synthesisText/);
   });
 });

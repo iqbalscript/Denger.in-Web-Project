@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Mic, MessageSquare, RotateCcw, Square, Volume2 } from 'lucide-react';
 import { getAnonymousSession } from '@/lib/storage';
 import {
-  BROWSER_VOICE_PRIVACY_DISCLOSURE,
   cancelSpeech,
   getFinalTranscript,
   getSpeechRecognitionConstructor,
@@ -24,6 +23,7 @@ import {
   screenVoiceRoomFinalTranscript,
   shouldResumeVoiceRoomListening,
   validatedActionDisplayText,
+  VOICE_ROOM_PRIVACY_DISCLOSURE,
   voiceRoomHistory,
   type VoiceRoomCaption,
   type VoiceRoomState,
@@ -41,6 +41,36 @@ const STATE_LABELS: Record<VoiceRoomState, string> = {
   CRISIS: 'BANTUAN DARURAT',
   ENDED: 'SELESAI',
 };
+
+const MAX_ROOM_AUDIO_BYTES = 1_500_000;
+const MAX_ROOM_AUDIO_BASE64_CHARS = Math.ceil(MAX_ROOM_AUDIO_BYTES / 3) * 4;
+
+interface RoomAudioPayload {
+  data: string;
+  mimeType: 'audio/wav';
+}
+
+function decodeRoomWav(base64: string): Uint8Array | null {
+  if (!base64 || base64.length > MAX_ROOM_AUDIO_BASE64_CHARS || base64.length % 4 !== 0) return null;
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) return null;
+  try {
+    const decoded = window.atob(base64);
+    if (decoded.length === 0 || decoded.length > MAX_ROOM_AUDIO_BYTES) return null;
+    const bytes = Uint8Array.from(decoded, (character) => character.charCodeAt(0));
+    const isWav = bytes.length >= 44
+      && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF'
+      && String.fromCharCode(...bytes.slice(8, 12)) === 'WAVE'
+      && String.fromCharCode(...bytes.slice(12, 16)) === 'fmt '
+      && String.fromCharCode(...bytes.slice(36, 40)) === 'data'
+      && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(20, true) === 1
+      && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(22, true) === 1
+      && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(24, true) === 24_000
+      && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(34, true) === 16;
+    return isWav ? bytes : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Turn-based voice room. The browser never connects to a model provider: a
@@ -68,6 +98,8 @@ export default function RuangNgobrolPage() {
   const captionsRef = useRef<VoiceRoomCaption[]>([]);
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const requestAbortRef = useRef<AbortController | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioObjectUrlRef = useRef<string | null>(null);
   const warningTimerRef = useRef<TimeoutHandle | null>(null);
   const expiryTimerRef = useRef<TimeoutHandle | null>(null);
   const sessionStartedAtRef = useRef<number | null>(null);
@@ -106,6 +138,21 @@ export default function RuangNgobrolPage() {
     }
   }, []);
 
+  const stopRoomAudio = useCallback(() => {
+    const audio = audioRef.current;
+    audioRef.current = null;
+    if (audio) {
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+    }
+    const objectUrl = audioObjectUrlRef.current;
+    audioObjectUrlRef.current = null;
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+  }, []);
+
   const clearCaptions = useCallback(() => {
     captionsRef.current = [];
     if (mountedRef.current) setCaptions([]);
@@ -124,6 +171,7 @@ export default function RuangNgobrolPage() {
     processingRef.current = false;
     setMuted(false);
     stopRecognition(true);
+    stopRoomAudio();
     cancelSpeech(typeof window === 'undefined' ? undefined : window.speechSynthesis);
     requestAbortRef.current?.abort();
     requestAbortRef.current = null;
@@ -131,7 +179,7 @@ export default function RuangNgobrolPage() {
     lastSafeTurnRef.current = null;
     clearCaptions();
     transitionTo(reason);
-  }, [clearCaptions, clearTimers, setMuted, stopRecognition, transitionTo]);
+  }, [clearCaptions, clearTimers, setMuted, stopRecognition, stopRoomAudio, transitionTo]);
 
   const routeToCrisis = useCallback(() => {
     endRoom('CRISIS');
@@ -154,6 +202,7 @@ export default function RuangNgobrolPage() {
     }
 
     stopRecognition(true);
+    stopRoomAudio();
     const utterance = new window.SpeechSynthesisUtterance(text);
     utterance.lang = 'id-ID';
     const voice = selectIndonesianVoice(window.speechSynthesis.getVoices());
@@ -183,7 +232,66 @@ export default function RuangNgobrolPage() {
 
     if (!transitionTo('SPEAKING')) return;
     speakOneAtATime(window.speechSynthesis, utterance);
-  }, [setMuted, stopRecognition, transitionTo]);
+  }, [setMuted, stopRecognition, stopRoomAudio, transitionTo]);
+
+  const playGeminiAudio = useCallback((payload: RoomAudioPayload, displayText: string, generation: number) => {
+    if (typeof window === 'undefined' || payload.mimeType !== 'audio/wav') {
+      speakValidatedResponse(displayText, generation);
+      return;
+    }
+    if (generation !== generationRef.current || !sessionActiveRef.current || stateRef.current === 'CRISIS' || stateRef.current === 'ENDED') return;
+    const bytes = decodeRoomWav(payload.data);
+    if (!bytes) {
+      speakValidatedResponse(displayText, generation);
+      return;
+    }
+
+    stopRecognition(true);
+    cancelSpeech(window.speechSynthesis);
+    stopRoomAudio();
+    const speechGeneration = speechGenerationRef.current + 1;
+    speechGenerationRef.current = speechGeneration;
+    // Make an ArrayBuffer-owned copy; it is the only transient representation
+    // retained by the browser while the response plays.
+    const audioBytes = new Uint8Array(bytes.byteLength);
+    audioBytes.set(bytes);
+    const objectUrl = URL.createObjectURL(new Blob([audioBytes.buffer], { type: payload.mimeType }));
+    const audio = new Audio(objectUrl);
+    audioObjectUrlRef.current = objectUrl;
+    audioRef.current = audio;
+
+    audio.onended = () => {
+      if (speechGeneration !== speechGenerationRef.current || generation !== generationRef.current) return;
+      stopRoomAudio();
+      if (shouldResumeVoiceRoomListening({
+        sessionActive: sessionActiveRef.current,
+        muted: mutedRef.current,
+        currentGeneration: true,
+        state: stateRef.current,
+      })) {
+        startListeningRef.current();
+      } else if (sessionActiveRef.current && !mutedRef.current && stateRef.current === 'SPEAKING') {
+        transitionTo('IDLE');
+      }
+    };
+    audio.onerror = () => {
+      if (speechGeneration !== speechGenerationRef.current || generation !== generationRef.current) return;
+      stopRoomAudio();
+      // Gemini audio is optional. The already-visible validated text is spoken
+      // by the established browser fallback, never resubmitted to a server.
+      speakValidatedResponse(displayText, generation);
+    };
+
+    if (!transitionTo('SPEAKING')) {
+      stopRoomAudio();
+      return;
+    }
+    void audio.play().catch(() => {
+      if (speechGeneration !== speechGenerationRef.current || generation !== generationRef.current) return;
+      stopRoomAudio();
+      speakValidatedResponse(displayText, generation);
+    });
+  }, [speakValidatedResponse, stopRecognition, stopRoomAudio, transitionTo]);
 
   const submitFinalTurn = useCallback(async (rawTranscript: string, generation: number, addCaption = true) => {
     const screening = screenVoiceRoomFinalTranscript(rawTranscript, session?.ageBracket || '18-24');
@@ -227,6 +335,9 @@ export default function RuangNgobrolPage() {
           domain: session?.primaryDomain,
           // Opt out of the shared response cache: room captions remain memory-only.
           noStore: true,
+          // This only requests the post-validation room enhancement. It cannot
+          // provide text to synthesize or bypass either server crisis gate.
+          voiceMode: 'ruang-ngobrol',
         }),
       });
       const json = await response.json().catch(() => null);
@@ -251,7 +362,12 @@ export default function RuangNgobrolPage() {
       }
 
       appendCaption({ id: `assistant-${Date.now()}`, sender: 'assistant', text: displayText });
-      speakValidatedResponse(displayText, generation);
+      const roomAudio = json?.data?.roomAudio;
+      if (roomAudio && typeof roomAudio.data === 'string' && roomAudio.mimeType === 'audio/wav') {
+        playGeminiAudio(roomAudio, displayText, generation);
+      } else {
+        speakValidatedResponse(displayText, generation);
+      }
     } catch {
       if (controller.signal.aborted || generation !== generationRef.current || !sessionActiveRef.current) return;
       setStatusMessage('Koneksi sedang bermasalah. Coba lagi saat kamu siap atau gunakan chat teks.');
@@ -262,7 +378,7 @@ export default function RuangNgobrolPage() {
         requestAbortRef.current = null;
       }
     }
-  }, [appendCaption, endRoom, routeToCrisis, session?.ageBracket, session?.primaryDomain, session?.userId, sessionHasExpired, speakValidatedResponse, stopRecognition, transitionTo]);
+  }, [appendCaption, endRoom, playGeminiAudio, routeToCrisis, session?.ageBracket, session?.primaryDomain, session?.userId, sessionHasExpired, speakValidatedResponse, stopRecognition, transitionTo]);
 
   const startListening = useCallback(() => {
     if (typeof window === 'undefined' || !sessionActiveRef.current || mutedRef.current || processingRef.current) return;
@@ -279,6 +395,7 @@ export default function RuangNgobrolPage() {
     }
 
     cancelSpeech(window.speechSynthesis);
+    stopRoomAudio();
     stopRecognition(true);
     const generation = generationRef.current;
     const recognition = new Recognition();
@@ -313,7 +430,7 @@ export default function RuangNgobrolPage() {
       setStatusMessage('Pengenalan suara belum dapat dimulai. Coba lagi saat kamu siap.');
       transitionTo('ERROR');
     }
-  }, [endRoom, sessionHasExpired, stopRecognition, submitFinalTurn, transitionTo]);
+  }, [endRoom, sessionHasExpired, stopRecognition, stopRoomAudio, submitFinalTurn, transitionTo]);
 
   useEffect(() => {
     startListeningRef.current = startListening;
@@ -424,7 +541,7 @@ export default function RuangNgobrolPage() {
 
             {showPrivacyDisclosure && (
               <div className="mt-5 border-2 border-[#151515] bg-[#FFF8EF] p-4" role="region" aria-label="Privasi fitur suara">
-                <p className="text-sm leading-relaxed">{BROWSER_VOICE_PRIVACY_DISCLOSURE}</p>
+                <p className="text-sm leading-relaxed">{VOICE_ROOM_PRIVACY_DISCLOSURE}</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Button variant="secondary" onClick={() => setShowPrivacyDisclosure(false)}>BATAL</Button>
                   <Button
