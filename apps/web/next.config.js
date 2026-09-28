@@ -18,6 +18,16 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
         ],
       },
+      // The global policy intentionally denies microphone access. This narrowly
+      // scoped, later rule overrides only that directive for the client-side
+      // browser speech feature on /chat; every other sensitive capability stays
+      // denied and every other route retains microphone=().
+      {
+        source: '/chat',
+        headers: [
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(), payment=(), usb=()' },
+        ],
+      },
       {
         source: '/api/:path*',
         headers: [
