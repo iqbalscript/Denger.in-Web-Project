@@ -36,6 +36,7 @@ import {
   speechRecognitionErrorMessage,
   type BrowserSpeechRecognition,
 } from '@/lib/browserSpeech';
+import { validatedActionDisplayText } from '@/lib/voiceRoom';
 import { PageContainer, ContentColumn, Button } from '@/components/ui';
 
 interface Message {
@@ -289,20 +290,20 @@ export default function ChatPage() {
       if (json?.ok && json?.data?.action) {
         const { action, tier, providerId, debiased, disclaimer } = json.data;
 
-        // Resolve display text depending on action type
-        let displayText = '';
-        if (action.action === 'chat') {
-          displayText = action.message;
-        } else if (action.action === 'suggest_mission') {
-          displayText = action.reason || 'Aku menyarankan satu latihan terarah untuk membantumu saat ini:';
-        } else if (action.action === 'open_journal_prompt') {
-          displayText = action.prompt || 'Mungkin menuangkan isi pikiranmu ke jurnal bisa membantu melegakan rasa sesak:';
-        } else if (action.action === 'suggest_forum') {
-          displayText = `Banyak teman di komunitas Dengar.in yang juga menghadapi tantangan di topik ${action.topicSlug}. Kamu bisa membaca pengalaman mereka atau berbagi anonim:`;
-        } else if (action.action === 'show_help_directory') {
-          displayText = 'Jika kamu merasa beban ini membutuhkan penanganan atau konsultasi lebih lanjut, kamu dapat mengecek direktori bantuan kami:';
-        } else if (action.action === 'adjust_path') {
-          displayText = action.reason || 'Kami menyarankan penyesuaian ritme langkah pemulihanmu:';
+        // This action originated from the existing server validation pipeline.
+        // The shared mapper still refuses unknown shapes before they can render.
+        const displayText = validatedActionDisplayText(action);
+        if (!displayText) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              sender: 'assistant',
+              text: 'Maaf, terjadi kendala saat memproses respons. Silakan coba kirim kembali.',
+              isError: true,
+            },
+          ]);
+          return;
         }
 
         const botMsg: Message = {
