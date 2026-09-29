@@ -37,7 +37,7 @@ import {
   type BrowserSpeechRecognition,
 } from '@/lib/browserSpeech';
 import { validatedActionDisplayText } from '@/lib/voiceRoom';
-import { PageContainer, ContentColumn, Button } from '@/components/ui';
+import { PageContainer, ContentColumn, Button, ChatProgress } from '@/components/ui';
 
 interface Message {
   id: string;
@@ -607,14 +607,7 @@ export default function ChatPage() {
               </div>
             ))}
 
-            {isTyping && (
-              <div className="flex items-center gap-3 pl-2">
-                <div className="px-2 py-1 rounded border-2 border-ink bg-cobalt text-white font-black text-[11px] uppercase tracking-wider shadow-hard-sm">
-                  DENGAR
-                </div>
-                <span className="text-xs text-ink/70 font-bold uppercase tracking-wider">Sedang menyusun balasan...</span>
-              </div>
-            )}
+            {isTyping && <ChatProgress />}
 
             <div ref={messagesEndRef} />
           </div>
