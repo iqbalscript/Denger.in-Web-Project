@@ -209,6 +209,7 @@ Implemented as Next.js Route Handlers (`apps/web/src/app/api/`). Full specificat
 - [`docs/API_SPEC.md`](docs/API_SPEC.md) — Comprehensive API schemas, request/response contracts.
 - [`docs/SAFETY.md`](docs/SAFETY.md) — Safety charter, clinical boundaries, and crisis escalation protocols.
 - [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) — Product requirements, demographic contexts, and competition alignment.
+- [`docs/REDIS_SETUP.md`](docs/REDIS_SETUP.md) — panduan setup Redis (lokal dan produksi/Vercel).
 - [`docs/REDIS.md`](docs/REDIS.md) & [`docs/REDIS_TESTING_CHECKLIST.md`](docs/REDIS_TESTING_CHECKLIST.md) — Redis caching and rate-limiting deployment guide.
 - [`docs/Scriptwrite.md`](docs/Scriptwrite.md) — UI copy map and text editing guide for contributors.
 

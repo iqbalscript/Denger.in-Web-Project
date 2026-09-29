@@ -4,6 +4,7 @@
 **Status**: Terpasang & terverifikasi
 **Bahasa**: Indonesia (ditulis untuk pembaca yang baru pertama kali memakai TypeScript)
 **Checklist pengujian**: [`docs/REDIS_TESTING_CHECKLIST.md`](./REDIS_TESTING_CHECKLIST.md)
+**Panduan setup cepat**: [`docs/REDIS_SETUP.md`](./REDIS_SETUP.md)
 
 ---
 
