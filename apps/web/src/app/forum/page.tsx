@@ -26,6 +26,7 @@ import {
 } from '@/components/ui';
 import type { InterventionDomain } from '@dengarin/types';
 import { getForumThreadKey } from '@/lib/storage';
+import { formatForumDate, formatForumDateTime } from '@/lib/forumDate';
 
 interface ForumPostItem {
   id: string;
@@ -78,21 +79,6 @@ const INITIAL_FALLBACK_POSTS: ForumPostItem[] = [
   }
 ];
 
-const INDONESIAN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-/** Uses the serialized instant directly, avoiding server/browser locale and timezone drift during hydration. */
-function formatForumDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return `${date.getUTCDate()} ${INDONESIAN_MONTHS[date.getUTCMonth()]}`;
-}
-
-function formatForumDateTime(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return `${formatForumDate(value)}, ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')} UTC`;
-}
-
 const CATEGORIES: { id: string; label: string; domain?: InterventionDomain }[] = [
   { id: 'all', label: 'Semua Cerita' },
   { id: 'campus', label: 'Kampus & Skripsi', domain: 'campus' },
@@ -116,6 +102,9 @@ export default function ForumPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [posts, setPosts] = useState<ForumPostItem[]>(INITIAL_FALLBACK_POSTS);
   const [loading, setLoading] = useState(false);
+  // Render pertama (server) memakai UTC agar hydration cocok; setelah mount, waktu mengikuti zona perangkat.
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Modal Form State
@@ -450,7 +439,7 @@ export default function ForumPage() {
                     </button>
                     <button type="button" onClick={(event) => openComposer(post.id, undefined, event.currentTarget)} className="min-h-[44px] px-3 border-2 border-ink rounded font-bold shadow-hard-sm hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button>
                     <span className="text-[11px] text-ink/50 font-bold">
-                      {formatForumDate(post.createdAt)}
+                      {formatForumDate(post.createdAt, isClient)}
                     </span>
                   </div>
                   {thread && (
@@ -460,7 +449,7 @@ export default function ForumPage() {
                       {thread.replies.map((reply) => (
                         <article key={reply.id} className={`border-2 border-ink rounded p-3 space-y-2 ${reply.parentReplyId ? 'ml-3 sm:ml-6' : ''}`}>
                           {reply.parentReplyId && <p className="text-[11px] font-bold text-ink/60">↳ {reply.parentContextUnavailable ? 'konteks balasan tidak tersedia' : `membalas ${reply.replyingToAlias}`}</p>}
-                          <div className="flex justify-between gap-2"><strong className="text-xs">{reply.authorAlias}</strong><time className="text-[11px] text-ink/60" dateTime={reply.createdAt}>{formatForumDateTime(reply.createdAt)}</time></div>
+                          <div className="flex justify-between gap-2"><strong className="text-xs">{reply.authorAlias}</strong><time className="text-[11px] text-ink/60" dateTime={reply.createdAt}>{formatForumDateTime(reply.createdAt, isClient)}</time></div>
                           <p className="text-xs sm:text-sm whitespace-pre-line">{reply.body}</p>
                           <div className="flex gap-2"><button type="button" onClick={(event) => openComposer(post.id, reply, event.currentTarget)} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button><button type="button" aria-label={`Laporkan balasan ${reply.authorAlias}`} onClick={(event) => { setReportTarget({ storyId: post.id, reply, trigger: event.currentTarget }); setReportReason('other_safety'); setReportNotice(null); }} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt"><Flag className="inline w-3 h-3 mr-1" />LAPORKAN</button></div>
                         </article>
