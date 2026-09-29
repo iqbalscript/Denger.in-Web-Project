@@ -11,7 +11,11 @@
 
 /**
  * Returns the local calendar date as YYYY-MM-DD using the browser's timezone.
- * On the server (SSR), returns UTC date as a safe fallback.
+ * On the server (SSR) it uses the server's timezone, so call it from effects or
+ * event handlers rather than while rendering.
+ *
+ * Never derive a "day" from `toISOString().slice(0, 10)`: that is the UTC date,
+ * which for a user in WIB (UTC+7) is still "yesterday" from 00:00 to 06:59.
  */
 export function getLocalDateString(reference?: Date): string {
   const now = reference ?? new Date();
@@ -19,6 +23,17 @@ export function getLocalDateString(reference?: Date): string {
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * Returns the local calendar date (YYYY-MM-DD) on which an ISO timestamp falls,
+ * as seen in the current timezone. Returns null for an unparsable timestamp.
+ * Use this to compare stored `timestamp` values (always UTC ISO strings) with
+ * `getLocalDateString()`.
+ */
+export function getLocalDateOfTimestamp(timestamp: string): string | null {
+  const parsed = new Date(timestamp);
+  return Number.isNaN(parsed.getTime()) ? null : getLocalDateString(parsed);
 }
 
 /**

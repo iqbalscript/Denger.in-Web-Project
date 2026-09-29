@@ -29,7 +29,7 @@ import {
 } from '@/components/ui';
 import { getDailyCheckins, getAnonymousSession } from '@/lib/storage';
 import { awardLangkah, loadGamificationState } from '@/lib/gamification';
-import { getLocalWeekId } from '@/lib/calendar';
+import { getLocalDateOfTimestamp, getLocalDateString, getLocalWeekId } from '@/lib/calendar';
 import type { DailyCheckin, MoodScore, WeeklyReportSummary, CelebrationData } from '@dengarin/types';
 
 const MOOD_META: Record<MoodScore, { label: string; icon: React.ReactNode; color: string; score: number }> = {
@@ -102,9 +102,9 @@ export default function ReportPage() {
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().slice(0, 10);
+      const dateStr = getLocalDateString(d);
       const dayLabel = `${dayNames[d.getDay()]} (${d.getDate()})`;
-      const match = localCheckins.find((c) => c.timestamp.slice(0, 10) === dateStr);
+      const match = localCheckins.find((c) => getLocalDateOfTimestamp(c.timestamp) === dateStr);
       slots.push({ dateStr, dayLabel, checkin: match });
     }
     setLast7Days(slots);
