@@ -5,6 +5,7 @@ import { forumRepository } from '@/lib/api/repositories';
 import { jsonError, jsonOk } from '@/lib/api/response';
 import { isRateLimited } from '@/lib/api/rateLimit';
 import { readJsonLimited } from '@/lib/api/requestLimits';
+import { invalidateForumCache, readThroughForum } from '@/lib/api/forumCache';
 
 import { moderateForumPost } from '@dengarin/validator';
 
@@ -19,11 +20,11 @@ interface CreateForumPostBody {
 export async function GET(request: NextRequest) {
   try {
     const domainParam = request.nextUrl.searchParams.get('domain') as InterventionDomain | null;
-    const posts = await forumRepository.listApproved(50, domainParam || undefined);
+    const posts = await readThroughForum('posts', `domain=${domainParam ?? ''}`, () => forumRepository.listApproved(50, domainParam || undefined));
     return jsonOk({ posts });
   } catch (err) {
     console.error('Failed to list forum posts:', err);
-    return jsonError('Gagal memuat cerita forum. Silakan coba lagi sebentar lagi.', 500);
+    return jsonError('Cerita belum bisa dimuat saat ini. Coba lagi sebentar lagi, ya.', 500);
   }
 }
 
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
  *    - Rejected -> returns helpful feedback.
  */
 export async function POST(request: NextRequest) {
-  if (await isRateLimited('forum-write')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('forum-write', request)) return jsonError('Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.', 429);
   const parsed = await readJsonLimited(request, 8192);
   if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
   const body = parsed.value as CreateForumPostBody | null;
@@ -78,9 +79,10 @@ export async function POST(request: NextRequest) {
       initialStatus: moderation.status
     });
 
+    await invalidateForumCache();
     return jsonOk({ crisis: false, post, moderation }, { status: 201 });
   } catch (err) {
     console.error('Failed to create forum post:', err);
-    return jsonError('Terjadi kendala saat menyimpan cerita ke database. Silakan coba lagi sebentar lagi.', 500);
+    return jsonError('Ceritamu belum tersimpan karena ada kendala di sisi kami. Coba lagi sebentar lagi, ya.', 500);
   }
 }

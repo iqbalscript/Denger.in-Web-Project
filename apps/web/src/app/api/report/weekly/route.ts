@@ -43,7 +43,7 @@ function computeDominantMood(checkins: DailyCheckin[]): MoodScore {
  * reading from a server-side database.
  */
 export async function POST(request: NextRequest) {
-  if (await isRateLimited('weekly-report')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('weekly-report', request)) return jsonError('Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.', 429);
   const parsed = await readJsonLimited(request, 64 * 1024);
   if (!parsed.ok) return jsonError('Permintaan tidak valid atau terlalu besar.', parsed.status);
   const body = parsed.value as WeeklyReportRequestBody | null;
@@ -61,9 +61,9 @@ export async function POST(request: NextRequest) {
 
   const keyObservation =
     averageWeight >= 0.5
-      ? 'Kecenderungan suasana hatimu minggu ini relatif stabil dan positif.'
+      ? 'Suasana hatimu minggu ini cenderung stabil dan positif. Nikmati momen baik ini.'
       : averageWeight <= -0.5
-        ? 'Minggu ini terasa cukup berat — pertimbangkan untuk memperlambat ritme misi harian.'
+        ? 'Minggu ini sepertinya terasa cukup berat. Tidak apa-apa untuk memperlambat ritme dan memberi dirimu lebih banyak istirahat.'
         : 'Suasana hatimu minggu ini bervariasi, dan itu sepenuhnya wajar.';
 
   const summary: WeeklyReportSummary = {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     dominantMood,
     keyObservation,
     encouragementNote:
-      'Setiap langkah kecil yang kamu ambil minggu ini tetap berarti. Teruskan dengan ritme yang terasa nyaman bagimu.'
+      'Terima kasih sudah tetap hadir untuk dirimu sendiri. Setiap langkah kecil minggu ini tetap berarti. Teruskan dengan ritme yang nyaman bagimu.'
   };
 
   return jsonOk({ summary });

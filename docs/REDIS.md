@@ -108,6 +108,25 @@ Redis adalah **database key-value yang hidup di RAM**. Bayangkan satu `Map` raks
 
 Itulah dua masalah yang Redis pecahkan di proyek ini: **state yang tidak dibagi** dan **state yang hilang saat restart**.
 
+### Peta cakupan Redis di seluruh sistem
+
+| # | Lapisan | File | Isi di Redis | Kalau Redis mati |
+|---|---|---|---|---|
+| 1 | Cache halaman ISR/SSG | `cache-handler.mjs` | `dengarin:next:*` | LRU lokal |
+| 2 | Rate limit (klien + global) | `lib/api/rateLimit.ts` | `dengarin:ratelimit:client:*`, `…:global:*` | penghitung memori |
+| 3 | Cache jawaban AI | `lib/api/aiCache.ts` | `dengarin:ai:<sha256>` | cache miss, panggil AI |
+| 4 | Cache feed forum publik | `lib/api/forumCache.ts` | `dengarin:forum:<versi>:posts\|replies:<hash>`, `dengarin:forum:version` | baca langsung dari database |
+| 5 | Batas konkurensi lintas instance | `lib/api/rateLimit.ts` | `dengarin:slots:<chat\|room-tts\|forum-reply-write>` (lease) | hanya batas per-proses |
+| 6 | Status di health check | `app/api/health/route.ts` | `PING` saja | `redis: "down"`, tetap HTTP 200 |
+
+**Sengaja TIDAK di Redis:** teks chat/jurnal/check-in (hanya hash untuk cache AI), frasa pemulihan dan kunci, cadangan terenkripsi `/api/sync` (privat per pengguna dan bisa sampai 4 MiB), sesi admin (cookie bertanda tangan, stateless), Timeline/gamifikasi (di perangkat pengguna).
+
+**Cache forum (4).** Hanya keluaran yang sudah disetujui moderasi dan memang publik (`listApproved`, `listApprovedReplies`). Tiap tulis/moderasi/laporan memanggil `invalidateForumCache()`, yang menaikkan satu counter versi; versi ikut di nama key sehingga semua entri lama langsung tak terbaca di semua instance tanpa menghapus key satu per satu. TTL 30 detik jadi jaring pengaman dan satu-satunya batas kebasian untuk hitungan dukungan (yang sengaja tidak menaikkan versi).
+
+**Lease konkurensi (5).** `acquireChatSlot()` dkk. membatasi satu proses; N instance masih bisa menjalankan N×4 panggilan AI. `acquireShared*Slot()` menambah lease di Redis (sorted set berskor waktu kedaluwarsa, jam Redis lewat `TIME`, maks chat 12 / TTS 3 / balasan forum 12). Lease kedaluwarsa sendiri dalam 60 detik, jadi proses yang mati tidak membocorkan slot. Batas lokal diperiksa lebih dulu; bila Redis mati, hanya batas lokal yang berlaku.
+
+**Catatan mode tanpa database.** Bila `DATABASE_URL` kosong, repository forum berupa Map per-proses; cache Redis bersama lalu bisa menyajikan feed instance lain. Itu hanya berlaku untuk dev/demo; produksi memakai PostgreSQL.
+
 ### Tiga peran Redis di Dengar.in
 
 | Peran | File | Masalah yang dipecahkan |
@@ -378,47 +397,75 @@ Opsi `setOnlyIfNotExists: true` berarti: **jangan timpa** entri yang sudah ditul
 
 ### Sesudah
 
+Versi pertama memakai satu key per rute yang dibagi SEMUA pengguna. Masalahnya:
+satu orang yang menghabiskan 30 chat/menit membuat semua orang mendapat 429.
+Sekarang ada dua lapis — jatah per klien dan pagar global — dijalankan sebagai
+satu skrip Lua:
+
 ```ts
-export async function isRateLimited(route: PublicRoute): Promise<boolean> {
-  const limit = limits[route];
-  const redis = await getRedis();
-  if (!redis) return limiter.check(route, limit);      // fallback in-memory
+const RATE_LIMIT_SCRIPT = `
+local window = tonumber(ARGV[3])
+local function hit(key)
+  local n = redis.call('INCR', key)
+  if n == 1 or redis.call('PTTL', key) < 0 then
+    redis.call('PEXPIRE', key, window)
+  end
+  return n
+end
+local client = hit(KEYS[1])
+if client > tonumber(ARGV[1]) then return {1, client, 0} end   -- klien habis, global tidak disentuh
+local global = hit(KEYS[2])
+if global > tonumber(ARGV[2]) then return {2, client, global} end
+return {0, client, global}
+`;
 
-  const windowIndex = Math.floor(Date.now() / WINDOW_MS);
-  const key = `${REDIS_PREFIX}ratelimit:${route}:${windowIndex}`;
-
-  try {
-    const replies = await redis.multi()
-      .incr(key)
-      .expire(key, Math.ceil(WINDOW_MS / 1_000))
-      .exec();
-
-    const count = Number(replies[0]);
-    if (!Number.isFinite(count)) return limiter.check(route, limit);
-    return count > limit;
-  } catch (error) {
-    return limiter.check(route, limit);
-  }
-}
+const reply: unknown = await redis.eval(RATE_LIMIT_SCRIPT, {
+  keys: [clientKey, globalKey],
+  arguments: [String(limit), String(ceiling), String(WINDOW_MS)]
+});
 ```
 
-**Tiga keputusan desain yang perlu kamu pahami:**
+**Keputusan desain yang perlu kamu pahami:**
 
-**a. Fixed window lewat nama key.** Indeks jendela (`Math.floor(Date.now() / 60000)`) ikut masuk ke nama key. Saat menit berganti, key-nya otomatis berbeda — jendela lama kedaluwarsa sendiri, tidak perlu pembersihan manual.
+**a. Skrip Lua menggantikan `MULTI`/`EXEC`.** Redis menjalankan satu skrip tanpa
+disela perintah lain, jadi "hitung → cek TTL → hitung lapis kedua" atomik. Bila
+`INCR` dan `EXPIRE` dikirim terpisah lalu proses mati di antaranya, key bisa
+menetap tanpa TTL dan mengunci kuota selamanya. Skrip juga memeriksa `PTTL < 0`,
+sehingga key tanpa TTL (mis. sisa versi lama) diperbaiki sendiri.
 
-**b. `MULTI`/`EXEC` itu atomik.** Kalau `INCR` dan `EXPIRE` dikirim terpisah dan proses mati di antaranya, key-nya ter-increment tapi tidak pernah punya TTL — ia akan menetap di Redis **selamanya** dan kuota rute itu terkunci permanen. `MULTI` menjamin keduanya dijalankan sebagai satu unit.
+**b. Jendela dari permintaan pertama, bukan dari jam.** Versi lama memasukkan
+`Math.floor(Date.now() / 60000)` ke nama key. Tiap instance memakai jam
+sendiri, jadi jam yang selisih beberapa detik memecah satu kuota jadi dua key,
+dan di pergantian menit pengguna bisa mendapat 2× kuota. Sekarang TTL 60 detik
+dimulai dari permintaan pertama; tidak ada jam yang perlu disepakati.
 
-**c. Fallback tidak pernah menjatuhkan request yang sah.** Kalau Redis mati, kita kembali ke penghitung memori. Lebih longgar, tapi pengguna yang tidak bersalah tidak ikut diblokir karena masalah infrastruktur.
+**c. Yang ditolak lapis klien tidak dihitung ke global.** Kalau dihitung, klien
+yang terus menekan setelah diblokir tetap menguras pagar global dan akhirnya
+mengunci semua orang, yaitu cacat semula dalam bentuk baru.
+
+**d. Redis tidak boleh menambah latensi tanpa batas.** Pemeriksaan dibungkus
+`withTimeout` (1 dtk) dan bila gagal jatuh ke penghitung memori. `getRedis()`
+menunda percobaan sambung ulang 2 detik setelah gagal.
+
+**e. Fallback tidak pernah menjatuhkan request yang sah.** Kalau Redis mati kita
+kembali ke penghitung memori: lebih longgar, tapi pengguna tidak ikut diblokir
+karena masalah infrastruktur.
 
 ### Properti keamanan yang DIPERTAHANKAN
 
-Kuota tetap **per-rute dan anonim**, bukan per-IP atau per-session:
+Identitas klien bersifat **opt-in**. Header seperti `X-Forwarded-For` gampang
+dipalsukan, jadi tanpa `TRUSTED_PROXY_HOPS` dan `RATE_LIMIT_HASH_SECRET`
+(`.env.example`) semua klien anonim berbagi satu bucket `anon` per rute dengan
+angka lama, persis M01. Bila diaktifkan:
 
-```ts
-/** Anonymous route-wide quota; session IDs and forwarding headers have no authority. */
-```
+- yang dipercaya adalah entri ke-N dari **kanan** `X-Forwarded-For` (ditulis proxy
+  tepercaya terdekat), bukan entri kiri yang bisa diisi pemanggil;
+- IPv6 dipotong ke /64;
+- yang tersimpan hanya `HMAC-SHA256(secret, ip)` 128-bit dengan TTL 60 detik. IP
+  mentah tidak pernah masuk ke Redis. Ini menjaga janji anonimitas Dengar.in:
+  tanpa `secret`, hash IPv4 bisa ditebak balik karena ruangnya hanya ~4 miliar.
 
-Ini disengaja (lihat `docs/M01_RATE_LIMITING.md`). Header seperti `X-Forwarded-For` gampang dipalsukan, dan memakai session ID sebagai kunci kuota akan membuat pengguna anonim bisa dilacak — bertentangan dengan janji anonimitas Dengar.in.
+Detail: `docs/M01_RATE_LIMITING.md`.
 
 ### `acquireChatSlot()` sengaja TIDAK dipindah ke Redis
 
@@ -667,8 +714,8 @@ Sintaks `as typeof globalThis & { ... }` adalah **intersection type**: "`globalT
 ### 10.0 Cara tercepat — skrip otomatis
 
 ```bash
-npm run test:redis                 # dev: 9 lulus, 0 gagal
-npm run test:redis -- --production # build bersih + produksi: 15 lulus, 0 gagal
+npm run test:redis                 # dev: 13 lulus, 0 gagal
+npm run test:redis -- --production # build bersih + produksi: 19 lulus, 0 gagal
 ```
 
 `scripts/test-redis.sh` menjalankan `tests/redis/integration.test.mjs`. Prasyarat:
@@ -681,15 +728,15 @@ API key AI serta `DATABASE_URL` dikosongkan; payload cache sintetis dipakai untu
 menguji hit dan fallback tanpa panggilan penyedia AI. Redis developer tidak
 dihapus atau dihentikan. Semua proses tes dan direktori sementara dibersihkan.
 
-Cakupan dev: PONG, health HTTP 200, diagnostik connected, TTL, kuota 30/3,
+Cakupan dev: PONG, health HTTP 200, diagnostik connected, TTL, kuota 30/3 (klien & global) dan klien berbeda tidak saling memblokir,
 cache AI miss/hit/history/fallback, penggunaan cache oleh route, crisis gate,
 pemindaian input sintetis di nilai string Redis, Redis mati/hidup, dan URL kosong.
 Mode produksi menambah build bersih, warm-up, header cache, pembuktian isi cache
 dibaca oleh instance B, kuota bersama 20+15 request, dan kuota setelah restart app.
 
 Log koneksi error saat Redis sengaja dihentikan merupakan bagian tes kegagalan.
-Hasil sukses akhir adalah `Lolos: 9; Gagal: 0 (dev).` atau
-`Lolos: 15; Gagal: 0 (produksi).` Tidak ada tes yang dilewati diam-diam.
+Hasil sukses akhir adalah `Lolos: 13; Gagal: 0 (dev).` atau
+`Lolos: 19; Gagal: 0 (produksi).` Tidak ada tes yang dilewati diam-diam.
 Batas pembuktian privasi dan checklist deployment tercatat di
 [REDIS_TESTING_CHECKLIST.md](./REDIS_TESTING_CHECKLIST.md).
 

@@ -167,16 +167,16 @@ export default function AssessmentPage() {
 
     if (severity === 'MILD') {
       summaryFeedback =
-        'Beban pikiran Anda saat ini berada dalam tingkat ringan dan relatif terkelola. Ruang pemulihan mandiri dan misi harian terarah direkomendasikan untuk menjaga stabilitas emosimu.';
-      supportSpaces = ['Misi Harian Mandiri (3–7 Menit)', 'Jurnal Privat Lokal', 'Ruang Cerita Anonim Suportif'];
+        'Terima kasih sudah meluangkan waktu untuk jujur pada dirimu. Beban pikiranmu saat ini terasa ringan dan masih bisa kamu kelola. Misi harian yang singkat dan jurnal bisa membantu menjaga ritme dan ketenanganmu.';
+      supportSpaces = ['Misi Harian Mandiri (3–7 Menit)', 'Jurnal Privat Lokal', 'Ruang Cerita Anonim'];
     } else if (severity === 'MODERATE') {
       summaryFeedback =
-        'Anda sedang mengalami tekanan emosional menengah yang cukup menguras energi harian. Kami merekomendasikan latihan regulasi emosi terarah, jurnal refleksi, serta mempertimbangkan opsi pendampingan profesional.';
-      supportSpaces = ['Panduan Regulasi Emosi', 'Jurnal Privat Refleksi', 'Forum Suportif Terarah', 'Opsi Konsultasi Psikolog'];
+        'Terima kasih sudah bercerita. Sepertinya belakangan ini kamu memikul tekanan yang cukup menguras tenaga, dan itu wajar dirasakan. Latihan menenangkan diri, jurnal, dan ruang cerita bisa menemanimu. Berbicara dengan profesional juga pilihan yang baik kalau kamu mau.';
+      supportSpaces = ['Panduan Mengelola Emosi', 'Jurnal Privat Refleksi', 'Ruang Cerita Anonim', 'Opsi Konsultasi Psikolog'];
     } else {
       summaryFeedback =
-        'Tingkat tekanan emosional yang Anda rasakan berada dalam intensitas tinggi dan memerlukan perhatian ekstra. Kami merekomendasikan akses prioritas ke tenaga profesional terverifikasi dan saluran bantuan krisis segera.';
-      supportSpaces = ['Akses Rujukan Profesional Prioritas', 'Saluran Darurat Bebas Pulsa Kemenkes 119', 'Layanan Pemulihan Trauma'];
+        'Terima kasih sudah berani jujur. Sepertinya beban yang kamu rasakan sedang sangat berat, dan kamu tidak perlu menanggungnya sendirian. Kami menyarankan menghubungi tenaga profesional atau saluran bantuan, dan kami tetap ada menemanimu di sini.';
+      supportSpaces = ['Bantuan Profesional Segera', 'Hotline Gratis Kemenkes (119 ext 8)', 'Layanan Pemulihan Trauma'];
     }
 
     const domain = session?.primaryDomain || 'general';
@@ -207,7 +207,7 @@ export default function AssessmentPage() {
               <BookmarkCheck className="w-5 h-5 text-ink shrink-0" />
               <div className="text-xs">
                 <span className="font-black uppercase tracking-wider block text-ink">DRAF ASESMEN DITEMUKAN</span>
-                <span className="text-ink/80 font-medium">Anda memiliki jawaban tersimpan dari sesi sebelumnya.</span>
+                <span className="text-ink/80 font-medium">Kamu punya jawaban yang tersimpan dari sebelumnya. Mau lanjut dari sana?</span>
               </div>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -234,7 +234,7 @@ export default function AssessmentPage() {
           <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-ink">
             <span className="flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-cobalt" />
-              ASESMEN ADAPTIF NON-DIAGNOSTIK
+              CEK KONDISI (BUKAN DIAGNOSIS)
             </span>
             <div className="flex items-center gap-3">
               <span className="bg-yellow px-2 py-0.5 border border-ink rounded">
@@ -269,7 +269,7 @@ export default function AssessmentPage() {
                 </span>
                 {currentQ.sensitive && (
                   <span className="text-xs font-black uppercase tracking-wider text-white bg-coral px-2.5 py-1 rounded border-2 border-ink shadow-hard-sm">
-                    SENSITIF • DAPAT DILEWATI
+                    SENSITIF • BOLEH DILEWATI
                   </span>
                 )}
               </div>
@@ -316,7 +316,7 @@ export default function AssessmentPage() {
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-ink/70 hover:text-ink hover:underline py-1 px-2"
                 >
                   <SkipForward className="w-3.5 h-3.5 text-cobalt" />
-                  <span>Lewati pertanyaan ini (tanpa mengurangi penilaian)</span>
+                  <span>Lewati pertanyaan ini. Tidak apa-apa, kamu tidak harus menjawabnya</span>
                 </button>
               </div>
             )}
@@ -334,8 +334,8 @@ export default function AssessmentPage() {
                 ADA UNEK-UNEK LAIN YANG INGIN DITULISKAN?
               </h2>
               <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
-                Tuliskan secara bebas jika ada hal spesifik yang sedang Anda rasakan. Bagian ini sepenuhnya
-                opsional dan tersimpan aman di peramban Anda.
+                Kalau ada hal lain yang ingin kamu ceritakan, tulis saja di sini. Boleh dikosongkan,
+                dan tulisanmu hanya tersimpan di peramban perangkatmu.
               </p>
             </div>
 
@@ -349,7 +349,7 @@ export default function AssessmentPage() {
               <div className="p-3 rounded-md bg-yellow/20 border-2 border-ink shadow-hard-sm flex items-center gap-2 text-xs text-ink font-medium">
                 <AlertTriangle className="w-4 h-4 text-ink shrink-0" />
                 <span>
-                  Input teks diawasi oleh filter krisis deterministik 100% bebas AI demi keselamatanmu.
+                  Tulisanmu diperiksa oleh pemeriksa krisis berbasis aturan tetap, 100% tanpa AI, demi keselamatanmu.
                 </span>
               </div>
             </div>
@@ -380,7 +380,7 @@ export default function AssessmentPage() {
               icon={<ArrowRight className="w-4 h-4" />}
               className="flex-row-reverse"
             >
-              PERTANYAAN BERIKUTNYA →
+              PERTANYAAN BERIKUTNYA
             </Button>
           ) : (
             <Button
@@ -392,7 +392,7 @@ export default function AssessmentPage() {
               icon={<ArrowRight className="w-4 h-4" />}
               className="flex-row-reverse"
             >
-              {isSubmitting ? 'MENYUSUN REKOMENDASI...' : 'SELESAIKAN & LIHAT REKOMENDASI →'}
+              {isSubmitting ? 'MENYUSUN REKOMENDASI...' : 'SELESAIKAN & LIHAT REKOMENDASI'}
             </Button>
           )}
         </div>
@@ -400,7 +400,7 @@ export default function AssessmentPage() {
         {/* Non-Diagnostic Disclaimer */}
         <div className="pt-2 text-center text-xs text-ink/70 flex items-center justify-center gap-1.5 font-medium">
           <ShieldCheck className="w-4 h-4 text-cobalt shrink-0" />
-          <span>Hasil asesmen non-diagnostik untuk mengarahkan ruang dukungan, bukan label medis.</span>
+          <span>Hasil ini hanya untuk mengarahkan ke dukungan yang cocok, bukan label medis atau diagnosis.</span>
         </div>
 
         {/* Pause & Resume Modal */}

@@ -196,7 +196,7 @@ export function Navbar() {
                 className="flex items-center gap-2 p-2.5 rounded-[4px] text-xs font-bold bg-white border-2 border-[#151515]"
               >
                 <Key className="w-4 h-4 text-[#FF8A3D] shrink-0" />
-                <span>Pemulihan Sesi (12-Kata)</span>
+                <span>Pulihkan Sesi (Kunci 12 Bagian)</span>
               </Link>
               <Link
                 href="/recovery"

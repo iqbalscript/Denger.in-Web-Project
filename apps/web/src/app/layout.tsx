@@ -5,11 +5,11 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Dengar.in — Ruang Aman, Asesmen Adaptif, & Rujukan Kesehatan Mental',
-  description: 'Ruang aman anonim bebas registrasi untuk usia 15 hingga 50+ tahun. Asesmen adaptif non-diagnostik, pendampingan mandiri terarah, dan akses rujukan krisis terverifikasi.',
-  icons: {
-    icon: '/icon.svg',
-  },
+title: 'Dengar.in: Ruang Aman untuk Bercerita & Rujukan Kesehatan Mental',
+description: 'Ruang aman anonim tanpa registrasi untuk usia 15 hingga 50+ tahun. Tempat rehat, bercerita tanpa dihakimi, dan melangkah pelan-pelan, dengan asesmen non-diagnostik dan akses ke bantuan krisis terverifikasi.',
+icons: {
+  icon: '/icon.svg',
+},
 };
 
 export default function RootLayout({

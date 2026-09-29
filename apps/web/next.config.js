@@ -1,5 +1,13 @@
 const path = require('node:path');
 
+const isDev = process.env.NODE_ENV !== 'production';
+
+// `next dev` memuat kode lewat eval() (source map + React Refresh). CSP produksi
+// melarang eval, jadi tanpa pengecualian ini SELURUH JavaScript klien mati di
+// dev: halaman tidak pernah hydrate dan yang tampil hanya keadaan loading
+// (mis. "Menyiapkan misi kecilmu..." tak pernah hilang). Produksi tetap ketat.
+const scriptSrc = `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -10,7 +18,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'",
+            value: `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; ${scriptSrc}; connect-src 'self'`,
           },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },

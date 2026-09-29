@@ -37,7 +37,7 @@ import {
   type BrowserSpeechRecognition,
 } from '@/lib/browserSpeech';
 import { validatedActionDisplayText } from '@/lib/voiceRoom';
-import { PageContainer, ContentColumn, Button } from '@/components/ui';
+import { PageContainer, ContentColumn, Button, ChatProgress } from '@/components/ui';
 
 interface Message {
   id: string;
@@ -54,10 +54,10 @@ interface Message {
 }
 
 const STARTER_PROMPTS = [
-  'Pekerjaan dan tugas menumpuk, kepala terasa mau pecah',
-  'Cemas mikirin masa depan dan ekspektasi orang sekitar',
-  'Pengeluaran tak terduga bikin overthinking dan susah tidur',
-  'Hanya butuh tempat aman untuk curhat tanpa dihakimi'
+  'Tugas dan pekerjaan menumpuk, aku kewalahan',
+  'Aku cemas mikirin masa depan dan ekspektasi orang sekitar',
+  'Pengeluaran tak terduga bikin aku overthinking dan susah tidur',
+  'Aku cuma butuh tempat aman buat cerita tanpa dihakimi'
 ];
 
 export default function ChatPage() {
@@ -67,7 +67,7 @@ export default function ChatPage() {
     {
       id: 'welcome',
       sender: 'assistant',
-      text: 'Halo. Aku Dengar.in, pendamping anonimmu. Kamu bisa menceritakan apa pun yang sedang terasa berat hari ini — baik soal tugas, pekerjaan, relasi, maupun beban finansial. Apa yang paling membebanimu saat ini?',
+      text: 'Halo, aku Dengar.in, teman bicara anonimmu. Di sini kamu boleh bercerita apa saja tanpa dihakimi, entah soal tugas, pekerjaan, hubungan, atau uang. Tidak perlu rapi, dan tidak perlu buru-buru. Apa yang lagi paling terasa berat buatmu sekarang?',
       disclaimer: STANDARD_DISCLAIMER,
       tier: 'primary',
       providerId: 'deepseek:deepseek-flash'
@@ -203,7 +203,7 @@ export default function ChatPage() {
       {
         id: 'welcome-' + Date.now(),
         sender: 'assistant',
-        text: 'Halo kembali. Percakapan sudah diatur ulang. Ceritakan apa yang sedang kamu rasakan saat ini.',
+        text: 'Halo lagi. Kita mulai percakapan baru, ya. Aku di sini kalau kamu mau bercerita, kapan pun kamu siap.',
         disclaimer: STANDARD_DISCLAIMER,
         tier: 'primary',
         providerId: 'deepseek:deepseek-flash'
@@ -269,10 +269,10 @@ export default function ChatPage() {
         const errorText =
           json?.error ||
           (res.status === 413
-            ? 'Pesan terlalu panjang (maksimum 2.000 karakter).'
+            ? 'Pesanmu terlalu panjang untuk sekali kirim (maksimum 2.000 karakter). Boleh dipecah jadi beberapa bagian, ya.'
             : res.status === 429
-              ? 'Terlalu banyak permintaan. Coba lagi sebentar lagi.'
-              : 'Maaf, terjadi kendala saat memproses respons. Silakan coba kirim kembali.');
+              ? 'Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.'
+              : 'Maaf, ada kendala di sisi kami dan pesanmu belum terbalas. Bukan salahmu. Coba kirim lagi sebentar lagi, ya.');
 
         setMessages((prev) => [
           ...prev,
@@ -299,7 +299,7 @@ export default function ChatPage() {
             {
               id: (Date.now() + 1).toString(),
               sender: 'assistant',
-              text: 'Maaf, terjadi kendala saat memproses respons. Silakan coba kirim kembali.',
+              text: 'Maaf, ada kendala di sisi kami dan pesanmu belum terbalas. Bukan salahmu. Coba kirim lagi sebentar lagi, ya.',
               isError: true,
             },
           ]);
@@ -324,7 +324,7 @@ export default function ChatPage() {
           {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',
-            text: 'Maaf, terjadi kendala saat memproses respons. Silakan coba kirim kembali.',
+            text: 'Maaf, ada kendala di sisi kami dan pesanmu belum terbalas. Bukan salahmu. Coba kirim lagi sebentar lagi, ya.',
             isError: true,
           },
         ]);
@@ -335,7 +335,7 @@ export default function ChatPage() {
         {
           id: (Date.now() + 1).toString(),
           sender: 'assistant',
-          text: 'Koneksi terputus. Pastikan kamu terhubung ke internet dan coba lagi.',
+          text: 'Koneksimu sepertinya terputus. Periksa internetmu, lalu coba kirim lagi, ya.',
           isError: true,
         },
       ]);
@@ -435,7 +435,7 @@ export default function ChatPage() {
           <div className="mt-2.5 p-3 rounded-md bg-white border-2 border-ink shadow-hard-sm text-xs space-y-1.5">
             <div className="flex items-center gap-1.5 font-black uppercase tracking-wide text-ink">
               <Sparkles className="w-3.5 h-3.5 text-cobalt" />
-              <span>Penyesuaian Ritme Pemulihan: {action.recommendedPace}</span>
+              <span>Saran Kecepatan: {action.recommendedPace}</span>
             </div>
             {action.reason && <p className="text-ink/80 text-[11px] font-medium">{action.reason}</p>}
           </div>
@@ -462,7 +462,7 @@ export default function ChatPage() {
 
           <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-2.5 py-1 bg-yellow border-2 border-ink rounded shadow-hard-sm text-ink">
             <ShieldCheck className="w-3.5 h-3.5 text-ink" />
-            <span>Filter Krisis Deterministik Aktif</span>
+            <span>Pemeriksa Krisis Aktif (Tanpa AI)</span>
           </span>
         </div>
 
@@ -476,13 +476,13 @@ export default function ChatPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-black text-ink uppercase tracking-wide">DENGAR.IN COMPANION</h2>
+                  <h2 className="text-sm font-black text-ink uppercase tracking-wide">TEMAN BICARA DENGAR.IN</h2>
                   <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded bg-lime text-ink border border-ink">
-                    MULTI-BRAIN LIVE
+                    AKTIF
                   </span>
                 </div>
                 <p className="text-[11px] text-ink/70 font-medium">
-                  Multi-Tier AI System with Live Verification & Deblasing
+                  Teman bicara berbasis AI yang mendengarkan tanpa menghakimi
                 </p>
               </div>
             </div>
@@ -607,14 +607,7 @@ export default function ChatPage() {
               </div>
             ))}
 
-            {isTyping && (
-              <div className="flex items-center gap-3 pl-2">
-                <div className="px-2 py-1 rounded border-2 border-ink bg-cobalt text-white font-black text-[11px] uppercase tracking-wider shadow-hard-sm">
-                  DENGAR
-                </div>
-                <span className="text-xs text-ink/70 font-bold uppercase tracking-wider">Sedang menyusun balasan...</span>
-              </div>
-            )}
+            {isTyping && <ChatProgress />}
 
             <div ref={messagesEndRef} />
           </div>
@@ -688,7 +681,7 @@ export default function ChatPage() {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Tulis apa yang kamu rasakan (dilindungi filter keselamatan deterministik)..."
+                placeholder="Tulis apa yang kamu rasakan... (dijaga filter keselamatan tanpa AI)"
                 aria-label="Tulis pesan"
                 disabled={isTyping}
                 className="min-h-[44px] flex-1 px-4 py-2.5 rounded-md border-2 border-ink text-xs sm:text-sm bg-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed font-medium"

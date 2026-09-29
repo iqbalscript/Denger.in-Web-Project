@@ -48,14 +48,14 @@ export function CelebrationToast({ celebration, onDismiss }: CelebrationToastPro
 
   if (celebration.levelUp !== undefined) {
     const levelName = LEVEL_THRESHOLDS[celebration.levelUp]?.name ?? '';
-    lines.push(`NAIK LEVEL — ${levelName.toUpperCase()}`);
+    lines.push(`NAIK LEVEL: ${levelName.toUpperCase()}`);
   }
 
   if (celebration.newBadges && celebration.newBadges.length > 0) {
     const badgeNames = celebration.newBadges
       .map(id => BADGE_DEFINITIONS.find(b => b.id === id)?.name ?? id)
       .join(', ');
-    lines.push(`JEJAK BARU: ${badgeNames.toUpperCase()}`);
+    lines.push(`BADGE BARU: ${badgeNames.toUpperCase()}`);
   }
 
   if (celebration.questCompleted) {

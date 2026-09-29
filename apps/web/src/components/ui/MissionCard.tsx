@@ -42,7 +42,7 @@ export function MissionCard({
             {category}
           </Badge>
           <Badge variant="sand" size="sm">
-            Intensitas: {difficulty}
+            Kesulitan: {difficulty}
           </Badge>
         </div>
 

@@ -30,7 +30,7 @@ export default function ConsentPage() {
           SEBELUM KITA MULAI.
         </h1>
         <p className="text-sm sm:text-base text-ink/80 leading-relaxed max-w-xl font-medium">
-          Dengar.in dibangun di atas privasi mutlak dan transparansi penuh. Kami tidak mengumpulkan data identitasmu, dan kami bukan pengganti penanganan medis darurat.
+          Kami ingin kamu merasa aman sejak langkah pertama. Dengar.in tidak meminta identitasmu, dan kami jujur soal batasnya: kami pendamping, bukan pengganti penanganan medis darurat.
         </p>
       </div>
 
@@ -42,10 +42,10 @@ export default function ConsentPage() {
           </div>
           <div className="space-y-1">
             <h3 className="text-sm font-black text-ink uppercase tracking-wider">
-              1. Privasi Mutlak (Bebas Registrasi)
+              1. Privasimu Kami Jaga (Tanpa Registrasi)
             </h3>
             <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
-              Kami tidak pernah meminta nama lengkap, email, nomor telepon, atau identitas kependudukan. Sesimu diidentifikasi menggunakan kode acak lokal di perambanmu.
+              Kami tidak pernah meminta nama lengkap, email, nomor telepon, atau identitas kependudukan. Sesimu hanya dikenali lewat kode acak di peramban perangkatmu.
             </p>
           </div>
         </div>
@@ -57,10 +57,10 @@ export default function ConsentPage() {
           </div>
           <div className="space-y-1">
             <h3 className="text-sm font-black text-ink uppercase tracking-wider">
-              2. Batasan Layanan Medis &amp; Klinis
+              2. Yang Bisa &amp; Tidak Bisa Kami Lakukan
             </h3>
             <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
-              Dengar.in adalah alat pendamping mandiri, <strong className="text-ink font-bold">BUKAN pengganti psikolog, psikiater, diagnosis klinis, atau resep obat</strong>.
+              Dengar.in menemanimu berefleksi dan mengambil langkah kecil, tetapi <strong className="text-ink font-bold">BUKAN pengganti psikolog, psikiater, diagnosis klinis, atau resep obat</strong>.
             </p>
           </div>
         </div>
@@ -72,10 +72,10 @@ export default function ConsentPage() {
           </div>
           <div className="space-y-1">
             <h3 className="text-sm font-black text-ink uppercase tracking-wider">
-              3. Protokol Keselamatan Krisis
+              3. Kamu Tidak Sendirian Saat Krisis
             </h3>
             <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
-              Jika input teksmu mengindikasikan krisis akut atau pikiran membahayakan diri, sistem langsung menyajikan kontak darurat resmi (Kemenkes Sejiwa 119 ext 8) tanpa campur tangan AI.
+              Jika tulisanmu menunjukkan kamu sedang dalam krisis atau berpikir untuk menyakiti diri, kami langsung menampilkan kontak darurat resmi (Kemenkes Sejiwa 119 ext 8) tanpa campur tangan AI.
             </p>
           </div>
         </div>
@@ -86,8 +86,8 @@ export default function ConsentPage() {
   const rightContent = (
     <div className="bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-6 shadow-hard lg:sticky lg:top-24">
       <div className="space-y-1.5 border-b-2 border-ink pb-4">
-        <h3 className="font-black text-base text-ink uppercase tracking-wider">Konfirmasi Pemahaman</h3>
-        <p className="text-xs text-ink/70 font-medium">Centang kedua pernyataan di bawah untuk memulai sesi anonim.</p>
+        <h3 className="font-black text-base text-ink uppercase tracking-wider">Sebelum Lanjut</h3>
+        <p className="text-xs text-ink/70 font-medium">Cukup centang dua hal ini, lalu kita mulai dengan tenang.</p>
       </div>
 
       <div className="space-y-3">
@@ -106,7 +106,7 @@ export default function ConsentPage() {
             <Square className="w-5 h-5 text-ink/40 shrink-0 mt-0.5" />
           )}
           <span className="text-xs sm:text-sm text-ink leading-snug font-medium">
-            Saya memahami bahwa identitas saya sepenuhnya anonim dan saya dapat memulihkan sesi menggunakan 12-kata kunci pemulihan.
+            Saya paham identitas saya anonim, dan saya bisa memulihkan sesi saya dengan kunci pemulihan 12 bagian.
           </span>
         </button>
 
@@ -140,12 +140,12 @@ export default function ConsentPage() {
           icon={<ArrowRight className="w-4 h-4" />}
           className="flex-row-reverse"
         >
-          SAYA SETUJU, LANJUTKAN →
+          SAYA SETUJU, LANJUTKAN
         </Button>
       </div>
 
       <p className="text-[11px] text-ink/60 text-center leading-tight font-medium">
-        Kode pemulihan 12-kata akan dihasilkan secara lokal di akhir proses ini.
+        Kunci pemulihan 12 bagian akan dibuat secara lokal di akhir proses ini.
       </p>
     </div>
   );

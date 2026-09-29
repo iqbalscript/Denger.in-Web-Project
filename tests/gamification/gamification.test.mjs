@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
@@ -7,7 +7,8 @@ import {
   getISODayOfWeek,
   getWeekStartMonday,
   getWeekDates,
-  isDateInWeek
+  isDateInWeek,
+  getLocalDateOfTimestamp
 } from '../../apps/web/src/lib/calendar.ts';
 
 import {
@@ -27,7 +28,14 @@ import {
   deriveUnlockedBadgesFromLedger
 } from '../../apps/web/src/lib/gamification.ts';
 
-import { clearAnonymousSession } from '../../apps/web/src/lib/storage.ts';
+import {
+  clearAnonymousSession,
+  saveDailyCheckin,
+  getTodayCheckin,
+  completeTodayMission,
+  isTodayMissionCompleted,
+  getTodayMissionReflection
+} from '../../apps/web/src/lib/storage.ts';
 import { evaluateCrisisInput } from '../../services/crisis-engine/src/crisisDetector.ts';
 
 // Mock MemoryStorage for localStorage
@@ -277,7 +285,13 @@ describe('5. Badge Unlocking Rules', () => {
 });
 
 describe('6. Weekly Quest Engine', () => {
-  beforeEach(resetTestState);
+  // The engine reconciles against the REAL current week, so pin the clock to the
+  // week these fixtures use (2026-W39); otherwise the test only passes that week.
+  beforeEach(() => {
+    resetTestState();
+    mock.timers.enable({ apis: ['Date'], now: new Date(2026, 8, 23, 12).getTime() });
+  });
+  afterEach(() => mock.timers.reset());
   it('tracks progress and awards quest completion when all conditions are met', () => {
     const weekId = getLocalWeekId(new Date(2026, 8, 21));
 
@@ -467,5 +481,76 @@ describe('11. Recovery / E2EE Round Trip & Repetition Safety', () => {
     const postRepeatState = loadGamificationState();
     assert.equal(postRepeatState.totalLangkah, 10);
     assert.equal(postRepeatState.eventLedger.length, 1);
+  });
+});
+
+describe('12. Daily check-in & mission follow the LOCAL day, not the UTC day', () => {
+  const originalTz = process.env.TZ;
+  const at = (iso) => mock.timers.setTime(Date.parse(iso));
+  const checkin = (timestamp) => ({
+    id: timestamp, userId: 'u', timestamp, mood: 'netral', energyLevel: 5, stressorTags: []
+  });
+
+  beforeEach(() => {
+    resetTestState();
+    mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-28T00:00:00Z') });
+  });
+  afterEach(() => {
+    mock.timers.reset();
+    if (originalTz === undefined) delete process.env.TZ; else process.env.TZ = originalTz;
+  });
+
+  it('WIB (UTC+7): a check-in from last night is not "today" after local midnight', () => {
+    process.env.TZ = 'Asia/Jakarta';
+    saveDailyCheckin(checkin('2026-09-28T15:00:00.000Z')); // 22:00 WIB, 28 Sep
+    at('2026-09-28T20:00:00Z'); // 03:00 WIB, 29 Sep, still 28 Sep in UTC
+    assert.equal(getLocalDateString(), '2026-09-29');
+    assert.equal(getTodayCheckin(), null);
+  });
+
+  it('WIB: a check-in made after local midnight still counts once UTC rolls over', () => {
+    process.env.TZ = 'Asia/Jakarta';
+    saveDailyCheckin(checkin('2026-09-28T20:00:00.000Z')); // 03:00 WIB, 29 Sep
+    at('2026-09-29T01:00:00Z'); // 08:00 WIB, 29 Sep
+    assert.equal(getTodayCheckin()?.timestamp, '2026-09-28T20:00:00.000Z');
+  });
+
+  it('WIB: mission completed before 07:00 local is still done at 08:00 the same day', () => {
+    process.env.TZ = 'Asia/Jakarta';
+    at('2026-09-28T20:00:00Z'); // 03:00 WIB, 29 Sep
+    completeTodayMission('refleksi pagi');
+    assert.equal(storage.getItem('dengarin_mission_2026-09-29_completed'), 'true');
+    at('2026-09-29T01:00:00Z'); // 08:00 WIB
+    assert.equal(isTodayMissionCompleted(), true);
+    assert.equal(getTodayMissionReflection(), 'refleksi pagi');
+  });
+
+  it('WIB: a new local day starts a fresh mission at 00:00 WIB, not 07:00', () => {
+    process.env.TZ = 'Asia/Jakarta';
+    at('2026-09-28T16:00:00Z'); // 23:00 WIB, 28 Sep
+    completeTodayMission();
+    assert.equal(isTodayMissionCompleted(), true);
+    at('2026-09-28T17:30:00Z'); // 00:30 WIB, 29 Sep
+    assert.equal(isTodayMissionCompleted(), false);
+  });
+
+  it('US Pacific (UTC-7): the day does not end at 17:00 local when UTC rolls over', () => {
+    process.env.TZ = 'America/Los_Angeles';
+    at('2026-09-29T03:00:00Z'); // 20:00 PDT, 28 Sep (already 29 Sep in UTC)
+    saveDailyCheckin(checkin(new Date().toISOString()));
+    completeTodayMission();
+    at('2026-09-29T06:59:00Z'); // 23:59 PDT, still 28 Sep
+    assert.equal(getLocalDateString(), '2026-09-28');
+    assert.ok(getTodayCheckin());
+    assert.equal(isTodayMissionCompleted(), true);
+    at('2026-09-29T07:01:00Z'); // 00:01 PDT, 29 Sep
+    assert.equal(getTodayCheckin(), null);
+    assert.equal(isTodayMissionCompleted(), false);
+  });
+
+  it('maps a UTC timestamp to the local calendar day and rejects garbage', () => {
+    process.env.TZ = 'Asia/Jakarta';
+    assert.equal(getLocalDateOfTimestamp('2026-09-28T20:00:00.000Z'), '2026-09-29');
+    assert.equal(getLocalDateOfTimestamp('not-a-date'), null);
   });
 });
