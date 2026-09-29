@@ -26,6 +26,7 @@ import {
 } from '@/components/ui';
 import type { InterventionDomain } from '@dengarin/types';
 import { getForumThreadKey } from '@/lib/storage';
+import { formatForumDate, formatForumDateTime } from '@/lib/forumDate';
 
 interface ForumPostItem {
   id: string;
@@ -78,21 +79,6 @@ const INITIAL_FALLBACK_POSTS: ForumPostItem[] = [
   }
 ];
 
-const INDONESIAN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-/** Uses the serialized instant directly, avoiding server/browser locale and timezone drift during hydration. */
-function formatForumDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return `${date.getUTCDate()} ${INDONESIAN_MONTHS[date.getUTCMonth()]}`;
-}
-
-function formatForumDateTime(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return `${formatForumDate(value)}, ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')} UTC`;
-}
-
 const CATEGORIES: { id: string; label: string; domain?: InterventionDomain }[] = [
   { id: 'all', label: 'Semua Cerita' },
   { id: 'campus', label: 'Kampus & Skripsi', domain: 'campus' },
@@ -116,6 +102,9 @@ export default function ForumPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [posts, setPosts] = useState<ForumPostItem[]>(INITIAL_FALLBACK_POSTS);
   const [loading, setLoading] = useState(false);
+  // Render pertama (server) memakai UTC agar hydration cocok; setelah mount, waktu mengikuti zona perangkat.
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Modal Form State
@@ -137,8 +126,9 @@ export default function ForumPage() {
   const [replySubmitting, setReplySubmitting] = useState(false);
   const replySubmittingRef = useRef(false);
 
-  const fetchPosts = useCallback(async (selectedDomain?: string) => {
-    setLoading(true);
+  const fetchPosts = useCallback(async (selectedDomain?: string, options: { silent?: boolean } = {}) => {
+    // Refresh otomatis di latar belakang tidak boleh memunculkan status loading.
+    if (!options.silent) setLoading(true);
     try {
       const url = selectedDomain && selectedDomain !== 'all'
         ? `/api/forum?domain=${encodeURIComponent(selectedDomain)}`
@@ -149,6 +139,7 @@ export default function ForumPage() {
         const postsList = json.data?.posts ?? json.posts;
         if (Array.isArray(postsList)) {
           if (postsList.length === 0) {
+            if (options.silent) return;
             const filteredSeed = selectedDomain && selectedDomain !== 'all'
               ? INITIAL_FALLBACK_POSTS.filter((p) => p.domain === selectedDomain)
               : INITIAL_FALLBACK_POSTS;
@@ -161,7 +152,7 @@ export default function ForumPage() {
     } catch {
       // Fallback already populated
     } finally {
-      setLoading(false);
+      if (!options.silent) setLoading(false);
     }
   }, []);
 
@@ -177,14 +168,52 @@ export default function ForumPage() {
     setIsModalOpen(true);
   };
 
-  const loadReplies = async (postId: string) => {
-    setReplyPages((value) => ({ ...value, [postId]: { replies: value[postId]?.replies ?? [], count: value[postId]?.count ?? 0, loading: true } }));
+  const loadReplies = useCallback(async (postId: string, options: { silent?: boolean } = {}) => {
+    if (!options.silent) setReplyPages((value) => ({ ...value, [postId]: { replies: value[postId]?.replies ?? [], count: value[postId]?.count ?? 0, loading: true } }));
     try {
       const res = await fetch(`/api/forum/${postId}/replies`);
       const json = await res.json(); const data = json.data ?? json;
-      if (res.ok) setReplyPages((value) => ({ ...value, [postId]: { replies: data.replies, count: data.approvedCount, loading: false } }));
-    } finally { setReplyPages((value) => value[postId] ? ({ ...value, [postId]: { ...value[postId], loading: false } }) : value); }
-  };
+      if (res.ok) setReplyPages((value) => {
+        const current = value[postId];
+        // Refresh otomatis: abaikan bila thread sudah ditutup, dan jangan render ulang bila isinya sama.
+        if (options.silent) {
+          if (!current) return value;
+          const unchanged = current.count === data.approvedCount && current.replies.length === data.replies.length
+            && current.replies.every((reply, index) => reply.id === data.replies[index]?.id);
+          if (unchanged) return value;
+        }
+        return { ...value, [postId]: { replies: data.replies, count: data.approvedCount, loading: false } };
+      });
+    } catch {
+      // Refresh otomatis gagal diam-diam; percobaan berikutnya menyusul.
+      if (!options.silent) throw new Error('reload-failed');
+    } finally { if (!options.silent) setReplyPages((value) => value[postId] ? ({ ...value, [postId]: { ...value[postId], loading: false } }) : value); }
+  }, []);
+
+  // Balasan dan hitungan baru dari orang lain muncul otomatis tanpa reload: polling
+  // ringan hanya saat tab terlihat, plus refresh seketika saat tab kembali aktif.
+  // Server memakai cache Redis berversi, jadi tiap poll murah dan tetap segar.
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  const openThreadIds = Object.keys(replyPages).sort().join(',');
+  useEffect(() => {
+    const refresh = (includeFeed: boolean) => {
+      if (document.hidden) return;
+      openThreadIds.split(',').filter(Boolean).forEach((id) => { void loadReplies(id, { silent: true }); });
+      if (includeFeed) void fetchPosts(activeTabRef.current, { silent: true });
+    };
+    let tick = 0;
+    const interval = setInterval(() => { tick += 1; refresh(tick % 3 === 0); }, 10_000);
+    const onReturn = () => refresh(true);
+    document.addEventListener('visibilitychange', onReturn);
+    window.addEventListener('focus', onReturn);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onReturn);
+      window.removeEventListener('focus', onReturn);
+    };
+  }, [openThreadIds, loadReplies, fetchPosts]);
+
   const openComposer = (storyId: string, parent?: ForumReplyItem, trigger?: HTMLElement) => { setComposer({ storyId, parent, trigger }); setReplyBody(''); setReplyNotice(null); };
   const submitReply = async (event: React.FormEvent) => {
     event.preventDefault(); if (!composer || replySubmittingRef.current || replyBody.trim().length < 3 || replyBody.trim().length > 800) return;
@@ -196,7 +225,12 @@ export default function ForumPage() {
       if (data?.crisis) { window.location.assign('/crisis'); return; }
       if (!res.ok) { setReplyNotice(json?.error ?? 'Balasan belum terkirim. Coba lagi.'); return; }
       setReplyNotice(data.moderation?.status === 'pending_review' ? 'Balasan sedang ditinjau moderator.' : 'Balasanmu terkirim. Terima kasih sudah menguatkan.');
-      setReplyBody(''); if (data.moderation?.status === 'approved') await loadReplies(composer.storyId);
+      setReplyBody('');
+      if (data.moderation?.status === 'approved') {
+        const storyId = composer.storyId;
+        setPosts((list) => list.map((post) => (post.id === storyId ? { ...post, replyCount: (post.replyCount ?? 0) + 1 } : post)));
+        await loadReplies(storyId);
+      }
       setTimeout(() => { composer.trigger?.focus(); setComposer(null); }, 900);
     } catch { setReplyNotice('Koneksi terputus. Balasan belum terkirim; kamu dapat mencoba lagi.'); }
     finally { replySubmittingRef.current = false; setReplySubmitting(false); }
@@ -405,7 +439,7 @@ export default function ForumPage() {
                     </button>
                     <button type="button" onClick={(event) => openComposer(post.id, undefined, event.currentTarget)} className="min-h-[44px] px-3 border-2 border-ink rounded font-bold shadow-hard-sm hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button>
                     <span className="text-[11px] text-ink/50 font-bold">
-                      {formatForumDate(post.createdAt)}
+                      {formatForumDate(post.createdAt, isClient)}
                     </span>
                   </div>
                   {thread && (
@@ -415,7 +449,7 @@ export default function ForumPage() {
                       {thread.replies.map((reply) => (
                         <article key={reply.id} className={`border-2 border-ink rounded p-3 space-y-2 ${reply.parentReplyId ? 'ml-3 sm:ml-6' : ''}`}>
                           {reply.parentReplyId && <p className="text-[11px] font-bold text-ink/60">↳ {reply.parentContextUnavailable ? 'konteks balasan tidak tersedia' : `membalas ${reply.replyingToAlias}`}</p>}
-                          <div className="flex justify-between gap-2"><strong className="text-xs">{reply.authorAlias}</strong><time className="text-[11px] text-ink/60" dateTime={reply.createdAt}>{formatForumDateTime(reply.createdAt)}</time></div>
+                          <div className="flex justify-between gap-2"><strong className="text-xs">{reply.authorAlias}</strong><time className="text-[11px] text-ink/60" dateTime={reply.createdAt}>{formatForumDateTime(reply.createdAt, isClient)}</time></div>
                           <p className="text-xs sm:text-sm whitespace-pre-line">{reply.body}</p>
                           <div className="flex gap-2"><button type="button" onClick={(event) => openComposer(post.id, reply, event.currentTarget)} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button><button type="button" aria-label={`Laporkan balasan ${reply.authorAlias}`} onClick={(event) => { setReportTarget({ storyId: post.id, reply, trigger: event.currentTarget }); setReportReason('other_safety'); setReportNotice(null); }} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt"><Flag className="inline w-3 h-3 mr-1" />LAPORKAN</button></div>
                         </article>
