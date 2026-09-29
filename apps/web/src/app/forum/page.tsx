@@ -137,8 +137,9 @@ export default function ForumPage() {
   const [replySubmitting, setReplySubmitting] = useState(false);
   const replySubmittingRef = useRef(false);
 
-  const fetchPosts = useCallback(async (selectedDomain?: string) => {
-    setLoading(true);
+  const fetchPosts = useCallback(async (selectedDomain?: string, options: { silent?: boolean } = {}) => {
+    // Refresh otomatis di latar belakang tidak boleh memunculkan status loading.
+    if (!options.silent) setLoading(true);
     try {
       const url = selectedDomain && selectedDomain !== 'all'
         ? `/api/forum?domain=${encodeURIComponent(selectedDomain)}`
@@ -149,6 +150,7 @@ export default function ForumPage() {
         const postsList = json.data?.posts ?? json.posts;
         if (Array.isArray(postsList)) {
           if (postsList.length === 0) {
+            if (options.silent) return;
             const filteredSeed = selectedDomain && selectedDomain !== 'all'
               ? INITIAL_FALLBACK_POSTS.filter((p) => p.domain === selectedDomain)
               : INITIAL_FALLBACK_POSTS;
@@ -161,7 +163,7 @@ export default function ForumPage() {
     } catch {
       // Fallback already populated
     } finally {
-      setLoading(false);
+      if (!options.silent) setLoading(false);
     }
   }, []);
 
@@ -177,14 +179,52 @@ export default function ForumPage() {
     setIsModalOpen(true);
   };
 
-  const loadReplies = async (postId: string) => {
-    setReplyPages((value) => ({ ...value, [postId]: { replies: value[postId]?.replies ?? [], count: value[postId]?.count ?? 0, loading: true } }));
+  const loadReplies = useCallback(async (postId: string, options: { silent?: boolean } = {}) => {
+    if (!options.silent) setReplyPages((value) => ({ ...value, [postId]: { replies: value[postId]?.replies ?? [], count: value[postId]?.count ?? 0, loading: true } }));
     try {
       const res = await fetch(`/api/forum/${postId}/replies`);
       const json = await res.json(); const data = json.data ?? json;
-      if (res.ok) setReplyPages((value) => ({ ...value, [postId]: { replies: data.replies, count: data.approvedCount, loading: false } }));
-    } finally { setReplyPages((value) => value[postId] ? ({ ...value, [postId]: { ...value[postId], loading: false } }) : value); }
-  };
+      if (res.ok) setReplyPages((value) => {
+        const current = value[postId];
+        // Refresh otomatis: abaikan bila thread sudah ditutup, dan jangan render ulang bila isinya sama.
+        if (options.silent) {
+          if (!current) return value;
+          const unchanged = current.count === data.approvedCount && current.replies.length === data.replies.length
+            && current.replies.every((reply, index) => reply.id === data.replies[index]?.id);
+          if (unchanged) return value;
+        }
+        return { ...value, [postId]: { replies: data.replies, count: data.approvedCount, loading: false } };
+      });
+    } catch {
+      // Refresh otomatis gagal diam-diam; percobaan berikutnya menyusul.
+      if (!options.silent) throw new Error('reload-failed');
+    } finally { if (!options.silent) setReplyPages((value) => value[postId] ? ({ ...value, [postId]: { ...value[postId], loading: false } }) : value); }
+  }, []);
+
+  // Balasan dan hitungan baru dari orang lain muncul otomatis tanpa reload: polling
+  // ringan hanya saat tab terlihat, plus refresh seketika saat tab kembali aktif.
+  // Server memakai cache Redis berversi, jadi tiap poll murah dan tetap segar.
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  const openThreadIds = Object.keys(replyPages).sort().join(',');
+  useEffect(() => {
+    const refresh = (includeFeed: boolean) => {
+      if (document.hidden) return;
+      openThreadIds.split(',').filter(Boolean).forEach((id) => { void loadReplies(id, { silent: true }); });
+      if (includeFeed) void fetchPosts(activeTabRef.current, { silent: true });
+    };
+    let tick = 0;
+    const interval = setInterval(() => { tick += 1; refresh(tick % 3 === 0); }, 10_000);
+    const onReturn = () => refresh(true);
+    document.addEventListener('visibilitychange', onReturn);
+    window.addEventListener('focus', onReturn);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onReturn);
+      window.removeEventListener('focus', onReturn);
+    };
+  }, [openThreadIds, loadReplies, fetchPosts]);
+
   const openComposer = (storyId: string, parent?: ForumReplyItem, trigger?: HTMLElement) => { setComposer({ storyId, parent, trigger }); setReplyBody(''); setReplyNotice(null); };
   const submitReply = async (event: React.FormEvent) => {
     event.preventDefault(); if (!composer || replySubmittingRef.current || replyBody.trim().length < 3 || replyBody.trim().length > 800) return;
@@ -196,7 +236,12 @@ export default function ForumPage() {
       if (data?.crisis) { window.location.assign('/crisis'); return; }
       if (!res.ok) { setReplyNotice(json?.error ?? 'Balasan belum terkirim. Coba lagi.'); return; }
       setReplyNotice(data.moderation?.status === 'pending_review' ? 'Balasan sedang ditinjau moderator.' : 'Balasanmu terkirim. Terima kasih sudah menguatkan.');
-      setReplyBody(''); if (data.moderation?.status === 'approved') await loadReplies(composer.storyId);
+      setReplyBody('');
+      if (data.moderation?.status === 'approved') {
+        const storyId = composer.storyId;
+        setPosts((list) => list.map((post) => (post.id === storyId ? { ...post, replyCount: (post.replyCount ?? 0) + 1 } : post)));
+        await loadReplies(storyId);
+      }
       setTimeout(() => { composer.trigger?.focus(); setComposer(null); }, 900);
     } catch { setReplyNotice('Koneksi terputus. Balasan belum terkirim; kamu dapat mencoba lagi.'); }
     finally { replySubmittingRef.current = false; setReplySubmitting(false); }
