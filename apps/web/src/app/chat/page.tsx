@@ -62,7 +62,9 @@ const STARTER_PROMPTS = [
 
 export default function ChatPage() {
   const session = getAnonymousSession();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
+  const hasMountedRef = useRef(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -86,10 +88,33 @@ export default function ChatPage() {
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const activeSpeechMessageIdRef = useRef<string | null>(null);
 
-  // Auto-scroll to bottom when new messages appear
+  // Auto-scroll hanya untuk kotak pesan, BUKAN halaman. scrollIntoView() menggulung
+  // semua ancestor termasuk window, sehingga halaman tiba-tiba lompat ke bawah
+  // (juga saat pertama kali dibuka). Aturannya:
+  //  - jangan scroll saat render pertama;
+  //  - pesan milik pengguna / mulai menunggu balasan: selalu ke bawah;
+  //  - balasan AI: ke bawah hanya bila pengguna memang sedang di dasar, supaya
+  //    yang sedang membaca pesan lama tidak ditarik paksa.
+  const lastMessage = messages[messages.length - 1];
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const ownAction = isTyping || lastMessage?.sender === 'user';
+    if (!ownAction && !isNearBottomRef.current) return;
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    container.scrollTo({ top: container.scrollHeight, behavior: reduceMotion ? 'auto' : 'smooth' });
+    isNearBottomRef.current = true;
+  }, [messages.length, isTyping, lastMessage?.sender]);
+
+  const handleMessagesScroll = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    isNearBottomRef.current = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+  };
 
   // Browser APIs are inspected only after hydration. Both capabilities degrade
   // independently, so text chat never depends on either one being available.
@@ -510,7 +535,7 @@ export default function ChatPage() {
           </div>
 
           {/* Message History */}
-          <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
+          <div ref={messagesContainerRef} onScroll={handleMessagesScroll} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -609,7 +634,6 @@ export default function ChatPage() {
 
             {isTyping && <ChatProgress />}
 
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Quick Starter Chips */}
