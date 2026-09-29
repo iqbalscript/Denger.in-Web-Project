@@ -326,7 +326,7 @@ export default function ForumPage() {
           <div className="flex items-center gap-2.5">
             <ShieldCheck className="w-4 h-4 text-cobalt shrink-0" />
             <span>
-              <strong className="font-black uppercase tracking-wide">DIJAGA BERSAMA:</strong> Setiap cerita disaring lewat gerbang krisis dan filter anti-toksik supaya ruang ini tetap aman untuk semua.
+              <strong className="font-black uppercase tracking-wide">DIJAGA BERSAMA:</strong> Setiap cerita disaring lewat gerbang krisis dan filter anti-toxic supaya ruang ini tetap aman untuk semua.
             </span>
           </div>
           <button

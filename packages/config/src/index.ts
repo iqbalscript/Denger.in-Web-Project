@@ -201,7 +201,7 @@ export const TOPIC_PILLARS: Record<TopicPillarId, TopicPillarConfig> = {
   },
   sexual_violence: {
     id: 'sexual_violence',
-    label: 'Penyintas Kekerasan Seksual & Hubungan Toksik',
+    label: 'Penyintas Kekerasan Seksual & Hubungan Toxic',
     tagline: 'Ruang privat yang penuh hormat untuk memulihkan kendali atas dirimu.',
     description: 'Pendampingan yang menghormati keputusanmu sepenuhnya. Apa pun yang terjadi, itu bukan salahmu. Tersedia rujukan langsung ke pendamping profesional tersertifikasi.',
     icon: 'ShieldCheck',
