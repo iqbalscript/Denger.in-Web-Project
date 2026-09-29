@@ -10,7 +10,7 @@ Panduan praktis dari nol sampai jalan. Penjelasan desain dan alasan teknisnya ad
 |---|---|
 | Rate limit per klien + pagar global (`dengarin:ratelimit:*`) | penghitung memori per proses |
 | Cache jawaban AI (`dengarin:ai:*`, hanya hash SHA-256, tidak ada teks curhat) | selalu panggil AI |
-| Cache feed forum yang sudah disetujui (`dengarin:forum:*`) | baca langsung dari database |
+| Cache feed cerita dan komentar forum yang sudah disetujui (`dengarin:forum:*`, versi per cerita untuk komentar) | baca langsung dari database |
 | Batas konkurensi lintas instance (`dengarin:slots:*`) | hanya batas per proses |
 | Cache halaman ISR/SSG (`dengarin:next:*`, khusus `next start`) | LRU lokal |
 

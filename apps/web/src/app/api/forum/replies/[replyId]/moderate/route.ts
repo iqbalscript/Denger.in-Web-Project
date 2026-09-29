@@ -3,7 +3,7 @@ import { forumRepository } from '@/lib/api/repositories';
 import { verifyAdminRequest } from '@/lib/api/adminSession';
 import { jsonError, jsonOk } from '@/lib/api/response';
 import { isReplySchemaUnavailable } from '@/lib/api/replySchema';
-import { invalidateForumCache } from '@/lib/api/forumCache';
+import { invalidateForumPosts, invalidateForumReplies } from '@/lib/api/forumCache';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ replyId: string }> }) {
   if (!verifyAdminRequest(request).authorized) return jsonError('Butuh sesi admin yang valid.', 401);
@@ -13,7 +13,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 let reply;
 try {
   reply = await forumRepository.moderateReply(replyId, body.status);
-  if (reply) await invalidateForumCache();
+  if (reply) await Promise.all([invalidateForumReplies(reply.storyId), invalidateForumPosts()]);
 } catch (error) {
   if (isReplySchemaUnavailable(error)) return jsonError('Fitur balasan belum tersedia.', 503);
   console.error('Failed to moderate forum reply:', error);

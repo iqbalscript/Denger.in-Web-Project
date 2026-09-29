@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import { forumRepository } from '@/lib/api/repositories';
 import { verifyAdminRequest } from '@/lib/api/adminSession';
 import { jsonError, jsonOk } from '@/lib/api/response';
-import { invalidateForumCache } from '@/lib/api/forumCache';
+import { invalidateForumPosts, invalidateForumReplies } from '@/lib/api/forumCache';
 
 interface ModerateBody {
   status?: 'approved' | 'rejected';
@@ -32,6 +32,6 @@ export async function PATCH(
     return jsonError('Post tidak ditemukan.', 404);
   }
 
-  await invalidateForumCache();
+  await Promise.all([invalidateForumPosts(), invalidateForumReplies(postId)]);
   return jsonOk({ post: updated });
 }
