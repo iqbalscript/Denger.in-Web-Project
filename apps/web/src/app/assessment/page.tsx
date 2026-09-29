@@ -44,10 +44,10 @@ export default function AssessmentPage() {
     topicPillar === 'finance'
       ? 'context-finance'
       : topicPillar === 'trauma'
-      ? 'context-trauma'
-      : topicPillar === 'sexual_violence'
-      ? 'context-sexual-violence'
-      : 'context-general';
+        ? 'context-trauma'
+        : topicPillar === 'sexual_violence'
+          ? 'context-sexual-violence'
+          : 'context-general';
 
   const questionCatalog = ADAPTIVE_ASSESSMENT_QUESTIONS;
   const questionSequenceIds = [
@@ -294,11 +294,10 @@ export default function AssessmentPage() {
                     key={opt.id}
                     type="button"
                     onClick={() => handleSelectOption(currentQ.id, opt.score)}
-                    className={`p-4 sm:p-5 rounded-md text-left border-2 border-ink transition-all cursor-pointer focus-visible:outline-ink min-h-[60px] flex items-center justify-between gap-3 ${
-                      isSelected
+                    className={`p-4 sm:p-5 rounded-md text-left border-2 border-ink transition-all cursor-pointer focus-visible:outline-ink min-h-[60px] flex items-center justify-between gap-3 ${isSelected
                         ? 'bg-cobalt text-white shadow-hard font-bold translate-x-[1px] translate-y-[1px]'
                         : 'bg-white hover:bg-paper text-ink font-medium shadow-hard-sm'
-                    }`}
+                      }`}
                   >
                     <span className="text-sm sm:text-base leading-snug font-medium">{opt.label}</span>
                     {isSelected && <CheckCircle2 className="w-5 h-5 text-white shrink-0" />}
@@ -331,7 +330,7 @@ export default function AssessmentPage() {
                 Langkah Terakhir
               </Badge>
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-ink tracking-tight uppercase">
-                ADA UNEK-UNEK LAIN YANG INGIN DITULISKAN?
+                ADA KELUH KESAH LAIN YANG INGIN DITULISKAN?
               </h2>
               <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
                 Kalau ada hal lain yang ingin kamu ceritakan, tulis saja di sini. Boleh dikosongkan,

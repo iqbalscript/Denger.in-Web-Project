@@ -113,11 +113,10 @@ export default function LandingPage() {
                         style={{
                           backgroundColor: isSelected ? m.color : '#FFFFFF',
                         }}
-                        className={`py-2 px-1 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-all duration-120 cursor-pointer min-h-[58px] ${
-                          isSelected
+                        className={`py-2 px-1 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-all duration-120 cursor-pointer min-h-[58px] ${isSelected
                             ? 'shadow-[2px_2px_0px_#151515] -translate-x-[1px] -translate-y-[1px]'
                             : 'hover:bg-[#FFF8EF] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515]'
-                        }`}
+                          }`}
                       >
                         <span className="text-xl select-none" aria-hidden="true">{m.emoji}</span>
                         <span className="text-[10px] text-center font-bold uppercase leading-tight truncate w-full text-[#151515]">{m.label}</span>
@@ -234,7 +233,6 @@ export default function LandingPage() {
 
                   <div className="pt-3 border-t-2 border-[#151515]/10 flex items-center justify-between text-xs font-bold text-[#151515]">
                     <span>{pillar.isSensitive ? 'Opsi Lewati Tersedia' : 'Misi Mandiri Harian'}</span>
-                    <span className="text-[#4169FF]">Pelajari &rarr;</span>
                   </div>
                 </div>
               );
