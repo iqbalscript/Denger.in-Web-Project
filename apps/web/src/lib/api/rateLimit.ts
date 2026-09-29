@@ -262,3 +262,73 @@ export function acquireTtsSlot(): (() => void) | null {
   let released = false;
   return () => { if (!released) { activeTts -= 1; released = true; } };
 }
+
+// ─── Konkurensi lintas instance ─────────────────────────────────────
+
+/**
+ * Batas konkurensi per proses (`acquire*Slot`) melindungi memori dan socket
+ * SATU proses. Yang tidak dilindunginya: N instance × 4 panggilan AI. Lapis ini
+ * menambah batas untuk seluruh armada lewat "lease" di Redis.
+ *
+ * Lease = anggota sorted set yang skornya waktu kedaluwarsa (jam Redis). Lease
+ * kedaluwarsa sendiri, jadi proses yang mati tidak membocorkan slot selamanya.
+ */
+export type SharedSlot = 'chat' | 'room-tts' | 'forum-reply-write';
+const SHARED_SLOT_MAX: Record<SharedSlot, number> = { chat: 12, 'room-tts': 3, 'forum-reply-write': 12 };
+const SHARED_LEASE_MS = 60_000;
+
+const LEASE_SCRIPT = `
+local t = redis.call('TIME')
+local now = t[1] * 1000 + math.floor(t[2] / 1000)
+redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', now)
+if redis.call('ZCARD', KEYS[1]) >= tonumber(ARGV[1]) then return 0 end
+redis.call('ZADD', KEYS[1], now + tonumber(ARGV[2]), ARGV[3])
+redis.call('PEXPIRE', KEYS[1], ARGV[2])
+return 1
+`;
+
+const leaseKey = (slot: SharedSlot) => `${REDIS_PREFIX}slots:${slot}`;
+
+/**
+ * Slot lokal (sinkron) + lease bersama (Redis). Mengembalikan fungsi pelepas,
+ * atau `null` bila salah satu lapis penuh. Redis mati/lambat = hanya batas lokal
+ * yang berlaku (fail-open ke perlindungan per-proses, bukan menjatuhkan request).
+ */
+export async function acquireSharedSlot(slot: SharedSlot, acquireLocal: () => (() => void) | null): Promise<(() => void) | null> {
+  const releaseLocal = acquireLocal();
+  if (!releaseLocal) return null;
+
+  const id = `${process.pid}:${Date.now()}:${Math.random().toString(36).slice(2, 10)}`;
+  let leased = false;
+  try {
+    const granted = await withTimeout((async () => {
+      const redis = await getRedis();
+      if (!redis) return null;
+      return Number(await redis.eval(LEASE_SCRIPT, {
+        keys: [leaseKey(slot)],
+        arguments: [String(SHARED_SLOT_MAX[slot]), String(SHARED_LEASE_MS), id]
+      })) === 1;
+    })(), REDIS_TIMEOUT_MS);
+    if (granted === false) { releaseLocal(); return null; }
+    leased = granted === true;
+  } catch (error) {
+    console.error('[Slots] Redis gagal, hanya batas lokal:', error instanceof Error ? error.message : error);
+  }
+
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    releaseLocal();
+    if (!leased) return;
+    // Best-effort: bila gagal, lease kedaluwarsa sendiri.
+    void (async () => {
+      try { await withTimeout((async () => { await (await getRedis())?.zRem(leaseKey(slot), id); })(), REDIS_TIMEOUT_MS); }
+      catch { /* lease expires on its own */ }
+    })();
+  };
+}
+
+export const acquireSharedChatSlot = () => acquireSharedSlot('chat', acquireChatSlot);
+export const acquireSharedTtsSlot = () => acquireSharedSlot('room-tts', acquireTtsSlot);
+export const acquireSharedForumReplyWriteSlot = () => acquireSharedSlot('forum-reply-write', acquireForumReplyWriteSlot);
