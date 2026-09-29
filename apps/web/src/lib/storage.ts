@@ -307,6 +307,26 @@ export function isTodayMissionCompleted(): boolean {
 }
 
 /**
+ * Local dates (YYYY-MM-DD) on which a mission was completed. Mission
+ * completion is stored as one `dengarin_mission_<date>_completed` key per day.
+ */
+export function getCompletedMissionDates(): string[] {
+  if (typeof window === 'undefined') return [];
+  const dates: string[] = [];
+  try {
+    const pattern = new RegExp(`^${MISSION_KEY_PREFIX}(\\d{4}-\\d{2}-\\d{2})_completed$`);
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      const match = key ? pattern.exec(key) : null;
+      if (match && localStorage.getItem(key as string) === 'true') dates.push(match[1]);
+    }
+  } catch {
+    // Unreadable storage just means an empty timeline.
+  }
+  return dates;
+}
+
+/**
  * Get stored mission reflection
  */
 export function getTodayMissionReflection(): string {
