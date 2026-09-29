@@ -205,7 +205,7 @@ export default function AssessmentResultPage() {
             icon={<ArrowRight className="w-4 h-4" />}
             className="flex-row-reverse w-full sm:w-auto"
           >
-            LANJUTKAN KE RUANG TENANG →
+            LANJUTKAN KE RUANG TENANG
           </Button>
         </div>
       </ContentColumn>
