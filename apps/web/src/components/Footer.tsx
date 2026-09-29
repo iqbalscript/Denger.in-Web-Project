@@ -16,8 +16,8 @@ export function Footer() {
               <span className="font-bold text-lg text-[#151515] tracking-tight">Dengar.in</span>
             </div>
             <p className="text-[#59544D] text-xs sm:text-sm leading-relaxed max-w-md font-medium">
-              Pendamping kesehatan mental anonim untuk membantu memahami beban pikiran,
-              mengurai konteks nyata (sekolah, kampus, kerja, finansial), dan mengambil langkah kecil yang aman.
+              Pendamping kesehatan mental anonim yang mendengarkan tanpa menghakimi, menemanimu memahami
+              beban pikiran (sekolah, kampus, kerja, keuangan) dan mengambil langkah kecil yang aman.
             </p>
             <div className="flex items-center gap-2 text-xs text-[#151515] font-bold pt-1">
               <ShieldCheck className="w-4 h-4 text-[#4169FF]" />
@@ -85,7 +85,7 @@ export function Footer() {
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-[#4169FF] hover:underline transition-colors"
                 >
                   <Key className="w-3.5 h-3.5 text-[#FF8A3D]" />
-                  <span>Kode Pemulihan 12 Bagian</span>
+                  <span>Kunci Pemulihan (12 Bagian)</span>
                 </Link>
               </li>
             </ul>
@@ -105,7 +105,7 @@ export function Footer() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 text-xs text-[#59544D] font-medium">
-            <span>© 2026 Dengar.in — MindCraft Web Competition 2026</span>
+            <span>© 2026 Dengar.in, MindCraft Web Competition 2026</span>
             <span className="inline-flex items-center gap-1">
               Website by 5 Pria Berflanell (Telkom University Surabaya)
             </span>

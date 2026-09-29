@@ -32,7 +32,15 @@ const REDIS_URL = process.env.REDIS_URL;
 const globalForRedis = globalThis as typeof globalThis & {
   __dengarinRedisClient?: RedisClient;
   __dengarinRedisPending?: Promise<RedisClient | null>;
+  __dengarinRedisRetryAt?: number;
 };
+
+/**
+ * Setelah gagal terhubung, jangan coba lagi selama jeda ini. Tanpa jeda, SETIAP
+ * request selama Redis mati menunggu satu putaran reconnect penuh (~1 detik)
+ * hanya untuk gagal lagi — Redis yang mati berubah menjadi situs yang lambat.
+ */
+const RETRY_COOLDOWN_MS = 2_000;
 
 function createRedisClient() {
   const client = createClient({
@@ -65,6 +73,7 @@ export async function getRedis(): Promise<RedisClient | null> {
   const cached = globalForRedis.__dengarinRedisClient;
   if (cached?.isReady) return cached;
   if (globalForRedis.__dengarinRedisPending) return globalForRedis.__dengarinRedisPending;
+  if (Date.now() < (globalForRedis.__dengarinRedisRetryAt ?? 0)) return null;
 
   const pending = (async (): Promise<RedisClient | null> => {
     try {
@@ -99,6 +108,7 @@ export async function getRedis(): Promise<RedisClient | null> {
       }
 
       if (!client.isOpen) await client.connect();
+      globalForRedis.__dengarinRedisRetryAt = undefined;
       return client;
     } catch (error) {
       console.error(
@@ -107,6 +117,7 @@ export async function getRedis(): Promise<RedisClient | null> {
       );
       // Buang client yang rusak supaya percobaan berikutnya membuat yang baru.
       globalForRedis.__dengarinRedisClient = undefined;
+      globalForRedis.__dengarinRedisRetryAt = Date.now() + RETRY_COOLDOWN_MS;
       return null;
     } finally {
       globalForRedis.__dengarinRedisPending = undefined;
@@ -115,6 +126,19 @@ export async function getRedis(): Promise<RedisClient | null> {
 
   globalForRedis.__dengarinRedisPending = pending;
   return pending;
+}
+
+/**
+ * Redis tidak boleh menambah latensi tanpa batas ke request pengguna. Bungkus
+ * setiap operasi Redis yang berada di jalur request; lewat batas ini pemanggil
+ * jatuh ke jalur non-Redis miliknya.
+ */
+export function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`timeout ${milliseconds}ms`)), milliseconds);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 /** Prefiks tunggal untuk semua key milik aplikasi, memudahkan SCAN dan FLUSH selektif. */

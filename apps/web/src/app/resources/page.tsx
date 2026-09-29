@@ -20,7 +20,7 @@ export default function ResourcesPage() {
     { id: 'national_emergency', label: 'Darurat Nasional' },
     { id: 'crisis_hotline', label: 'Pencegahan Krisis' },
     { id: 'teen_protection', label: 'Khusus Remaja (15–17 Th)' },
-    { id: 'financial_advocacy', label: 'Advokasi Pinjol / Finansial' },
+    { id: 'financial_advocacy', label: 'Bantuan Soal Pinjol & Keuangan' },
   ];
 
   const filtered = EMERGENCY_CONTACTS.filter((contact) => {
@@ -54,8 +54,8 @@ export default function ResourcesPage() {
           BANTUAN PROFESIONAL &amp; SALURAN KRISIS INDONESIA
         </h1>
         <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-2xl font-medium">
-          Ketika bantuan mandiri tidak lagi mencukupi, tenaga profesional manusia siap mendampingimu.
-          Semua kontak di bawah ini merupakan lembaga resmi, nirlaba terverifikasi, atau otoritas negara.
+          Meminta bantuan bukan tanda lemah, itu tanda kamu peduli pada dirimu sendiri. Ada orang-orang yang siap mendengarkan dan mendampingimu.
+          Semua kontak di bawah ini adalah lembaga resmi, nirlaba terverifikasi, atau otoritas negara.
         </p>
       </div>
 

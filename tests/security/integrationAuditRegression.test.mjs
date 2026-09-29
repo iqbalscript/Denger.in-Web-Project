@@ -85,21 +85,21 @@ function mapChatError(status, json) {
   return (
     json?.error ||
     (status === 413
-      ? 'Pesan terlalu panjang (maksimum 2.000 karakter).'
+      ? 'Pesanmu terlalu panjang untuk sekali kirim (maksimum 2.000 karakter). Boleh dipecah jadi beberapa bagian, ya.'
       : status === 429
-        ? 'Terlalu banyak permintaan. Coba lagi sebentar lagi.'
-        : 'Maaf, terjadi kendala saat memproses respons. Silakan coba kirim kembali.')
+        ? 'Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.'
+        : 'Maaf, ada kendala di sisi kami dan pesanmu belum terbalas. Bukan salahmu. Coba kirim lagi sebentar lagi, ya.')
   );
 }
 
 assert.equal(
   mapChatError(413, null),
-  'Pesan terlalu panjang (maksimum 2.000 karakter).',
+  'Pesanmu terlalu panjang untuk sekali kirim (maksimum 2.000 karakter). Boleh dipecah jadi beberapa bagian, ya.',
   '413 Payload Too Large must produce human-readable length warning'
 );
 assert.equal(
   mapChatError(429, null),
-  'Terlalu banyak permintaan. Coba lagi sebentar lagi.',
+  'Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.',
   '429 Too Many Requests must produce rate-limit advice'
 );
 assert.equal(
@@ -109,7 +109,7 @@ assert.equal(
 );
 assert.equal(
   mapChatError(500, null),
-  'Maaf, terjadi kendala saat memproses respons. Silakan coba kirim kembali.',
+  'Maaf, ada kendala di sisi kami dan pesanmu belum terbalas. Bukan salahmu. Coba kirim lagi sebentar lagi, ya.',
   'Generic server error fallback message'
 );
 

@@ -2,6 +2,21 @@
 
 Panduan ini untuk penulis yang ingin mengubah kata-kata di website: judul, deskripsi, tombol, pertanyaan, pesan kosong, dan pesan kesalahan. Mengedit dokumen ini **tidak mengubah website**. Teks saat ini berada di file `.tsx` dan `.ts` di bawah; belum ada panel CMS atau satu file terjemahan terpusat.
 
+## Gaya bahasa: hangat dan berempati
+
+Panduan singkat yang dipakai pada revisi terakhir (riwayat lengkap: [SCRIPTWRITE_CHANGELOG.md](./SCRIPTWRITE_CHANGELOG.md)):
+
+- **Satu suara: “kamu”.** Hindari campuran “Anda/kamu” dalam satu halaman. Pengecualian: teks hukum/klinis yang sudah ditinjau (`CLINICAL_DISCLAIMER`, pertanyaan asesmen).
+- **Validasi dulu, arahan kemudian.** “Wajar kalau terasa berat” sebelum “coba lakukan ini”.
+- **Beri izin, bukan perintah.** “Boleh dilewati”, “kalau mau”, “pelan-pelan saja” menggantikan “wajib”, “segera”, “lengkapi”.
+- **Jangan menyalahkan pengguna saat gagal.** Tulis “ada kendala di sisi kami”, bukan “input tidak valid”.
+- **Bahasa sehari-hari, bukan istilah klinis/teknis.** Hindari “pemicu”, “sintesis”, “severe”, “deterministik” di teks yang dibaca pengguna umum; klaim keamanan tetap disebut dengan jujur.
+- **Jangan menjanjikan lebih dari yang dilakukan fitur.** “Tanpa jejak” dan “terbukti aman” diganti klaim yang benar.
+- **Santai, tidak terlalu baku.** Boleh “gak, aja, banget”, boleh campur bahasa Inggris (*check-in, streak, dashboard, cloud, burnout*) selama gampang dimengerti. Yang penting: hindari istilah klinis/teknis yang bikin bingung (mis. “triase”, “regulasi emosi”, “deterministik”).
+- **Tombol berikon panah jangan menulis “→” lagi** di teksnya; komponen `Button` sudah menampilkan ikonnya (kalau ditulis, panah tampil dua kali).
+- **Konten keselamatan tetap utuh.** Nomor darurat, batas layanan, dan rujukan profesional tidak boleh hilang saat teks dipermanis.
+- Bila teks yang sama disalin di uji otomatis (mis. `tests/security/integrationAuditRegression.test.mjs` untuk pesan 413/429), ubah keduanya.
+
 ## Mulai dari sini
 
 1. Buka halaman yang ingin diubah dan salin potongan kalimatnya.
@@ -13,7 +28,7 @@ Panduan ini untuk penulis yang ingin mengubah kata-kata di website: judul, deskr
 Alternatif pencarian melalui terminal:
 
 ```bash
-rg -n -F 'GAK HARUS' apps/web/src packages services
+rg -n -F 'TIDAK HARUS' apps/web/src packages services
 rg -n -F 'Teks yang ingin dicari' apps/web/src packages services
 ```
 
@@ -25,7 +40,7 @@ Semua lokasi berikut adalah tautan relatif yang bisa dibuka dari dokumen ini.
 
 | Halaman / URL | File sumber | Teks yang biasa diedit |
 |---|---|---|
-| Beranda `/` | [page.tsx](../apps/web/src/app/page.tsx) | Headline `GAK HARUS`, pengantar, tombol, `moodOptions`, pemberitahuan tersimpan |
+| Beranda `/` | [page.tsx](../apps/web/src/app/page.tsx) | Headline `TIDAK HARUS`, pengantar, tombol, `moodOptions`, pemberitahuan tersimpan |
 | Persetujuan `/consent` | [consent/page.tsx](../apps/web/src/app/consent/page.tsx) | Penjelasan privasi, persetujuan, label checkbox, tombol lanjut |
 | Perkenalan `/onboarding` | [onboarding/page.tsx](../apps/web/src/app/onboarding/page.tsx) | Judul langkah, petunjuk memilih usia/topik, tombol navigasi |
 | Asesmen `/assessment` | [assessment/page.tsx](../apps/web/src/app/assessment/page.tsx) | Instruksi dan tombol; pertanyaan berasal dari config |
@@ -77,11 +92,11 @@ Ubah nilai teks, bukan nama konstanta, `id`, `domain`, `value`, skor, `highProte
 
 ```tsx
 // Sebelum
-GAK HARUS <br />
+TIDAK HARUS <br />
 BERES SEMUANYA <br />
 
 // Sesudah (contoh redaksi)
-PELAN-PELAN AJA <br />
+PELAN-PELAN SAJA <br />
 SATU LANGKAH DULU <br />
 ```
 
