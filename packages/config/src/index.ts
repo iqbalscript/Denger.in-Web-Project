@@ -113,22 +113,22 @@ export const PRD_AGE_BRACKET_CONFIGS: Record<
   '18-29': {
     id: '18-29',
     label: '18–29 Tahun',
-    subtext: 'Mahasiswa, Fresh Graduate, Karir Awal',
-    rationale: 'Menyesuaikan konteks transisi kemandirian, tekanan perkuliahan, adaptasi karir awal, dan pencarian jati diri.',
+    subtext: 'Mahasiswa, Fresh Graduate, Karier Awal',
+    rationale: 'Pembahasan disesuaikan dengan masa peralihan: mulai mandiri, tekanan kuliah, awal karier, dan mencari jati diri.',
     highProtection: false
   },
   '30-49': {
     id: '30-49',
     label: '30–49 Tahun',
     subtext: 'Pekerja Profesional, Wirausaha, Berkeluarga',
-    rationale: 'Menyesuaikan beban tanggung jawab ekonomi rumah tangga, dinamika karir mapan, dan beban generasi sandwich.',
+    rationale: 'Pembahasan disesuaikan dengan tanggung jawab ekonomi keluarga, tekanan di karier yang sudah mapan, dan beban generasi sandwich (menanggung anak sekaligus orang tua).',
     highProtection: false
   },
   '50+': {
     id: '50+',
     label: '50+ Tahun',
     subtext: 'Senior / Lansia / Prapensiun (Mode Aksesibilitas Teks Besar)',
-    rationale: 'Mengaktifkan mode keterbacaan tinggi (18px+), navigasi yang tenang tanpa tekanan waktu, dan topik ketenangan hidup.',
+    rationale: 'Teks lebih besar dan mudah dibaca, tampilan tenang tanpa tekanan waktu, dan topik seputar ketenangan hidup.',
     highProtection: false,
     accessibilityMode: true
   }
@@ -145,7 +145,7 @@ export const AGE_BRACKET_CONFIGS: Record<AgeBracket, { label: string; subtext: s
   },
   '18-29': {
     label: '18–29 Tahun',
-    subtext: 'Mahasiswa, Fresh Graduate, Karir Awal',
+    subtext: 'Mahasiswa, Fresh Graduate, Karier Awal',
     highProtection: false
   },
   '30-49': {
@@ -160,7 +160,7 @@ export const AGE_BRACKET_CONFIGS: Record<AgeBracket, { label: string; subtext: s
   },
   '18-24': {
     label: '18–24 Tahun',
-    subtext: 'Mahasiswa, Fresh Graduate, Karir Awal',
+    subtext: 'Mahasiswa, Fresh Graduate, Karier Awal',
     highProtection: false
   },
   '25-34': {
@@ -182,8 +182,8 @@ export const TOPIC_PILLARS: Record<TopicPillarId, TopicPillarConfig> = {
   finance: {
     id: 'finance',
     label: 'Tekanan Finansial & Utang',
-    tagline: 'Mengurai kecemasan biaya hidup, cicilan, dan tekanan ekonomi keluarga.',
-    description: 'Ruang aman untuk membahas beban hutang, pinjaman, nafkah keluarga, atau kecemasan masa depan tanpa rasa malu atau penghakiman.',
+    tagline: 'Pelan-pelan mengurai cemas soal biaya hidup, cicilan, dan tekanan ekonomi keluarga.',
+    description: 'Ruang aman untuk bercerita tentang utang, pinjaman, nafkah keluarga, atau cemas soal masa depan. Kamu tidak perlu malu, dan tidak akan dihakimi.',
     icon: 'Coins',
     mappedDomains: ['finance', 'work'],
     primaryDomain: 'finance',
@@ -192,8 +192,8 @@ export const TOPIC_PILLARS: Record<TopicPillarId, TopicPillarConfig> = {
   trauma: {
     id: 'trauma',
     label: 'Beban Emosional & Trauma Masa Lalu',
-    tagline: 'Memulihkan luka batin, penolakan, rasa bersalah, dan duka mendalam.',
-    description: 'Dukungan bertahap untuk memproses kenangan yang menyakitkan atau dinamika keluarga yang membekas secara aman.',
+    tagline: 'Merawat luka batin, rasa ditolak, rasa bersalah, dan duka yang dalam, sepelan yang kamu mau.',
+    description: 'Dukungan bertahap untuk memproses kenangan yang menyakitkan atau dinamika keluarga yang membekas, dengan kecepatanmu sendiri. Kamu boleh berhenti kapan saja.',
     icon: 'HeartHandshake',
     mappedDomains: ['family', 'loneliness', 'general'],
     primaryDomain: 'family',
@@ -201,9 +201,9 @@ export const TOPIC_PILLARS: Record<TopicPillarId, TopicPillarConfig> = {
   },
   sexual_violence: {
     id: 'sexual_violence',
-    label: 'Penyintas Kekerasan Seksual & Relasi Toksik',
-    tagline: 'Ruang privat penuh respek untuk memulihkan kedaulatan dirimu.',
-    description: 'Pendampingan yang menghormati otonomimu sepenuhnya tanpa penghakiman. Dilengkapi rujukan langsung ke pendamping profesional tersertifikasi.',
+    label: 'Penyintas Kekerasan Seksual & Hubungan Toksik',
+    tagline: 'Ruang privat yang penuh hormat untuk memulihkan kendali atas dirimu.',
+    description: 'Pendampingan yang menghormati keputusanmu sepenuhnya. Apa pun yang terjadi, itu bukan salahmu. Tersedia rujukan langsung ke pendamping profesional tersertifikasi.',
     icon: 'ShieldCheck',
     mappedDomains: ['relationship', 'general'],
     primaryDomain: 'relationship',
@@ -227,12 +227,12 @@ export const DOMAIN_CONFIGS: Record<InterventionDomain, { label: string; descrip
   },
   work: {
     label: 'Beban Pekerjaan',
-    description: 'Burnout, konflik atasan/rekan kerja, beban target, atau kecemasan karir.',
+    description: 'Burnout, konflik atasan/rekan kerja, beban target, atau kecemasan karier.',
     icon: 'Briefcase'
   },
   finance: {
     label: 'Tekanan Finansial',
-    description: 'Kecemasan hutang, teror pinjol, beban generasi sandwich, atau biaya hidup.',
+    description: 'Kecemasan utang, teror pinjol, beban generasi sandwich, atau biaya hidup.',
     icon: 'Coins'
   },
   relationship: {
@@ -252,7 +252,7 @@ export const DOMAIN_CONFIGS: Record<InterventionDomain, { label: string; descrip
   },
   general: {
     label: 'Beban Pikiran Umum',
-    description: 'Merasa kewalahan namun belum yakin penyebab spesifiknya.',
+    description: 'Merasa kewalahan tapi belum tahu penyebabnya, dan itu juga boleh.',
     icon: 'Sparkles'
   }
 };
@@ -356,7 +356,7 @@ export const ADAPTIVE_ASSESSMENT_QUESTIONS: AdaptiveAssessmentQuestion[] = [
   {
     id: 'context-finance',
     topic: 'finance',
-    text: 'Seberapa jauh kekhawatiran seputar kondisi finansial atau kewajiban utang mempengaruhi rasa aman batin Anda?',
+    text: 'Seberapa jauh kekhawatiran seputar kondisi finansial atau kewajiban utang memengaruhi rasa aman batin Anda?',
     subtext: 'Kondisi finansial bukan ukuran harga diri Anda sebagai manusia.',
     sensitive: false,
     skippable: false,
@@ -373,7 +373,7 @@ export const ADAPTIVE_ASSESSMENT_QUESTIONS: AdaptiveAssessmentQuestion[] = [
     id: 'context-trauma',
     topic: 'trauma',
     text: 'Ketika memori atau beban emosional masa lalu yang menyakitkan muncul, seberapa intens hal itu memicu rasa sesak atau gelisah?',
-    subtext: 'Anda berada di ruang aman dan berdaya. Pertanyaan ini dapat Anda lewati tanpa mempengaruhi akses layanan.',
+    subtext: 'Anda berada di ruang aman dan berdaya. Pertanyaan ini dapat Anda lewati tanpa memengaruhi akses layanan.',
     sensitive: true,
     skippable: true,
     scoringCategory: 'context_impact',
@@ -421,7 +421,7 @@ export const ADAPTIVE_ASSESSMENT_QUESTIONS: AdaptiveAssessmentQuestion[] = [
     id: 'functioning-impact',
     topic: 'general',
     text: 'Apakah pikiran yang berkecamuk membuat Anda sulit tidur nyenyak, gelisah saat istirahat, atau merasa lelah saat bangun pagi?',
-    subtext: 'Kualitas istirahat merupakan cerminan dari tingkat ketegangan sistem saraf Anda.',
+    subtext: 'Kualitas istirahat sering mencerminkan seberapa tegang tubuh dan pikiranmu.',
     sensitive: false,
     skippable: false,
     scoringCategory: 'functional_impact',
@@ -444,9 +444,9 @@ export const ADAPTIVE_ASSESSMENT_QUESTIONS: AdaptiveAssessmentQuestion[] = [
     defaultNextQuestionId: null,
     options: [
       { id: 'opt-supp-0', label: 'Latihan mandiri perlahan & ruang jurnal refleksi privat', score: 0, nextQuestionId: null },
-      { id: 'opt-supp-1', label: 'Misi harian terarah dan ruang komunitas solidaritas anonim', score: 1, nextQuestionId: null },
-      { id: 'opt-supp-2', label: 'Panduan regulasi emosi terarah & opsi konsultasi profesional', score: 2, nextQuestionId: null },
-      { id: 'opt-supp-3', label: 'Rujukan prioritas ke tenaga profesional / akses bantuan darurat', score: 3, nextQuestionId: null }
+      { id: 'opt-supp-1', label: 'Misi harian dan ruang cerita anonim bersama sesama', score: 1, nextQuestionId: null },
+      { id: 'opt-supp-2', label: 'Panduan mengelola emosi & opsi konsultasi profesional', score: 2, nextQuestionId: null },
+      { id: 'opt-supp-3', label: 'Diarahkan ke tenaga profesional / bantuan darurat', score: 3, nextQuestionId: null }
     ]
   }
 ];
@@ -474,13 +474,13 @@ export const DOMAIN_MISSION_TEMPLATES: Record<InterventionDomain, DailyMission> 
   school: {
     id: 'mission-school-1',
     domain: 'school',
-    title: 'Manajemen Ritme Belajar & Pernapasan Kotak',
+    title: 'Tenangkan Diri Sebelum Belajar',
     summary: 'Menenangkan kecemasan sebelum menghadapi ujian atau tumpukan tugas sekolah.',
     durationMinutes: 5,
     steps: [
-      'Tutup buku atau layar sejenak, rilekskan bahu dan rahangmu.',
-      'Tarik napas perlahan 4 detik, tahan 4 detik, hembuskan 4 detik, tahan 4 detik (ulangi 3 kali).',
-      'Pilih TEPAT SATU tugas kecil yang paling mendesak hari ini. Abaikan sisanya untuk 25 menit ke depan.'
+      'Tutup buku atau layar sejenak, kendurkan bahu dan rahangmu.',
+      'Tarik napas pelan sambil hitung sampai 4, tahan 4 hitungan, embuskan pelan 4 hitungan, lalu tahan lagi 4 hitungan. Ulangi 3 kali.',
+      'Pilih satu tugas kecil yang paling mendesak. Kerjakan itu dulu selama 25 menit, sisanya boleh menunggu.'
     ],
     reflectionQuestion: 'Apa satu tugas kecil yang akan kamu selesaikan pertama kali setelah ini?',
     completed: false
@@ -488,8 +488,8 @@ export const DOMAIN_MISSION_TEMPLATES: Record<InterventionDomain, DailyMission> 
   campus: {
     id: 'mission-campus-1',
     domain: 'campus',
-    title: 'Dekonstruksi Beban Skripsi & Tugas Kuliah',
-    summary: 'Mengurai kemacetan berpikir dan rasa kewalahan saat menghadapi dosen atau revisi.',
+    title: 'Mengurai Beban Skripsi & Tugas Kuliah',
+    summary: 'Membantu pikiran yang buntu dan rasa kewalahan saat menghadapi dosen atau revisi.',
     durationMinutes: 6,
     steps: [
       'Ambil selembar kertas, tuliskan 1 hambatan utama yang membuatmu menunda skripsi/tugas.',
@@ -502,11 +502,11 @@ export const DOMAIN_MISSION_TEMPLATES: Record<InterventionDomain, DailyMission> 
   work: {
     id: 'mission-work-1',
     domain: 'work',
-    title: 'Menetapkan Batasan Sehat (Work-Life Boundaries)',
-    summary: 'Menjaga kewarasan mental dari tuntutan kantor dan bahaya kelelahan kronis (burnout).',
+    title: 'Memberi Batas yang Sehat untuk Pekerjaan',
+    summary: 'Menjaga pikiranmu dari tuntutan kantor dan kelelahan yang menumpuk (burnout).',
     durationMinutes: 5,
     steps: [
-      'Buat ritual transisi: ambil 3 tarikan napas panjang yang menandakan jam kerjamu telah usai.',
+      'Tandai jam kerja selesai: tarik napas panjang 3 kali, lalu bilang ke dirimu, "kerjaan hari ini sudah cukup".',
       'Tunda membalas pesan non-darurat kantor hingga jam kerja esok hari.',
       'Katakan pada dirimu: "Pekerjaanku penting, tetapi kesehatan mentalku lebih utama."'
     ],
@@ -516,12 +516,12 @@ export const DOMAIN_MISSION_TEMPLATES: Record<InterventionDomain, DailyMission> 
   finance: {
     id: 'mission-finance-1',
     domain: 'finance',
-    title: 'Grounding Keuangan: Mengurai Cemas Menjadi Data',
-    summary: 'Menstabilkan pikiran saat menghadapi tekanan finansial atau kekhawatiran hutang.',
+    title: 'Menenangkan Cemas Soal Uang',
+    summary: 'Menenangkan pikiran saat uang atau utang bikin cemas.',
     durationMinutes: 7,
     steps: [
       'Tarik napas panjang. Ingatkan dirimu: "Kondisi finansialku bukan ukuran harga diriku sebagai manusia."',
-      'Tuliskan daftar pengeluaran wajib vs yang bisa ditunda tanpa menghakimi diri sendiri.',
+      'Tulis pengeluaran yang wajib dan yang bisa ditunda. Gak perlu menyalahkan diri sendiri.',
       'Jika menghadapi teror penagihan pinjol ilegal, simpan bukti dan ketahuilah ada saluran resmi Satgas PASTI/OJK (157) yang siap melindungimu.'
     ],
     reflectionQuestion: 'Apa satu hal dalam kendalimu hari ini yang bisa membantumu merasa sedikit lebih tenang?',
@@ -530,7 +530,7 @@ export const DOMAIN_MISSION_TEMPLATES: Record<InterventionDomain, DailyMission> 
   relationship: {
     id: 'mission-relationship-1',
     domain: 'relationship',
-    title: 'Penyaluran Emosi Tertulis (Surat Tanpa Kirim)',
+    title: 'Tulis Surat yang Tidak Dikirim',
     summary: 'Menenangkan badai emosi saat mengalami patah hati, konflik, atau salah paham.',
     durationMinutes: 6,
     steps: [
@@ -544,8 +544,8 @@ export const DOMAIN_MISSION_TEMPLATES: Record<InterventionDomain, DailyMission> 
   family: {
     id: 'mission-family-1',
     domain: 'family',
-    title: 'Ruang Tenang Mandiri dari Ketegangan Keluarga',
-    summary: 'Memberi jeda emosional dari ekspektasi atau gesekan dinamika di rumah.',
+    title: 'Waktu Tenang Saat Rumah Terasa Tegang',
+    summary: 'Memberi dirimu jeda dari tuntutan atau ketegangan di rumah.',
     durationMinutes: 5,
     steps: [
       'Cari ruang tenang (kamar, teras, atau berjalan kaki sebentar) untuk menyendiri selama 5 menit.',
@@ -558,13 +558,13 @@ export const DOMAIN_MISSION_TEMPLATES: Record<InterventionDomain, DailyMission> 
   loneliness: {
     id: 'mission-loneliness-1',
     domain: 'loneliness',
-    title: 'Koneksi Mikro & Kesadaran Kehadiran',
-    summary: 'Meringankan rasa hampa dan terasing dengan langkah sederhana menyapa dunia.',
+    title: 'Terhubung Lagi, Pelan-Pelan',
+    summary: 'Meringankan rasa sepi lewat langkah kecil untuk terhubung lagi.',
     durationMinutes: 5,
     steps: [
       'Buka jendela atau melangkah ke luar rumah, rasakan hembusan angin dan cahaya sekitar selama 2 menit.',
       'Kirimkan satu pesan singkat yang tulus kepada seorang teman, atau sapa seseorang dengan senyum ramah.',
-      'Ingatlah bahwa kesepian adalah pengalaman yang dirasakan oleh jutaan orang lain saat ini — kamu tidak aneh.'
+      'Ingatlah bahwa kesepian adalah pengalaman yang dirasakan oleh jutaan orang lain saat ini. Kamu tidak aneh.'
     ],
     reflectionQuestion: 'Siapa satu orang yang terlintas di pikiranmu saat membaca ini?',
     completed: false
@@ -572,16 +572,16 @@ export const DOMAIN_MISSION_TEMPLATES: Record<InterventionDomain, DailyMission> 
   general: {
     id: 'mission-general-1',
     domain: 'general',
-    title: 'Latihan Stabilisasi Napas 4-7-8 & Orientasi Ruang',
-    summary: 'Menenangkan sistem saraf tubuh saat pikiran terasa penuh dan berantakan.',
+    title: 'Napas Pelan & Kenali Sekitarmu',
+    summary: 'Menenangkan tubuh saat pikiran terasa penuh dan berantakan.',
     durationMinutes: 5,
     steps: [
-      'Duduk bersandar tegak namun rileks. Tarik napas melalui hidung 4 detik.',
-      'Tahan napasmu selama 7 detik tanpa tegang.',
-      'Hembuskan napas panjang melalui mulut selama 8 detik. Ulangi siklus ini 3–4 kali.',
+      'Duduk santai dengan punggung tegak. Tarik napas lewat hidung sambil hitung sampai 4.',
+      'Tahan napas sambil hitung sampai 7, tanpa menegangkan badan.',
+      'Embuskan pelan lewat mulut sambil hitung sampai 8. Ulangi 3 sampai 4 kali.',
       'Sebutkan 3 benda nyata di sekitarmu yang bisa kamu lihat dengan jelas.'
     ],
-    reflectionQuestion: 'Apakah sensasi di dada atau kepalamu terasa sedikit lebih lapang sekarang?',
+    reflectionQuestion: 'Apakah dada atau kepalamu terasa sedikit lebih lega sekarang?',
     completed: false
   }
 };

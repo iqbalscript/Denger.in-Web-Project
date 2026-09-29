@@ -92,7 +92,7 @@ export default function MissionPage() {
     return (
       <PageContainer size="narrow">
         <div className="py-16 text-center text-sm text-ink/70 font-medium">
-          Memuat misi harian Anda...
+          Menyiapkan misi kecilmu...
         </div>
       </PageContainer>
     );
@@ -141,7 +141,7 @@ export default function MissionPage() {
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-ink">
             <Sparkles className="w-4 h-4 text-cobalt" />
-            <span>PANDUAN LANGKAH DEMI LANGKAH:</span>
+            <span>LAKUKAN PELAN-PELAN, SATU LANGKAH SAJA:</span>
           </div>
 
           <div className="space-y-4">
@@ -170,7 +170,7 @@ export default function MissionPage() {
             value={reflectionText}
             onChange={handleReflectionChange}
             disabled={isCompleted}
-            placeholder="Tuliskan 1 kalimat respon atau perasaanmu setelah menjalani langkah di atas..."
+            placeholder="Kalau mau, tulis satu kalimat tentang apa yang kamu rasakan setelahnya..."
           />
         </div>
 
@@ -183,7 +183,7 @@ export default function MissionPage() {
                 <div className="space-y-0.5">
                   <h4 className="text-sm font-black text-ink uppercase tracking-wide">Misi Selesai untuk Hari Ini</h4>
                   <p className="text-xs text-ink/80 leading-relaxed font-medium">
-                    Satu tindakan kecil yang nyata telah kamu selesaikan. Istirahatlah dengan tenang.
+                    Kamu sudah melakukan satu hal kecil untuk dirimu hari ini, dan itu berarti. Sekarang, silakan istirahat.
                   </p>
                 </div>
               </div>

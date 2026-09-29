@@ -63,7 +63,7 @@ export default function OnboardingPage() {
         {/* Top: Progress Indicator */}
         <div className="space-y-2 text-left">
           <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-ink">
-            <span>LANGKAH AWAL PENDAMPINGAN</span>
+            <span>KENALAN DULU, SEBENTAR SAJA</span>
             <span className="bg-yellow px-2 py-0.5 border-2 border-ink rounded shadow-hard-sm">
               LANGKAH {step} DARI 2
             </span>
@@ -76,13 +76,13 @@ export default function OnboardingPage() {
           <div className="space-y-6 text-left">
             <div className="space-y-2">
               <Badge variant="calm" size="md">
-                Konteks Pengguna
+                Biar Kami Lebih Paham
               </Badge>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-ink tracking-tight uppercase leading-tight">
-                BERAPA RENTANG USIA ANDA SAAT INI?
+                KAMU DI RENTANG USIA BERAPA?
               </h1>
               <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
-                Pilih kartu yang menggambarkan generasimu untuk menyesuaikan bahasa asesmen.
+                Pilih yang paling sesuai, supaya bahasa kami terasa pas untukmu.
               </p>
             </div>
 
@@ -92,9 +92,9 @@ export default function OnboardingPage() {
                 !
               </div>
               <div className="space-y-1 font-medium">
-                <span className="font-black text-ink block uppercase tracking-wide">Mengapa rentang usia diperlukan?</span>
+                <span className="font-black text-ink block uppercase tracking-wide">Kenapa kami bertanya usia?</span>
                 <p className="leading-relaxed text-[11px] sm:text-xs">
-                  Usia membantu Dengar.in mengadaptasi kosakata, nada bicara, serta protokol perlindungan
+                  Usia membantu Dengar.in menyesuaikan kosakata, nada bicara, serta perlindungan
                   khusus (seperti hotline anak untuk usia 15–17). Kami{' '}
                   <strong className="text-ink font-bold">tidak pernah</strong> meminta nama,
                   tanggal lahir, KTP, ataupun data pribadi lainnya.
@@ -147,20 +147,20 @@ export default function OnboardingPage() {
           <div className="space-y-6 text-left">
             <div className="space-y-2">
               <Badge variant="calm" size="md">
-                Fokus Asesmen
+                Yang Ingin Kamu Bicarakan
               </Badge>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-ink tracking-tight uppercase leading-tight">
-                PILIH TOPIK YANG PALING MEMBEBANIMU
+                APA YANG PALING TERASA BERAT SAAT INI?
               </h1>
               <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
-                Asesmen adaptif akan mengarahkan alur pertanyaan sesuai topik pilihanmu.
+                Tidak ada jawaban yang salah. Pertanyaan berikutnya akan menyesuaikan dengan pilihanmu.
               </p>
             </div>
 
             {/* 3 Primary Pillars */}
             <div className="space-y-3 pt-1">
               <span className="text-xs font-black text-ink uppercase tracking-wider block">
-                TIGA PILAR TOPIK UTAMA:
+                PILIH YANG PALING DEKAT DENGANMU:
               </span>
 
               <div className="grid grid-cols-1 gap-3.5">
@@ -203,7 +203,7 @@ export default function OnboardingPage() {
                         </p>
                         {pillar.isSensitive && (
                           <span className="inline-block mt-1 text-[10px] font-black uppercase text-ink bg-yellow px-2 py-0.5 rounded border border-ink">
-                            Pertanyaan sensitif dapat dilewati
+                            Pertanyaan sensitif boleh kamu lewati
                           </span>
                         )}
                       </div>
@@ -220,7 +220,7 @@ export default function OnboardingPage() {
                 onClick={() => setShowAllDomains(!showAllDomains)}
                 className="flex items-center gap-1.5 text-xs font-black text-ink uppercase tracking-wider hover:text-cobalt py-1"
               >
-                <span>Atau telusuri topik konteks hidup lainnya (sekolah, kampus, pekerjaan, dll.)</span>
+                <span>Atau lihat topik lain (sekolah, kampus, pekerjaan, dan lainnya)</span>
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showAllDomains ? 'rotate-180' : ''}`} />
               </button>
 
@@ -279,7 +279,7 @@ export default function OnboardingPage() {
             icon={<ArrowRight className="w-4 h-4" />}
             className="flex-row-reverse"
           >
-            {step === 2 ? 'MULAI ASESMEN ADAPTIF' : 'LANJUTKAN KE TOPIK'}
+            {step === 2 ? 'LANJUT KE PERTANYAAN' : 'LANJUTKAN KE TOPIK'}
           </Button>
         </div>
       </ContentColumn>

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     return jsonOk({ posts });
   } catch (err) {
     console.error('Failed to list forum posts:', err);
-    return jsonError('Gagal memuat cerita forum. Silakan coba lagi sebentar lagi.', 500);
+    return jsonError('Cerita belum bisa dimuat saat ini. Coba lagi sebentar lagi, ya.', 500);
   }
 }
 
@@ -83,6 +83,6 @@ export async function POST(request: NextRequest) {
     return jsonOk({ crisis: false, post, moderation }, { status: 201 });
   } catch (err) {
     console.error('Failed to create forum post:', err);
-    return jsonError('Terjadi kendala saat menyimpan cerita ke database. Silakan coba lagi sebentar lagi.', 500);
+    return jsonError('Ceritamu belum tersimpan karena ada kendala di sisi kami. Coba lagi sebentar lagi, ya.', 500);
   }
 }

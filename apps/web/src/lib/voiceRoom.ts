@@ -103,7 +103,7 @@ export function validatedActionDisplayText(action: unknown): string | null {
     case 'suggest_mission':
       return typeof candidate.reason === 'string' && candidate.reason.trim()
         ? candidate.reason.trim()
-        : 'Aku menyarankan satu latihan terarah untuk membantumu saat ini:';
+        : 'Aku menyarankan satu latihan singkat untuk membantumu saat ini:';
     case 'open_journal_prompt':
       return typeof candidate.prompt === 'string' && candidate.prompt.trim()
         ? candidate.prompt.trim()
@@ -117,7 +117,7 @@ export function validatedActionDisplayText(action: unknown): string | null {
     case 'adjust_path':
       return typeof candidate.reason === 'string' && candidate.reason.trim()
         ? candidate.reason.trim()
-        : 'Kami menyarankan penyesuaian ritme langkah pemulihanmu:';
+        : 'Kami menyarankan kamu mengatur ulang kecepatan langkahmu:';
     default:
       return null;
   }
