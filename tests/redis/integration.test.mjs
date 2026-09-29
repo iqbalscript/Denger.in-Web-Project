@@ -144,11 +144,66 @@ try {
   await clearQuota();
   const statuses = await burst(a.base, 33);
   assert.deepEqual(statuses, [...Array(30).fill(200), ...Array(3).fill(429)]);
-  const quota = await client.keys('dengarin:ratelimit:chat:*');
-  assert.equal(quota.length, 1);
-  assert.equal(await client.get(quota[0]), '33');
-  assert.ok(await client.ttl(quota[0]) > 0);
-  pass('33 chat: 30×200, 3×429; counter 33 dengan TTL');
+  // Next mengisi X-Forwarded-For dari socket bila kosong, jadi tes ini satu klien (loopback).
+  const [clientKey, ...extraKeys] = await client.keys('dengarin:ratelimit:client:chat:*');
+  assert.equal(extraKeys.length, 0);
+  assert.equal(await client.get(clientKey), '33');
+  assert.ok(await client.ttl(clientKey) > 0);
+  // Tiga permintaan yang ditolak lapis klien tidak boleh menguras pagar global.
+  assert.equal(await client.get('dengarin:ratelimit:global:chat'), '30');
+  assert.ok(await client.pTTL('dengarin:ratelimit:global:chat') > 0);
+  pass('33 chat: 30×200, 3×429; counter klien 33, global 30, keduanya ber-TTL');
+  await clearQuota();
+  const heavy = { 'X-Forwarded-For': '203.0.113.10' };
+  const other = { 'X-Forwarded-For': '203.0.113.20' };
+  assert.deepEqual(await burst(a.base, 33, heavy), [...Array(30).fill(200), ...Array(3).fill(429)]);
+  assert.deepEqual(await burst(a.base, 5, other), Array(5).fill(200));
+  assert.deepEqual(await burst(a.base, 2), Array(2).fill(200));
+  const clientKeys = await client.keys('dengarin:ratelimit:client:chat:*');
+  assert.equal(clientKeys.length, 3);
+  assert.ok(clientKeys.every(key => !key.includes('203.0.113')), 'IP mentah tidak masuk Redis');
+  pass('Klien A diblokir setelah 30, klien B dan loopback tetap dilayani; IP mentah tidak tersimpan');
+  await clearQuota();
+  // Forum: feed publik dibaca lewat Redis dan tidak pernah basi setelah tulis.
+  const story = (title) => ({ authorPseudonym: 'Sahabat Uji', domain: 'campus', title, body: 'Aku mulai menulis satu tugas kecil setiap pagi dan merasa lebih tenang setelah beberapa hari.' });
+  const listTitles = async () => (await (await request(a.base, '/api/forum?domain=campus')).json()).data.posts.map(post => post.title);
+  const created = await request(a.base, '/api/forum', story('Cerita uji pertama tentang jadwal belajar'));
+  assert.equal(created.status, 201);
+  assert.equal((await created.json()).data.moderation.status, 'approved', 'fixture harus lolos moderasi otomatis');
+  assert.ok((await listTitles()).includes('Cerita uji pertama tentang jadwal belajar'));
+  assert.ok((await listTitles()).includes('Cerita uji pertama tentang jadwal belajar'));
+  const feedKeys = await client.keys('dengarin:forum:*:posts:*');
+  assert.equal(feedKeys.length, 1);
+  assert.ok(await client.ttl(feedKeys[0]) > 0 && await client.ttl(feedKeys[0]) <= 30);
+  const versionBefore = await client.get('dengarin:forum:version');
+  assert.equal((await request(a.base, '/api/forum', story('Cerita uji kedua langsung muncul'))).status, 201);
+  assert.notEqual(await client.get('dengarin:forum:version'), versionBefore);
+  assert.ok((await listTitles()).includes('Cerita uji kedua langsung muncul'), 'invalidasi: tulis baru langsung terlihat');
+  pass('Forum: feed di-cache (TTL ≤30 dtk), tulis baru menaikkan versi sehingga feed tidak basi');
+
+  // Lease konkurensi lintas instance (dijalankan dari proses tes, Redis yang sama).
+  const { acquireSharedSlot } = await import('../../apps/web/src/lib/api/rateLimit.ts');
+  const local = () => () => {};
+  const held = [];
+  for (let i = 0; i < 12; i++) held.push(await acquireSharedSlot('chat', local));
+  assert.ok(held.every(Boolean));
+  assert.equal(await acquireSharedSlot('chat', local), null, 'lease ke-13 ditolak');
+  assert.equal(await client.zCard('dengarin:slots:chat'), 12);
+  assert.ok(await client.pTTL('dengarin:slots:chat') > 0);
+  held[0]();
+  await waitFor(async () => (await client.zCard('dengarin:slots:chat')) === 11, undefined, 5000);
+  const again = await acquireSharedSlot('chat', local);
+  assert.ok(again, 'slot yang dilepas bisa dipakai lagi');
+  for (const release of [...held.slice(1), again]) release();
+  await waitFor(async () => (await client.zCard('dengarin:slots:chat')) === 0, undefined, 5000);
+  const localFull = await acquireSharedSlot('chat', () => null);
+  assert.equal(localFull, null, 'batas lokal penuh tidak mengambil lease');
+  assert.equal(await client.zCard('dengarin:slots:chat'), 0);
+  pass('Lease bersama: maks 12, ditolak di ke-13, dilepas bisa dipakai lagi, batas lokal didahulukan');
+
+  const health = await (await request(a.base, '/api/health')).json();
+  assert.equal(health.redis, 'up');
+  pass('/api/health melaporkan redis: up');
   const input = { message, ageBracket: '18-24' };
   const key = aiCacheKey(input);
   assert.match(key, /^dengarin:ai:[a-f0-9]{64}$/);
@@ -196,7 +251,10 @@ try {
   }
   await stop(redis);
   assert.equal((await request(a.base, '/api/health')).status, 200);
+  assert.equal((await (await request(a.base, '/api/health')).json()).redis, 'down');
   assert.equal((await request(a.base, '/api/redis-test')).status, 503);
+  assert.equal((await request(a.base, '/api/forum?domain=campus')).status, 200, 'forum tetap terbaca tanpa Redis');
+  assert.equal((await request(a.base, '/api/forum', story('Cerita uji saat Redis mati'))).status, 201, 'tulis forum tetap jalan tanpa Redis');
   assert.equal((await request(a.base, '/api/chat', { message })).status, 200);
   pass('Redis mati: health 200, diagnostik 503, chat fallback 200');
   redis = startRedis();
@@ -205,6 +263,7 @@ try {
   pass('Redis hidup lagi: aplikasi pulih tanpa restart');
   await stop(a.child);
   const disabled = await startApp(false);
+  assert.equal((await (await request(disabled.base, '/api/health')).json()).redis, 'disabled');
   assert.equal((await request(disabled.base, '/api/redis-test')).status, 503);
   assert.equal((await request(disabled.base, '/api/chat', { message })).status, 200);
   assert.equal((await request(disabled.base, '/resources')).status, 200);

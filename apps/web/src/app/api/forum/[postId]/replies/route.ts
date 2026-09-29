@@ -2,10 +2,11 @@ import type { NextRequest } from 'next/server';
 import { runCrisisGate } from '@/lib/api/crisisGate';
 import { forumRepository } from '@/lib/api/repositories';
 import { jsonError, jsonOk } from '@/lib/api/response';
-import { acquireForumReplyWriteSlot, isRateLimited } from '@/lib/api/rateLimit';
+import { acquireSharedForumReplyWriteSlot, isRateLimited } from '@/lib/api/rateLimit';
 import { readJsonLimited } from '@/lib/api/requestLimits';
 import { deriveThreadParticipantHash, generateAliasCandidates } from '@/lib/api/threadAlias';
 import { moderateForumReply } from '@dengarin/validator';
+import { invalidateForumCache, readThroughForum } from '@/lib/api/forumCache';
 
 const MAX_REPLY_BYTES = 4096;
 const DEFAULT_LIMIT = 20;
@@ -19,7 +20,8 @@ export async function GET(request: NextRequest, context: Context) {
   const rawLimit = request.nextUrl.searchParams.get('limit');
   const requestedLimit = rawLimit === null ? DEFAULT_LIMIT : Number(rawLimit);
   if (!Number.isInteger(requestedLimit) || requestedLimit < 1 || requestedLimit > MAX_LIMIT) return jsonError('Batas balasan harus antara 1 dan 50.', 400);
-  const page = await forumRepository.listApprovedReplies(postId, requestedLimit, request.nextUrl.searchParams.get('cursor') ?? undefined);
+  const cursor = request.nextUrl.searchParams.get('cursor') ?? undefined;
+  const page = await readThroughForum('replies', `${postId}|${requestedLimit}|${cursor ?? ''}`, () => forumRepository.listApprovedReplies(postId, requestedLimit, cursor));
   if (!page) return jsonError('Cerita tidak tersedia.', 404);
   return jsonOk(page);
 }
@@ -34,8 +36,8 @@ export async function POST(request: NextRequest, context: Context) {
   if (!crisis.cleared) return jsonOk({ crisis: true, evaluation: crisis.evaluation });
   const moderation = moderateForumReply({ body });
   if (moderation.status === 'rejected') return jsonError(moderation.reason ?? 'Balasan tidak memenuhi panduan keamanan.', 422);
-  if (await isRateLimited('forum-reply-create')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
-  const release = acquireForumReplyWriteSlot();
+  if (await isRateLimited('forum-reply-create', request)) return jsonError('Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.', 429);
+  const release = await acquireSharedForumReplyWriteSlot();
   if (!release) return jsonError('Ruang cerita sedang sibuk. Coba lagi sebentar.', 429);
   try {
     const { postId } = await context.params;
@@ -43,6 +45,7 @@ export async function POST(request: NextRequest, context: Context) {
     if (!participantKeyHash) return jsonError('Sesi balasan tidak valid atau belum dikonfigurasi.', 400);
     const reply = await forumRepository.createReply({ storyId: postId, parentReplyId: payload.parentReplyId, participantKeyHash, aliasCandidates: generateAliasCandidates(), body, initialStatus: moderation.status });
     if (!reply) return jsonError('Cerita atau konteks balasan tidak tersedia.', 404);
+    await invalidateForumCache();
     return jsonOk({ crisis: false, reply, moderation }, { status: 201 });
   } catch (error) {
     console.error('Failed to create forum reply:', error instanceof Error ? error.message : error);

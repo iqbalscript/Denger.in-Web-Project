@@ -108,6 +108,25 @@ Redis adalah **database key-value yang hidup di RAM**. Bayangkan satu `Map` raks
 
 Itulah dua masalah yang Redis pecahkan di proyek ini: **state yang tidak dibagi** dan **state yang hilang saat restart**.
 
+### Peta cakupan Redis di seluruh sistem
+
+| # | Lapisan | File | Isi di Redis | Kalau Redis mati |
+|---|---|---|---|---|
+| 1 | Cache halaman ISR/SSG | `cache-handler.mjs` | `dengarin:next:*` | LRU lokal |
+| 2 | Rate limit (klien + global) | `lib/api/rateLimit.ts` | `dengarin:ratelimit:client:*`, `…:global:*` | penghitung memori |
+| 3 | Cache jawaban AI | `lib/api/aiCache.ts` | `dengarin:ai:<sha256>` | cache miss, panggil AI |
+| 4 | Cache feed forum publik | `lib/api/forumCache.ts` | `dengarin:forum:<versi>:posts\|replies:<hash>`, `dengarin:forum:version` | baca langsung dari database |
+| 5 | Batas konkurensi lintas instance | `lib/api/rateLimit.ts` | `dengarin:slots:<chat\|room-tts\|forum-reply-write>` (lease) | hanya batas per-proses |
+| 6 | Status di health check | `app/api/health/route.ts` | `PING` saja | `redis: "down"`, tetap HTTP 200 |
+
+**Sengaja TIDAK di Redis:** teks chat/jurnal/check-in (hanya hash untuk cache AI), frasa pemulihan dan kunci, cadangan terenkripsi `/api/sync` (privat per pengguna dan bisa sampai 4 MiB), sesi admin (cookie bertanda tangan, stateless), Timeline/gamifikasi (di perangkat pengguna).
+
+**Cache forum (4).** Hanya keluaran yang sudah disetujui moderasi dan memang publik (`listApproved`, `listApprovedReplies`). Tiap tulis/moderasi/laporan memanggil `invalidateForumCache()`, yang menaikkan satu counter versi; versi ikut di nama key sehingga semua entri lama langsung tak terbaca di semua instance tanpa menghapus key satu per satu. TTL 30 detik jadi jaring pengaman dan satu-satunya batas kebasian untuk hitungan dukungan (yang sengaja tidak menaikkan versi).
+
+**Lease konkurensi (5).** `acquireChatSlot()` dkk. membatasi satu proses; N instance masih bisa menjalankan N×4 panggilan AI. `acquireShared*Slot()` menambah lease di Redis (sorted set berskor waktu kedaluwarsa, jam Redis lewat `TIME`, maks chat 12 / TTS 3 / balasan forum 12). Lease kedaluwarsa sendiri dalam 60 detik, jadi proses yang mati tidak membocorkan slot. Batas lokal diperiksa lebih dulu; bila Redis mati, hanya batas lokal yang berlaku.
+
+**Catatan mode tanpa database.** Bila `DATABASE_URL` kosong, repository forum berupa Map per-proses; cache Redis bersama lalu bisa menyajikan feed instance lain. Itu hanya berlaku untuk dev/demo; produksi memakai PostgreSQL.
+
 ### Tiga peran Redis di Dengar.in
 
 | Peran | File | Masalah yang dipecahkan |
@@ -695,8 +714,8 @@ Sintaks `as typeof globalThis & { ... }` adalah **intersection type**: "`globalT
 ### 10.0 Cara tercepat — skrip otomatis
 
 ```bash
-npm run test:redis                 # dev: 9 lulus, 0 gagal
-npm run test:redis -- --production # build bersih + produksi: 15 lulus, 0 gagal
+npm run test:redis                 # dev: 13 lulus, 0 gagal
+npm run test:redis -- --production # build bersih + produksi: 19 lulus, 0 gagal
 ```
 
 `scripts/test-redis.sh` menjalankan `tests/redis/integration.test.mjs`. Prasyarat:
@@ -716,8 +735,8 @@ Mode produksi menambah build bersih, warm-up, header cache, pembuktian isi cache
 dibaca oleh instance B, kuota bersama 20+15 request, dan kuota setelah restart app.
 
 Log koneksi error saat Redis sengaja dihentikan merupakan bagian tes kegagalan.
-Hasil sukses akhir adalah `Lolos: 9; Gagal: 0 (dev).` atau
-`Lolos: 15; Gagal: 0 (produksi).` Tidak ada tes yang dilewati diam-diam.
+Hasil sukses akhir adalah `Lolos: 13; Gagal: 0 (dev).` atau
+`Lolos: 19; Gagal: 0 (produksi).` Tidak ada tes yang dilewati diam-diam.
 Batas pembuktian privasi dan checklist deployment tercatat di
 [REDIS_TESTING_CHECKLIST.md](./REDIS_TESTING_CHECKLIST.md).
 

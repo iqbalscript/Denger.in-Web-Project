@@ -3,7 +3,7 @@ import { runOrchestrator } from '@dengarin/orchestrator';
 import { CLINICAL_DISCLAIMER } from '@dengarin/config';
 import type { AgeBracket, InterventionDomain } from '@dengarin/types';
 import { runCrisisGate } from '@/lib/api/crisisGate';
-import { acquireChatSlot, acquireTtsSlot, isRateLimited } from '@/lib/api/rateLimit';
+import { acquireSharedChatSlot, acquireSharedTtsSlot, isRateLimited } from '@/lib/api/rateLimit';
 import { CHAT_MAX_BYTES, chatInputWithinLimits, readJsonLimited } from '@/lib/api/requestLimits';
 import { jsonError, jsonOk } from '@/lib/api/response';
 import { screenChatContext } from '@/lib/api/chatHistory';
@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const release = acquireChatSlot();
-  if (!release) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  const release = await acquireSharedChatSlot();
+  if (!release) return jsonError('Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.', 429);
   let result: Awaited<ReturnType<typeof runOrchestrator>>;
   try {
     result = await runOrchestrator({
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
   let roomAudio: { data: string; mimeType: 'audio/wav' } | undefined;
   if (wantsRoomTts) {
     const displayText = validatedActionDisplayText(result.action);
-    if (displayText && !(await isRateLimited('room-tts'))) {
-      const releaseTts = acquireTtsSlot();
+    if (displayText && !(await isRateLimited('room-tts', request))) {
+      const releaseTts = await acquireSharedTtsSlot();
       if (releaseTts) {
         try {
           const tts = await createGeminiTtsProvider().synthesizeValidatedText(displayText, request.signal);

@@ -5,6 +5,7 @@ import { forumRepository } from '@/lib/api/repositories';
 import { jsonError, jsonOk } from '@/lib/api/response';
 import { isRateLimited } from '@/lib/api/rateLimit';
 import { readJsonLimited } from '@/lib/api/requestLimits';
+import { invalidateForumCache, readThroughForum } from '@/lib/api/forumCache';
 
 import { moderateForumPost } from '@dengarin/validator';
 
@@ -19,7 +20,7 @@ interface CreateForumPostBody {
 export async function GET(request: NextRequest) {
   try {
     const domainParam = request.nextUrl.searchParams.get('domain') as InterventionDomain | null;
-    const posts = await forumRepository.listApproved(50, domainParam || undefined);
+    const posts = await readThroughForum('posts', `domain=${domainParam ?? ''}`, () => forumRepository.listApproved(50, domainParam || undefined));
     return jsonOk({ posts });
   } catch (err) {
     console.error('Failed to list forum posts:', err);
@@ -78,6 +79,7 @@ export async function POST(request: NextRequest) {
       initialStatus: moderation.status
     });
 
+    await invalidateForumCache();
     return jsonOk({ crisis: false, post, moderation }, { status: 201 });
   } catch (err) {
     console.error('Failed to create forum post:', err);
