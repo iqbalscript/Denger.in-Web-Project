@@ -9,6 +9,7 @@ import type {
   DailyMission
 } from '@dengarin/types';
 import { DOMAIN_MISSION_TEMPLATES } from '@dengarin/config';
+import { getLocalDateOfTimestamp, getLocalDateString } from './calendar.ts';
 
 /** Every browser record owned by the anonymous application uses this prefix. */
 export const DENGARIN_STORAGE_PREFIX = 'dengarin_';
@@ -254,8 +255,9 @@ export function saveDailyCheckin(checkin: DailyCheckin): void {
 export function getTodayCheckin(): DailyCheckin | null {
   const list = getDailyCheckins();
   if (list.length === 0) return null;
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const found = list.find(c => c.timestamp.slice(0, 10) === todayStr);
+  // Timestamps are stored as UTC ISO strings; compare by the user's LOCAL day.
+  const todayStr = getLocalDateString();
+  const found = list.find(c => getLocalDateOfTimestamp(c.timestamp) === todayStr);
   return found || null;
 }
 
@@ -266,7 +268,7 @@ export function getTodayMission(domain?: InterventionDomain): DailyMission {
   const effectiveDomain = domain || getAnonymousSession()?.primaryDomain || 'general';
   const template = DOMAIN_MISSION_TEMPLATES[effectiveDomain] || DOMAIN_MISSION_TEMPLATES.general;
   
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLocalDateString();
   const completionKey = `${MISSION_KEY_PREFIX}${todayStr}_completed`;
   const isDone = typeof window !== 'undefined' && localStorage.getItem(completionKey) === 'true';
 
@@ -281,7 +283,7 @@ export function getTodayMission(domain?: InterventionDomain): DailyMission {
  */
 export function completeTodayMission(reflection?: string): void {
   if (typeof window === 'undefined') return;
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLocalDateString();
   localStorage.setItem(`${MISSION_KEY_PREFIX}${todayStr}_completed`, 'true');
   if (reflection) {
     localStorage.setItem(`${MISSION_KEY_PREFIX}${todayStr}_reflection`, reflection);
@@ -300,7 +302,7 @@ export function completeTodayMission(reflection?: string): void {
  */
 export function isTodayMissionCompleted(): boolean {
   if (typeof window === 'undefined') return false;
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLocalDateString();
   return localStorage.getItem(`${MISSION_KEY_PREFIX}${todayStr}_completed`) === 'true';
 }
 
@@ -309,7 +311,7 @@ export function isTodayMissionCompleted(): boolean {
  */
 export function getTodayMissionReflection(): string {
   if (typeof window === 'undefined') return '';
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLocalDateString();
   return localStorage.getItem(`${MISSION_KEY_PREFIX}${todayStr}_reflection`) || '';
 }
 
