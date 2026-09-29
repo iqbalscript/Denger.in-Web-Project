@@ -7,7 +7,7 @@ import { readJsonLimited } from '@/lib/api/requestLimits';
 import { deriveThreadParticipantHash, generateAliasCandidates } from '@/lib/api/threadAlias';
 import { isReplySchemaUnavailable } from '@/lib/api/replySchema';
 import { moderateForumReply } from '@dengarin/validator';
-import { invalidateForumCache, readThroughForum } from '@/lib/api/forumCache';
+import { invalidateForumPosts, invalidateForumReplies, readThroughForumReplies } from '@/lib/api/forumCache';
 
 const MAX_REPLY_BYTES = 4096;
 const DEFAULT_LIMIT = 20;
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest, context: Context) {
 const cursor = request.nextUrl.searchParams.get('cursor') ?? undefined;
 let page;
 try {
-  page = await readThroughForum('replies', `${postId}|${requestedLimit}|${cursor ?? ''}`, () => forumRepository.listApprovedReplies(postId, requestedLimit, cursor));
+  page = await readThroughForumReplies(postId, `${requestedLimit}|${cursor ?? ''}`, () => forumRepository.listApprovedReplies(postId, requestedLimit, cursor));
 } catch (error) {
   if (isReplySchemaUnavailable(error)) return jsonError('Fitur balasan belum tersedia.', 503);
   console.error('Failed to list forum replies:', error);
@@ -53,7 +53,9 @@ export async function POST(request: NextRequest, context: Context) {
     if (!participantKeyHash) return jsonError('Sesi balasan tidak valid atau belum dikonfigurasi.', 400);
     const reply = await forumRepository.createReply({ storyId: postId, parentReplyId: payload.parentReplyId, participantKeyHash, aliasCandidates: generateAliasCandidates(), body, initialStatus: moderation.status });
     if (!reply) return jsonError('Cerita atau konteks balasan tidak tersedia.', 404);
-    await invalidateForumCache();
+    await invalidateForumReplies(postId);
+    // Hitungan balasan di feed hanya berubah bila balasan ini langsung tampil.
+    if (reply.moderationStatus === 'approved') await invalidateForumPosts();
     return jsonOk({ crisis: false, reply, moderation }, { status: 201 });
   } catch (error) {
     if (isReplySchemaUnavailable(error)) return jsonError('Fitur balasan belum tersedia.', 503);

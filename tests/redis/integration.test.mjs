@@ -105,7 +105,7 @@ try {
   pass('Redis terisolasi: PONG');
   process.env.REDIS_URL = redisUrl;
   const { aiCacheKey, readAiCache, writeAiCache } = await import('../../apps/web/src/lib/api/aiCache.ts');
-  const env = { ...process.env, REDIS_URL: redisUrl, DEEPSEEK_API_KEY: '', OPENROUTER_API_KEY: '', GEMINI_API_KEY: '', DATABASE_URL: '', NEXT_TELEMETRY_DISABLED: '1', TRUSTED_PROXY_HOPS: '1', RATE_LIMIT_HASH_SECRET: 'redis-integration-secret-0123456789', NODE_ENV: production ? 'production' : 'development' };
+  const env = { ...process.env, REDIS_URL: redisUrl, DEEPSEEK_API_KEY: '', OPENROUTER_API_KEY: '', GEMINI_API_KEY: '', DATABASE_URL: '', NEXT_TELEMETRY_DISABLED: '1', FORUM_THREAD_ALIAS_SECRET: 'redis-integration-thread-secret-0123456789', TRUSTED_PROXY_HOPS: '1', RATE_LIMIT_HASH_SECRET: 'redis-integration-secret-0123456789', NODE_ENV: production ? 'production' : 'development' };
   const next = path.join(root, 'node_modules/next/dist/bin/next');
   const cwd = path.join(temporary, 'apps/web');
   if (production) {
@@ -172,14 +172,47 @@ try {
   assert.equal((await created.json()).data.moderation.status, 'approved', 'fixture harus lolos moderasi otomatis');
   assert.ok((await listTitles()).includes('Cerita uji pertama tentang jadwal belajar'));
   assert.ok((await listTitles()).includes('Cerita uji pertama tentang jadwal belajar'));
-  const feedKeys = await client.keys('dengarin:forum:*:posts:*');
+  const feedKeys = await client.keys('dengarin:forum:posts:*');
   assert.equal(feedKeys.length, 1);
   assert.ok(await client.ttl(feedKeys[0]) > 0 && await client.ttl(feedKeys[0]) <= 30);
-  const versionBefore = await client.get('dengarin:forum:version');
+  const versionBefore = await client.get('dengarin:forum:version:posts');
   assert.equal((await request(a.base, '/api/forum', story('Cerita uji kedua langsung muncul'))).status, 201);
-  assert.notEqual(await client.get('dengarin:forum:version'), versionBefore);
+  assert.notEqual(await client.get('dengarin:forum:version:posts'), versionBefore);
   assert.ok((await listTitles()).includes('Cerita uji kedua langsung muncul'), 'invalidasi: tulis baru langsung terlihat');
   pass('Forum: feed di-cache (TTL ≤30 dtk), tulis baru menaikkan versi sehingga feed tidak basi');
+
+  // Komentar (balasan) forum: cache dan versi PER CERITA.
+  const postIds = (await (await request(a.base, '/api/forum?domain=campus')).json()).data.posts.map(post => post.id);
+  assert.ok(postIds.length >= 2);
+  const [storyA, storyB] = postIds;
+  const threadKey = (seed) => Buffer.from(seed.padEnd(32, 'x')).toString('base64url');
+  const listReplies = async (id) => {
+    const response = await request(a.base, `/api/forum/${id}/replies`);
+    const json = await response.json();
+    assert.equal(response.status, 200, `GET replies ${response.status}: ${JSON.stringify(json)}`);
+    return json.data.replies.map(reply => reply.body);
+  };
+  const sendReply = (id, body, key = threadKey('uji-a')) => request(a.base, `/api/forum/${id}/replies`, { body, threadKey: key });
+  assert.deepEqual(await listReplies(storyA), []);
+  assert.deepEqual(await listReplies(storyB), []);
+  assert.equal((await client.keys('dengarin:forum:replies:*:*')).filter(key => !key.includes(':version:')).length, 2, 'satu entri cache per cerita');
+  const versionA = await client.keys('dengarin:forum:version:replies:*');
+  assert.deepEqual(versionA, [], 'belum ada tulis, belum ada key versi');
+  const postsVersionBefore = await client.get('dengarin:forum:version:posts');
+  const sent = await sendReply(storyA, 'Semangat ya, aku juga pernah merasa begitu.');
+  assert.equal(sent.status, 201);
+  assert.equal((await sent.json()).data.moderation.status, 'approved', 'fixture balasan lolos moderasi');
+  const versionKeys = await client.keys('dengarin:forum:version:replies:*');
+  assert.equal(versionKeys.length, 1, 'hanya cerita A yang naik versi');
+  assert.ok(await client.ttl(versionKeys[0]) > 0 && await client.ttl(versionKeys[0]) <= 3600, 'key versi ber-TTL');
+  assert.notEqual(await client.get('dengarin:forum:version:posts'), postsVersionBefore, 'balasan tampil mengubah hitungan di feed');
+  assert.deepEqual(await listReplies(storyA), ['Semangat ya, aku juga pernah merasa begitu.'], 'balasan baru langsung terlihat');
+  const cachedB = (await client.keys('dengarin:forum:replies:*:*')).filter(key => !key.includes(':version:'));
+  assert.ok(cachedB.length >= 2, 'cache balasan cerita B tidak ikut terbuang');
+  const cacheValues = await Promise.all(cachedB.map(key => client.get(key)));
+  assert.ok(cacheValues.every(value => !/threadKey|participantKey|uji-a/i.test(value ?? '')), 'kunci thread tidak masuk Redis');
+  assert.equal((await sendReply(storyA, 'Balasan dengan kunci pendek', 'pendek')).status, 400);
+  pass('Komentar forum: cache dan versi per cerita, balasan baru langsung tampil, cerita lain tidak terbuang, kunci thread tidak masuk Redis');
 
   // Lease konkurensi lintas instance (dijalankan dari proses tes, Redis yang sama).
   const { acquireSharedSlot } = await import('../../apps/web/src/lib/api/rateLimit.ts');

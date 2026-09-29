@@ -67,7 +67,8 @@ git check-ignore -v apps/web/.env.local
 - [x] Rate limit → 33 request ke `/api/chat` menghasilkan tepat **30× 200** dan **3× 429**
 - [x] Penghitung tercatat → `dengarin:ratelimit:client:chat:<hash>` bernilai 33 dan `dengarin:ratelimit:global:chat` bernilai 30, keduanya ber-TTL (maksimum 60s); permintaan yang ditolak lapis klien tidak menambah global
 - [x] Klien berbeda tidak saling memblokir → klien A (`X-Forwarded-For`) diblokir setelah 30, klien B tetap 200; IP mentah tidak ada di key Redis
-- [x] Forum → feed `dengarin:forum:<versi>:posts:*` ber-TTL ≤30 dtk; cerita baru menaikkan `dengarin:forum:version` dan langsung terlihat; forum tetap baca/tulis saat Redis mati
+- [x] Komentar forum → `dengarin:forum:replies:<cerita>:*` dan `version:replies:<cerita>` (TTL ≤1 jam); balasan baru langsung tampil, cache komentar cerita lain tidak terbuang, thread key tidak masuk Redis
+- [x] Forum → feed `dengarin:forum:posts:<versi>:*` ber-TTL ≤30 dtk; cerita baru menaikkan `dengarin:forum:version:posts` dan langsung terlihat; forum tetap baca/tulis saat Redis mati
 - [x] Lease konkurensi → `dengarin:slots:chat` maks 12 anggota, lease ke-13 ditolak, dilepas bisa dipakai lagi
 - [x] `/api/health` → `redis: "up"` / `"down"` / `"disabled"`, selalu HTTP 200
 - [x] Cache AI round-trip → miss `null`, setelah tulis terbaca
@@ -76,7 +77,7 @@ git check-ignore -v apps/web/.env.local
 - [x] Privasi → input sintetis **0 kemunculan** dalam nilai string Redis tes
 
 ```bash
-npm run test:redis   # Lolos: 13; Gagal: 0 (dev)
+npm run test:redis   # Lolos: 14; Gagal: 0 (dev)
 ```
 
 > ❗ Cache ISR (`dengarin:next:*`) **tidak** aktif di `npm run dev`.
@@ -94,7 +95,7 @@ npm run test:redis   # Lolos: 13; Gagal: 0 (dev)
 - [x] Nama key bersih, tanpa prefiks ganda
       ✅ `dengarin:next:__sharedTags__`
       ❌ `dengarin:next:dengarin:next:__sharedTags__`
-- [x] `npm run test:redis -- --production` lulus 19/19
+- [x] `npm run test:redis -- --production` lulus 20/20
 - [x] GET `/resources` melalui runner menyertakan header `x-nextjs-cache: HIT`
 
 ```bash
@@ -207,8 +208,8 @@ redis-cli --scan --pattern 'dengarin:*' | while read k; do redis-cli GET "$k"; d
 npm run typecheck
 npm run lint
 npm test
-npm run test:redis                 # 13 lulus, 0 gagal
-npm run test:redis -- --production # build bersih + 19 lulus, 0 gagal
+npm run test:redis                 # 14 lulus, 0 gagal
+npm run test:redis -- --production # build bersih + 20 lulus, 0 gagal
 ```
 
 Gerbang kualitas diperiksa di workspace; build produksi diperiksa oleh runner pada salinan source yang bersih agar `.next` milik server developer tidak terganggu. Checklist deployment tetap harus diperiksa di lingkungan target.

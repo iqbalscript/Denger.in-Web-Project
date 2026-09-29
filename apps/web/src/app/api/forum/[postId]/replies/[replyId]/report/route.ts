@@ -5,7 +5,7 @@ import { jsonError, jsonOk } from '@/lib/api/response';
 import { isRateLimited } from '@/lib/api/rateLimit';
 import { readJsonLimited } from '@/lib/api/requestLimits';
 import { isReplySchemaUnavailable } from '@/lib/api/replySchema';
-import { invalidateForumCache } from '@/lib/api/forumCache';
+import { invalidateForumReplies } from '@/lib/api/forumCache';
 
 const REASONS = new Set<ForumReportReason>(['harassment_or_bullying', 'self_harm_or_dangerous_advice', 'contact_or_privacy', 'scam_or_spam', 'impersonation', 'other_safety']);
 export async function POST(request: NextRequest, { params }: { params: Promise<{ postId: string; replyId: string }> }) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { postId, replyId } = await params;
 try {
   if (!await forumRepository.createReplyReport({ storyId: postId, replyId, reason: value.reason as ForumReportReason })) return jsonError('Balasan tidak tersedia.', 404);
-  await invalidateForumCache();
+  await invalidateForumReplies(postId);
 } catch (error) {
   if (isReplySchemaUnavailable(error)) return jsonError('Fitur balasan belum tersedia.', 503);
   console.error('Failed to report forum reply:', error);
