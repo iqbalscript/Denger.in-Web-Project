@@ -279,7 +279,7 @@ export default function OnboardingPage() {
             icon={<ArrowRight className="w-4 h-4" />}
             className="flex-row-reverse"
           >
-            {step === 2 ? 'MULAI ASESMEN ADAPTIF →' : 'LANJUTKAN KE TOPIK →'}
+            {step === 2 ? 'MULAI ASESMEN ADAPTIF' : 'LANJUTKAN KE TOPIK'}
           </Button>
         </div>
       </ContentColumn>

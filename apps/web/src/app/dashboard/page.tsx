@@ -155,7 +155,7 @@ export default function DashboardPage() {
                     icon={<ArrowRight className="w-4 h-4" />}
                     className="flex-row-reverse"
                   >
-                    {isMissionDone ? 'Tinjau Kembali Langkah Misi' : 'MULAI MISI SEKARANG →'}
+                    {isMissionDone ? 'Tinjau Kembali Langkah Misi' : 'MULAI MISI SEKARANG'}
                   </Button>
                 </Link>
               </div>

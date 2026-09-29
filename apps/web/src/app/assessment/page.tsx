@@ -380,7 +380,7 @@ export default function AssessmentPage() {
               icon={<ArrowRight className="w-4 h-4" />}
               className="flex-row-reverse"
             >
-              PERTANYAAN BERIKUTNYA →
+              PERTANYAAN BERIKUTNYA
             </Button>
           ) : (
             <Button
@@ -392,7 +392,7 @@ export default function AssessmentPage() {
               icon={<ArrowRight className="w-4 h-4" />}
               className="flex-row-reverse"
             >
-              {isSubmitting ? 'MENYUSUN REKOMENDASI...' : 'SELESAIKAN & LIHAT REKOMENDASI →'}
+              {isSubmitting ? 'MENYUSUN REKOMENDASI...' : 'SELESAIKAN & LIHAT REKOMENDASI'}
             </Button>
           )}
         </div>

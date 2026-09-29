@@ -135,7 +135,7 @@ export default function LandingPage() {
                   icon={<ArrowRight className="w-4 h-4" />}
                   className="flex-row-reverse text-[#151515] font-bold uppercase tracking-wide flex-1 sm:flex-initial"
                 >
-                  Mulai Tanpa Akun →
+                  Mulai Tanpa Akun
                 </Button>
 
                 <Button

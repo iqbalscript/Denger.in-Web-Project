@@ -140,7 +140,7 @@ export default function ConsentPage() {
           icon={<ArrowRight className="w-4 h-4" />}
           className="flex-row-reverse"
         >
-          SAYA SETUJU, LANJUTKAN →
+          SAYA SETUJU, LANJUTKAN
         </Button>
       </div>
 
