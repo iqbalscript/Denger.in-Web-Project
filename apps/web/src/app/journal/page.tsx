@@ -160,7 +160,7 @@ export default function JournalPage() {
                 value={content}
                 onChange={handleContentChange}
                 rows={6}
-                placeholder="Keluarkan unek-unekmu di sini. Tidak ada yang menilai..."
+                placeholder="Keluarkan keluh kesahmu di sini. Tidak ada yang menilai..."
                 required
               />
 

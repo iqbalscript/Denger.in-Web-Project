@@ -86,7 +86,7 @@ Tidak diubah: pertanyaan asesmen (`GENERIC_/ADAPTIVE_ASSESSMENT_QUESTIONS`), `EM
 | `/checkin` | `apps/web/src/app/checkin/page.tsx` | “'CHECK-IN TERSIMPAN!'” → “'TERSIMPAN — TERIMA KASIH SUDAH MENYAPA DIRIMU'” | Apresiasi |
 | `/checkin` | `apps/web/src/app/checkin/page.tsx` | “Pemicu: {entry.stressorTags.join” → “Yang terasa berat: {entry.stressorTags.join” | Istilah "pemicu" terasa klinis |
 | `/journal` | `apps/web/src/app/journal/page.tsx` | “Gak perlu dirapiin dulu. Tulisanmu tidak dikirim ke server maupun disimpan di model AI.” → “Gak perlu rapi, gak perlu benar. Tulis apa adanya — tulisanmu tidak dikirim ke server dan tidak disimpan di model AI.” | Memberi izin tidak sempurna |
-| `/journal` | `apps/web/src/app/journal/page.tsx` | “placeholder="Keluarkan unek-unekmu secara bebas dan jujur..."” → “placeholder="Keluarkan unek-unekmu di sini. Tidak ada yang menilai..."” | Menenangkan |
+| `/journal` | `apps/web/src/app/journal/page.tsx` | “placeholder="Keluarkan keluh kesahmu secara bebas dan jujur..."” → “placeholder="Keluarkan keluh kesahmu di sini. Tidak ada yang menilai..."” | Menenangkan |
 | `/journal` | `apps/web/src/app/journal/page.tsx` | “Belum ada tulisan tersimpan. Mulai tuliskan refleksi pertamamu hari ini.” → “Belum ada tulisan di sini, dan itu tidak apa-apa. Kapan pun kamu siap, satu kalimat saja sudah cukup.” | Tidak menekan |
 | `/mission` | `apps/web/src/app/mission/page.tsx` | “Memuat misi harian Anda...” → “Menyiapkan misi kecilmu...” | Konsisten "kamu" |
 | `/mission` | `apps/web/src/app/mission/page.tsx` | “PANDUAN LANGKAH DEMI LANGKAH:” → “LAKUKAN PELAN-PELAN, SATU LANGKAH SAJA:” | Menurunkan tekanan |
