@@ -12,3 +12,4 @@ export * from './QuickExitButton';
 export * from './CelebrationToast';
 export * from './WellbeingTimeline';
 export * from './ChatProgress';
+export * from './PrivacyWarningPopup';

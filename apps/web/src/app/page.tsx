@@ -11,7 +11,7 @@ import {
   HeartHandshake,
   CheckCircle2,
 } from 'lucide-react';
-import { PageContainer, Button, Badge } from '@/components/ui';
+import { PageContainer, Button, Badge, PrivacyWarningPopup } from '@/components/ui';
 import { TOPIC_PILLARS } from '@dengarin/config';
 import { initAnonymousSession, saveDailyCheckin, getTodayCheckin } from '@/lib/storage';
 import { awardLangkah } from '@/lib/gamification';
@@ -64,6 +64,8 @@ export default function LandingPage() {
 
   return (
     <div className="space-y-16 sm:space-y-24 pb-20">
+      {/* Privacy Warning Popup - shows once on first visit */}
+      <PrivacyWarningPopup />
       {/* 1. EDITORIAL HERO (PRD-DESIGN.md section 15) */}
       <section className="pt-8 sm:pt-14">
         <PageContainer size="default">
