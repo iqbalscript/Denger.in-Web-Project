@@ -53,7 +53,7 @@ const INITIAL_FALLBACK_POSTS: ForumPostItem[] = [
     id: 'seed-2',
     authorPseudonym: 'Sahabat Anonim #7401',
     domain: 'finance',
-    title: 'Bernapas lega setelah memberanikan diri membuat daftar hutang',
+    title: 'Bernapas lega setelah memberanikan diri membuat daftar utang',
     body: 'Awalnya takut sekali melihat total tagihan. Tapi setelah diurai satu per satu dan menghubungi layanan pengaduan resmi, bebannya mulai terasa bisa dikelola. Jangan lari dari kenyataan, hadapi pelan-pelan.',
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
     supportCount: 41,
@@ -180,7 +180,7 @@ export default function ForumPage() {
       const json = await res.json().catch(() => null); const data = json?.data ?? json;
       if (data?.crisis) { window.location.assign('/crisis'); return; }
       if (!res.ok) { setReplyNotice(json?.error ?? 'Balasan belum terkirim. Coba lagi.'); return; }
-      setReplyNotice(data.moderation?.status === 'pending_review' ? 'Balasan sedang ditinjau moderator.' : 'Balasan terkirim.');
+      setReplyNotice(data.moderation?.status === 'pending_review' ? 'Balasan sedang ditinjau moderator.' : 'Balasanmu terkirim. Terima kasih sudah menguatkan.');
       setReplyBody(''); if (data.moderation?.status === 'approved') await loadReplies(composer.storyId);
       setTimeout(() => { composer.trigger?.focus(); setComposer(null); }, 900);
     } catch { setReplyNotice('Koneksi terputus. Balasan belum terkirim; kamu dapat mencoba lagi.'); }
@@ -211,7 +211,7 @@ export default function ForumPage() {
       if (!res.ok) {
         setSubmitNotice({
           type: 'error',
-          message: json?.error || json?.message || 'Gagal mengirim cerita. Mohon periksa kembali tulisanmu.',
+          message: json?.error || json?.message || 'Ceritamu belum terkirim. Coba periksa lagi tulisanmu, atau coba beberapa saat lagi.',
         });
         return;
       }
@@ -221,7 +221,7 @@ export default function ForumPage() {
       if (payload?.crisis) {
         setSubmitNotice({
           type: 'warning',
-          message: 'Tulisanmu mengindikasikan beban berat. Silakan buka halaman Bantuan Darurat untuk berbicara langsung dengan tenaga ahli.',
+          message: 'Sepertinya kamu sedang memikul beban yang sangat berat, dan kami peduli. Silakan buka halaman Bantuan Darurat untuk berbicara langsung dengan tenaga ahli.',
         });
         return;
       }
@@ -232,7 +232,7 @@ export default function ForumPage() {
         }
         setSubmitNotice({
           type: 'success',
-          message: 'Ceritamu berhasil dipublikasikan secara anonim! Terima kasih telah saling menguatkan.',
+          message: 'Ceritamu sudah dibagikan secara anonim. Terima kasih sudah berani bercerita, dan sudah menguatkan orang lain.',
         });
         setTimeout(() => {
           setIsModalOpen(false);
@@ -244,7 +244,7 @@ export default function ForumPage() {
       } else if (payload?.moderation?.status === 'pending_review') {
         setSubmitNotice({
           type: 'warning',
-          message: 'Ceritamu sedang dalam peninjauan moderasi untuk memastikan keamanan komunitas.',
+          message: 'Ceritamu sedang kami tinjau sebentar supaya ruang ini tetap aman. Terima kasih sudah menunggu.',
         });
         setTimeout(() => {
           setIsModalOpen(false);
@@ -256,13 +256,13 @@ export default function ForumPage() {
       } else {
         setSubmitNotice({
           type: 'error',
-          message: payload?.moderation?.reason || 'Konten tidak memenuhi panduan komunitas kami.',
+          message: payload?.moderation?.reason || 'Ceritamu belum bisa kami tampilkan karena belum sesuai panduan komunitas. Kamu boleh mengubahnya dan mencoba lagi.',
         });
       }
     } catch {
       setSubmitNotice({
         type: 'error',
-        message: 'Koneksi terputus. Pastikan kamu terhubung ke internet dan coba lagi.',
+        message: 'Koneksimu sepertinya terputus. Periksa internetmu, lalu coba lagi, ya.',
       });
     } finally {
       isSubmittingRef.current = false;
@@ -290,8 +290,8 @@ export default function ForumPage() {
               SOLIDARITAS TANPA IDENTITAS
             </h1>
             <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-xl font-medium">
-              Ruang aman membaca dan berbagi refleksi dengan sesama yang menghadapi beban hidup serupa.
-              Bebas dari penghakiman dan 100% anonim.
+              Di sini kamu bisa membaca dan berbagi cerita dengan orang-orang yang memahami rasanya.
+              Tanpa penghakiman, 100% anonim, dan kamu tidak sendirian.
             </p>
           </div>
 
@@ -311,13 +311,13 @@ export default function ForumPage() {
           <div className="flex items-center gap-2.5">
             <ShieldCheck className="w-4 h-4 text-cobalt shrink-0" />
             <span>
-              <strong className="font-black uppercase tracking-wide">MODERASI OTOMATIS AKTIF:</strong> Setiap cerita disaring melalui gerbang krisis deterministik &amp; filter kelayakan anti-toksik.
+              <strong className="font-black uppercase tracking-wide">DIJAGA BERSAMA:</strong> Setiap cerita disaring lewat gerbang krisis dan filter anti-toksik supaya ruang ini tetap aman untuk semua.
             </span>
           </div>
           <button
             onClick={() => fetchPosts(activeTab)}
             className="text-ink hover:text-cobalt transition-colors p-1"
-            title="Segarkan feed"
+            title="Muat ulang cerita"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -340,7 +340,7 @@ export default function ForumPage() {
         {/* Story Stream */}
         {loading ? (
           <div className="bg-white border-2 border-ink rounded-lg p-8 text-center text-xs text-ink/70 font-bold shadow-hard-sm">
-            Memuat cerita ruang solidaritas...
+            Sedang mengambil cerita-cerita untukmu...
           </div>
         ) : posts.length === 0 ? (
           <div className="bg-white border-2 border-ink rounded-lg p-8 sm:p-12 text-center space-y-4 shadow-hard-sm">

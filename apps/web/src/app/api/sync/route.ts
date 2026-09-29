@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
   const record = await syncRepository.get(mnemonicHash);
   if (!record) {
-    return jsonError('Tidak ada data tersinkronisasi untuk mnemonic ini.', 404);
+    return jsonError('Tidak ada cadangan untuk kunci pemulihan ini.', 404);
   }
 
   return jsonOk({ record });

@@ -72,7 +72,7 @@ export default function PerjalananPage() {
               SETIAP LANGKAH BERARTI
             </h1>
             <p className="text-xs sm:text-sm text-ink/80 max-w-xl font-medium leading-relaxed">
-              Langkah kecilmu tercatat di sini. Bukan tentang jadi sempurna — ini tentang tetap berjalan.
+              Langkah kecilmu tercatat di sini. Bukan tentang jadi sempurna, ini tentang tetap berjalan. Tiap check-in, misi, atau jurnal memberimu Langkah, yaitu poin kecil sebagai tanda kamu merawat diri.
             </p>
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function PerjalananPage() {
           <div className="flex items-center justify-between border-b-2 border-ink pb-2">
             <h2 className="text-xs font-black uppercase tracking-wider text-ink flex items-center gap-2">
               <Calendar className="w-4 h-4 text-cobalt" />
-              RITME 7 HARI TERAKHIR
+              HARI AKTIF (7 HARI TERAKHIR)
             </h2>
             <span className="text-xs font-black text-cobalt">{activeCount}/7 AKTIF</span>
           </div>
@@ -156,7 +156,7 @@ export default function PerjalananPage() {
                       ? 'bg-lime text-ink shadow-hard-sm'
                       : 'bg-paper text-ink/30'
                   }`}
-                  title={`${day.dayLabel} ${day.date}${day.active ? ' — Aktif' : ''}`}
+                  title={`${day.dayLabel} ${day.date}${day.active ? ' (aktif)' : ''}`}
                 >
                   {day.active ? '●' : '○'}
                 </div>
@@ -219,7 +219,7 @@ export default function PerjalananPage() {
           <div className="flex items-center justify-between border-b-2 border-ink pb-2">
             <h2 className="text-xs font-black uppercase tracking-wider text-ink flex items-center gap-2">
               <Award className="w-4 h-4 text-cobalt" />
-              JEJAK PERJALANAN
+              BADGE KAMU
             </h2>
             <span className="text-xs font-black text-ink/60">
               {gamState.unlockedBadgeIds.length}/{BADGE_DEFINITIONS.length}
@@ -233,7 +233,7 @@ export default function PerjalananPage() {
                 <div
                   key={badge.id}
                   role="listitem"
-                  aria-label={`${badge.name} — ${unlocked ? 'Terbuka' : 'Terkunci'}. ${badge.description}`}
+                  aria-label={`${badge.name}: ${unlocked ? 'Terbuka' : 'Terkunci'}. ${badge.description}`}
                   className={`p-3 rounded border-2 border-ink text-center space-y-1.5 transition-all ${
                     unlocked
                       ? 'bg-yellow text-ink shadow-hard-sm'

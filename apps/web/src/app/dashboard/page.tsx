@@ -87,8 +87,8 @@ export default function DashboardPage() {
             </h1>
             <p className="text-xs sm:text-sm text-ink/80 max-w-xl font-medium">
               {domainInfo
-                ? `Fokus Pendampingan: ${domainInfo.label} — ${domainInfo.description}`
-                : 'Satu langkah kecil yang bermakna untuk menstabilkan harimu.'}
+                ? `Fokus kita: ${domainInfo.label}: ${domainInfo.description}`
+                : 'Tidak perlu banyak. Satu langkah kecil sudah cukup untuk hari ini.'}
             </p>
           </div>
 
@@ -126,11 +126,11 @@ export default function DashboardPage() {
 
               <div className="space-y-2">
                 <h2 className="text-2xl sm:text-3xl font-black text-ink tracking-tight uppercase">
-                  {todayMission?.title || 'MISI PENSTABILAN EMOSI HARIAN'}
+                  {todayMission?.title || 'MISI KECIL UNTUK MENENANGKAN DIRI'}
                 </h2>
                 <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-2xl font-medium">
                   {todayMission?.summary ||
-                    'Ambil jeda sejenak untuk menenangkan sistem saraf dan mengembalikan kendali kesadaranmu.'}
+                    'Ambil jeda sejenak. Beri waktu untuk tubuh dan pikiranmu menenang.'}
                 </p>
               </div>
 
@@ -140,10 +140,10 @@ export default function DashboardPage() {
                   {isMissionDone ? (
                     <span className="inline-flex items-center gap-1.5 text-ink bg-lime px-2.5 py-1 rounded border border-ink">
                       <CheckCircle2 className="w-4 h-4 text-ink" />
-                      Misi hari ini telah selesai dijalankan
+                      Misi hari ini selesai. Terima kasih sudah merawat dirimu.
                     </span>
                   ) : (
-                    <span>3 langkah terstruktur disiapkan untukmu</span>
+                    <span>Langkahnya singkat dan bisa kamu jalani pelan-pelan</span>
                   )}
                 </div>
 
@@ -155,7 +155,7 @@ export default function DashboardPage() {
                     icon={<ArrowRight className="w-4 h-4" />}
                     className="flex-row-reverse"
                   >
-                    {isMissionDone ? 'Tinjau Kembali Langkah Misi' : 'MULAI MISI SEKARANG'}
+                    {isMissionDone ? 'Tinjau Kembali Langkah Misi' : 'MULAI MISI KECIL'}
                   </Button>
                 </Link>
               </div>
@@ -198,7 +198,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-3 pt-1">
                   <p className="text-xs text-ink/80 leading-snug font-medium">
-                    Bagaimana perasaanmu saat ini? Catat suasana hati dalam 1 menit.
+                    Apa kabar hatimu saat ini? Luangkan satu menit untuk mencatatnya.
                   </p>
                   <Link href="/checkin" className="block">
                     <Button variant="outline" size="sm" fullWidth icon={<Smile className="w-3.5 h-3.5" />}>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                     {/* Ritme 7 Hari */}
                     <div className="space-y-1">
                       <span className="text-[10px] text-ink/60 font-bold uppercase tracking-wider">
-                        RITME 7 HARI — {activeCount}/7
+                        AKTIF 7 HARI: {activeCount}/7
                       </span>
                       <div className="grid grid-cols-7 gap-1.5">
                         {ritme.map((day) => (
@@ -266,7 +266,7 @@ export default function DashboardPage() {
                                 ? 'bg-lime text-ink'
                                 : 'bg-paper text-ink/30'
                             }`}
-                            title={`${day.dayLabel} ${day.date}${day.active ? ' — Aktif' : ''}`}
+                            title={`${day.dayLabel} ${day.date}${day.active ? ' (aktif)' : ''}`}
                           >
                             {day.dayLabel.slice(0, 2)}
                           </div>
@@ -295,24 +295,24 @@ export default function DashboardPage() {
           {/* LEFT: Your Progress / Assessment Synthesis (6 Cols) */}
           <div className="lg:col-span-6 space-y-3 text-left">
             <h3 className="text-xs font-black uppercase tracking-wider text-ink">
-              PERKEMBANGAN &amp; JALUR PEMULIHAN
+              PERJALANANMU SEJAUH INI
             </h3>
 
             <div className="bg-white border-2 border-ink rounded-lg p-6 space-y-4 shadow-hard-sm">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-black text-ink bg-yellow px-2.5 py-1 rounded border border-ink uppercase tracking-wider">
-                  {assessment?.recommendedPathId ? 'Jalur 14 Hari Aktif' : 'Tahap Awal'}
+                  {assessment?.recommendedPathId ? 'Program 14 Hari Aktif' : 'Baru Mulai'}
                 </span>
                 {assessment && (
                   <span className="text-xs font-black uppercase px-2.5 py-1 bg-paper border border-ink rounded">
-                    Beban: {assessment.severityLevel || 'MILD'}
+                    Beban terasa: {{ MILD: 'Ringan', MODERATE: 'Cukup Berat', SEVERE: 'Sangat Berat' }[assessment.severityLevel || 'MILD']}
                   </span>
                 )}
               </div>
 
               <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
                 {assessment?.summaryFeedback ||
-                  'Jalur pemulihan 14 hari dirancang untuk mendampingi ritme harianmu dengan langkah-langkah mikro yang terbukti aman.'}
+                  'Program 14 hari ini menemani hari-harimu lewat langkah kecil yang bisa kamu jalani pelan-pelan.'}
               </p>
 
               <div className="pt-2 border-t-2 border-ink flex items-center justify-between">
@@ -321,7 +321,7 @@ export default function DashboardPage() {
                   className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-cobalt hover:underline"
                 >
                   <BarChart3 className="w-3.5 h-3.5" />
-                  <span>Lihat Sintesis Laporan Mingguan</span>
+                  <span>Lihat Rangkuman Mingguanmu</span>
                 </Link>
                 <ArrowRight className="w-3.5 h-3.5 text-cobalt" />
               </div>
@@ -331,7 +331,7 @@ export default function DashboardPage() {
           {/* RIGHT: SUPPORT TOOLKIT (4 Compact Tiles - 6 Cols) */}
           <div className="lg:col-span-6 space-y-3 text-left">
             <h3 className="text-xs font-black uppercase tracking-wider text-ink">
-              KOTAK ALAT PENDAMPINGAN
+              YANG BISA MENEMANIMU
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -341,7 +341,7 @@ export default function DashboardPage() {
                     <BookOpen className="w-4 h-4" />
                   </div>
                   <h4 className="font-black text-xs sm:text-sm text-ink uppercase tracking-wide">Jurnal Privat Lokal</h4>
-                  <p className="text-[11px] text-ink/70 font-medium">Catat pikiran tanpa server.</p>
+                  <p className="text-[11px] text-ink/70 font-medium">Tuangkan pikiranmu, tersimpan hanya di perangkatmu.</p>
                 </div>
               </Link>
 
@@ -351,7 +351,7 @@ export default function DashboardPage() {
                     <MessageSquare className="w-4 h-4" />
                   </div>
                   <h4 className="font-black text-xs sm:text-sm text-ink uppercase tracking-wide">Teman Bicara</h4>
-                  <p className="text-[11px] text-ink/70 font-medium">Bimbingan aksi terorkestrasi.</p>
+                  <p className="text-[11px] text-ink/70 font-medium">Cerita apa saja, kami dengarkan.</p>
                 </div>
               </Link>
 
@@ -361,7 +361,7 @@ export default function DashboardPage() {
                     <PhoneCall className="w-4 h-4" />
                   </div>
                   <h4 className="font-black text-xs sm:text-sm text-ink uppercase tracking-wide">Direktori Bantuan</h4>
-                  <p className="text-[11px] text-ink/70 font-medium">Kontak resmi darurat &amp; psikolog.</p>
+                  <p className="text-[11px] text-ink/70 font-medium">Kontak resmi darurat dan psikolog, kapan pun kamu butuh.</p>
                 </div>
               </Link>
 
@@ -371,7 +371,7 @@ export default function DashboardPage() {
                     <Users className="w-4 h-4" />
                   </div>
                   <h4 className="font-black text-xs sm:text-sm text-ink uppercase tracking-wide">Ruang Cerita</h4>
-                  <p className="text-[11px] text-ink/70 font-medium">Solidaritas sesama pengguna.</p>
+                  <p className="text-[11px] text-ink/70 font-medium">Saling menguatkan dengan sesama.</p>
                 </div>
               </Link>
             </div>
@@ -385,7 +385,7 @@ export default function DashboardPage() {
             className="inline-flex items-center gap-1.5 hover:underline"
           >
             <Key className="w-4 h-4 text-cobalt" />
-            <span>Simpan atau pulihkan sesi dengan 12-kata kunci</span>
+            <span>Simpan atau pulihkan sesi dengan kunci pemulihan</span>
           </Link>
 
           <Link

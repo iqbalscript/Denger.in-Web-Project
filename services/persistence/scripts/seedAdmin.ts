@@ -22,7 +22,7 @@ async function main(): Promise<void> {
     throw new Error('ADMIN_SEED_PASSWORD harus minimal 12 karakter');
   }
   if (!isDatabaseConfigured()) {
-    console.warn('DATABASE_URL belum diset — admin akan dibuat di repository in-memory (hilang saat proses berhenti).');
+    console.warn('DATABASE_URL belum diset, admin akan dibuat di repository in-memory (hilang saat proses berhenti).');
   }
 
   const adminRepository = createAdminRepository();

@@ -120,7 +120,7 @@ export default function JournalPage() {
               TULIS AJA.
             </h1>
             <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-xl font-medium">
-              Gak perlu dirapiin dulu. Tulisanmu tidak dikirim ke server maupun disimpan di model AI.
+              Gak perlu rapi, gak perlu benar. Tulis apa adanya. Tulisanmu tidak dikirim ke server dan tidak disimpan di model AI.
             </p>
           </div>
 
@@ -160,7 +160,7 @@ export default function JournalPage() {
                 value={content}
                 onChange={handleContentChange}
                 rows={6}
-                placeholder="Keluarkan unek-unekmu secara bebas dan jujur..."
+                placeholder="Keluarkan unek-unekmu di sini. Tidak ada yang menilai..."
                 required
               />
 
@@ -186,7 +186,7 @@ export default function JournalPage() {
             <div className="bg-white border-2 border-ink rounded-lg p-8 text-center space-y-2 shadow-hard-sm">
               <BookOpen className="w-8 h-8 text-ink/40 mx-auto" />
               <p className="text-xs sm:text-sm text-ink/70 font-medium">
-                Belum ada tulisan tersimpan. Mulai tuliskan refleksi pertamamu hari ini.
+                Belum ada tulisan di sini, dan itu tidak apa-apa. Kapan pun kamu siap, satu kalimat saja sudah cukup.
               </p>
             </div>
           ) : (

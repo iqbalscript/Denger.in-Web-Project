@@ -45,15 +45,15 @@ export default function AssessmentResultPage() {
 
   const severityBadgeProps = {
     MILD: {
-      label: 'Tingkat Beban: Ringan (Mild)',
+      label: 'Beban Terasa: Ringan',
       colorClass: 'bg-lime text-ink border-2 border-ink shadow-hard-sm',
     },
     MODERATE: {
-      label: 'Tingkat Beban: Menengah (Moderate)',
+      label: 'Beban Terasa: Cukup Berat',
       colorClass: 'bg-yellow text-ink border-2 border-ink shadow-hard-sm',
     },
     SEVERE: {
-      label: 'Tingkat Beban: Intensitas Tinggi (Severe)',
+      label: 'Beban Terasa: Sangat Berat',
       colorClass: 'bg-coral text-white border-2 border-ink shadow-hard-sm',
     },
   }[severity];
@@ -65,16 +65,16 @@ export default function AssessmentResultPage() {
         <div className="space-y-3">
           <Badge variant="calm" size="md">
             <Sparkles className="w-3.5 h-3.5 mr-1" />
-            Rekomendasi Ruang Dukungan Non-Diagnostik
+            Saran Dukungan (Bukan Diagnosis)
           </Badge>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-tight">
-            REKOMENDASI RUANG PEMULIHAN ANDA
+            INI YANG BISA MENEMANIMU
           </h1>
 
           <p className="text-sm sm:text-base text-ink/80 leading-relaxed max-w-xl font-medium">
-            Berdasarkan respon yang Anda berikan, kami merekomendasikan ruang pendampingan berikut untuk
-            membantu menjaga kestabilan dan rasa aman Anda:
+            Terima kasih sudah menjawab dengan jujur. Berdasarkan ceritamu, ruang-ruang berikut
+            mungkin bisa membantumu merasa lebih stabil dan aman:
           </p>
         </div>
 
@@ -87,16 +87,16 @@ export default function AssessmentResultPage() {
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               {severityBadgeProps.label}
             </span>
-            <span className="text-xs text-ink/60 font-black uppercase tracking-wider">Non-Diagnostik</span>
+            <span className="text-xs text-ink/60 font-black uppercase tracking-wider">Bukan Diagnosis</span>
           </div>
 
           <div className="space-y-2">
             <h2 className="text-lg sm:text-xl font-black text-ink uppercase tracking-wide">
               {severity === 'MILD'
-                ? 'Jalur Mandiri & Penguatan Diri'
+                ? 'Jalur Mandiri'
                 : severity === 'MODERATE'
-                ? 'Jalur Pendampingan Terarah & Regulasi Emosi'
-                : 'Jalur Prioritas Konseling & Dukungan Darurat'}
+                ? 'Jalur Pendampingan & Kelola Emosi'
+                : 'Jalur Dukungan Profesional & Bantuan Segera'}
             </h2>
             <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
               {evaluation.summaryFeedback}
@@ -106,7 +106,7 @@ export default function AssessmentResultPage() {
           {/* Recommended Support Spaces Checklist */}
           <div className="pt-3 border-t-2 border-ink space-y-2.5">
             <h3 className="text-xs font-black text-ink uppercase tracking-wider">
-              RUANG PENDAMPINGAN YANG DIREKOMENDASIKAN:
+              RUANG YANG MUNGKIN COCOK UNTUKMU:
             </h3>
             <ul className="space-y-2">
               {evaluation.recommendedSupportSpaces?.map((space, idx) => (
@@ -122,7 +122,7 @@ export default function AssessmentResultPage() {
         {/* Tailored Pathway Next Actions */}
         <div className="space-y-4">
           <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-ink">
-            LANGKAH TINDAKAN YANG DAPAT ANDA AMBIL:
+            LANGKAH KECIL YANG BISA KAMU PILIH:
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -133,9 +133,9 @@ export default function AssessmentResultPage() {
                   <div className="w-10 h-10 rounded-md bg-yellow text-ink border-2 border-ink shadow-hard-sm flex items-center justify-center font-black">
                     <Compass className="w-5 h-5" />
                   </div>
-                  <h4 className="font-black text-sm text-ink uppercase tracking-wide">Masuk ke Ruang Tenang (Dashboard)</h4>
+                  <h4 className="font-black text-sm text-ink uppercase tracking-wide">Masuk ke Dashboard</h4>
                   <p className="text-xs text-ink/80 leading-relaxed font-medium">
-                    Mulai misi mikro harian 3–7 menit yang disesuaikan dengan ritmemu.
+                    Mulai misi kecil harian 3–7 menit yang sesuai kemampuanmu.
                   </p>
                 </div>
                 <span className="text-xs font-black text-cobalt flex items-center gap-1 pt-2 uppercase tracking-wider">
@@ -154,7 +154,7 @@ export default function AssessmentResultPage() {
                     </div>
                     <h4 className="font-black text-sm text-ink uppercase tracking-wide">Direktori Bantuan Terverifikasi</h4>
                     <p className="text-xs text-ink/80 leading-relaxed font-medium">
-                      Akses kontak resmi Kemenkes Sejiwa 119 ext 8, Lisa Helpline, dan layanan konseling.
+                      Kontak resmi Kemenkes Sejiwa 119 ext 8, Lisa Helpline, dan layanan konseling, kapan pun kamu ingin bicara dengan manusia.
                     </p>
                   </div>
                   <span className="text-xs font-black text-coral flex items-center gap-1 pt-2 uppercase tracking-wider">
@@ -187,11 +187,11 @@ export default function AssessmentResultPage() {
         <div className="p-4 rounded-md bg-yellow/20 border-2 border-ink text-xs text-ink leading-relaxed flex items-start gap-3 shadow-hard-sm font-medium">
           <ShieldCheck className="w-5 h-5 text-cobalt shrink-0 mt-0.5" />
           <div>
-            <span className="font-black text-ink block mb-0.5 uppercase tracking-wide">PENAFIAN NON-DIAGNOSTIK:</span>
+            <span className="font-black text-ink block mb-0.5 uppercase tracking-wide">BUKAN DIAGNOSIS:</span>
             <span>
-              Hasil ini merupakan panduan triase mandiri non-klinis dan{' '}
+              Hasil ini merupakan panduan awal mandiri non-klinis dan{' '}
               <strong className="text-ink font-bold">bukan diagnosis medis</strong> (seperti depresi klinis, gangguan kecemasan, atau PTSD).
-              Platform ini tidak mengklaim validitas psikometrik atau klinis. Jika Anda membutuhkan diagnosis formal, silakan konsultasikan dengan tenaga profesional kesehatan jiwa berlisensi.
+              Layanan ini tidak mengklaim validitas psikometrik atau klinis. Jika kamu membutuhkan diagnosis formal, silakan konsultasikan dengan tenaga profesional kesehatan jiwa berlisensi.
             </span>
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function AssessmentResultPage() {
             icon={<ArrowRight className="w-4 h-4" />}
             className="flex-row-reverse w-full sm:w-auto"
           >
-            LANJUTKAN KE RUANG TENANG
+            LANJUT KE DASHBOARD
           </Button>
         </div>
       </ContentColumn>

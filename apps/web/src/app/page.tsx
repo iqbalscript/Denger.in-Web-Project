@@ -31,7 +31,7 @@ export default function LandingPage() {
 
   const moodOptions: Array<{ id: MoodScore; emoji: string; label: string; color: string }> = [
     { id: 'sangat_baik', emoji: '😊', label: 'Bertenaga', color: '#B8F34A' },
-    { id: 'baik', emoji: '🙂', label: 'Stabil', color: '#93C5FD' },
+    { id: 'baik', emoji: '🙂', label: 'Cukup Baik', color: '#93C5FD' },
     { id: 'netral', emoji: '😐', label: 'Biasa Saja', color: '#FFD84D' },
     { id: 'berat', emoji: '😟', label: 'Berat', color: '#FF8A3D' },
     { id: 'kewalahan', emoji: '😞', label: 'Kewalahan', color: '#FF5252' },
@@ -72,7 +72,7 @@ export default function LandingPage() {
             <div className="lg:col-span-7 space-y-6 text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[4px] bg-[#B8F34A] border-2 border-[#151515] text-[#151515] text-xs font-bold shadow-[2px_2px_0px_#151515]">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#151515]" />
-                <span className="uppercase tracking-wider">100% Anonim • Tanpa Akun • Tanpa Jejak</span>
+                <span className="uppercase tracking-wider">100% Anonim • Tanpa Akun • Tanpa Dihakimi</span>
               </div>
 
               {/* Display Headline per PRD-DESIGN.md */}
@@ -83,7 +83,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-base sm:text-lg text-[#59544D] max-w-xl font-medium leading-relaxed">
-                Tempat aman buat rehat sejenak, mengurai beban pikiran tanpa takut dihakimi, dan kembali melangkah pelan-pelan. Mulai dari satu hal kecil.
+                Kalau hari ini terasa berat, kamu tidak sendirian. Di sini kamu boleh rehat sebentar, bercerita tanpa takut dihakimi, lalu melangkah pelan-pelan. Mulai dari satu hal kecil, sesuai kemampuanmu.
               </p>
 
               {/* QUICK MOOD CHECK-IN WIDGET ON LANDING */}
@@ -91,7 +91,7 @@ export default function LandingPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#151515] uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#4169FF]" />
-                    Gimana perasaanmu saat ini?
+                    Apa kabar hatimu hari ini?
                   </span>
                   {moodSavedNotice && (
                     <span className="text-[11px] font-bold text-[#151515] bg-[#B8F34A] px-2 py-0.5 rounded-[2px] border border-[#151515] flex items-center gap-1">
@@ -171,7 +171,7 @@ export default function LandingPage() {
                 </h3>
 
                 <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-medium">
-                  Bukan diagnosis medis. Dengar.in adalah kawan refleksi objektif untuk membantumu mengambil satu langkah nyata hari ini.
+                  Dengar.in bukan diagnosis medis, melainkan teman refleksi yang mendengarkan tanpa menghakimi dan menemanimu mengambil satu langkah kecil hari ini.
                 </p>
 
                 {/* Sub-card composition element */}
@@ -181,7 +181,7 @@ export default function LandingPage() {
                     <span className="text-[#4169FF]">5 Menit</span>
                   </div>
                   <p className="text-xs text-[#59544D] font-medium">
-                    &quot;Berhenti sejenak, tarik napas 4 detik, hembuskan 4 detik.&quot;
+                    &quot;Berhenti sejenak. Tarik napas 4 detik, embuskan pelan 4 detik. Tidak perlu terburu-buru.&quot;
                   </p>
                 </div>
               </div>
@@ -198,10 +198,10 @@ export default function LandingPage() {
               Fokus Utama
             </Badge>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#151515] tracking-tight uppercase">
-              Tiga Topik Utama Pendampingan
+              Tiga Hal yang Sering Terasa Berat
             </h2>
             <p className="text-xs sm:text-sm text-[#59544D] max-w-xl mx-auto leading-relaxed font-medium">
-              Dengar.in dirancang khusus untuk memahami beban nyata yang kerap diabaikan atau diselimuti rasa malu.
+              Beban-beban ini nyata, dan kamu tidak perlu memikulnya dalam diam. Pilih yang paling terasa untukmu saat ini.
             </p>
           </div>
 
@@ -246,10 +246,10 @@ export default function LandingPage() {
         <PageContainer size="default">
           <div className="text-center space-y-2 mb-8">
             <h3 className="text-xl sm:text-2xl font-bold text-[#151515] tracking-tight uppercase">
-              Menjangkau Setiap Rentang Usia
+              Untuk Siapa Pun, di Usia Berapa Pun
             </h3>
             <p className="text-xs sm:text-sm text-[#59544D] max-w-lg mx-auto font-medium">
-              Bahasa dan kedalaman asesmen disesuaikan agar selalu relevan dan nyaman bagi generasimu.
+              Bahasa dan pertanyaan kami sesuaikan supaya terasa dekat dan nyaman untukmu.
             </p>
           </div>
 
@@ -258,7 +258,7 @@ export default function LandingPage() {
               <span className="text-xs font-bold text-[#4169FF] uppercase tracking-wider">15–17 Tahun</span>
               <h4 className="font-bold text-sm text-[#151515] uppercase">Remaja & Pelajar</h4>
               <p className="text-[11px] text-[#59544D] leading-relaxed font-medium">
-                Perlindungan khusus anak, bahasa ramah sebaya, dan rujukan Teencare/KPAI.
+                Bahasa yang ramah untuk remaja, plus perlindungan khusus dan rujukan Teencare/KPAI bila kamu butuh.
               </p>
             </div>
 
@@ -266,7 +266,7 @@ export default function LandingPage() {
               <span className="text-xs font-bold text-[#4169FF] uppercase tracking-wider">18–29 Tahun</span>
               <h4 className="font-bold text-sm text-[#151515] uppercase">Dewasa Muda</h4>
               <p className="text-[11px] text-[#59544D] leading-relaxed font-medium">
-                Krisis seperempat abad, skripsi, ekspektasi karir awal, dan relasi mandiri.
+                Skripsi, awal karier, krisis seperempat abad, dan belajar mandiri. Wajar kalau terasa berat.
               </p>
             </div>
 
@@ -274,7 +274,7 @@ export default function LandingPage() {
               <span className="text-xs font-bold text-[#4169FF] uppercase tracking-wider">30–49 Tahun</span>
               <h4 className="font-bold text-sm text-[#151515] uppercase">Dewasa & Keluarga</h4>
               <p className="text-[11px] text-[#59544D] leading-relaxed font-medium">
-                Generasi sandwich, beban tanggungan nafkah, dan burnout karir mapan.
+                Generasi sandwich, tanggung jawab menafkahi, dan lelah bekerja. Kamu boleh merasa capek.
               </p>
             </div>
 
@@ -282,7 +282,7 @@ export default function LandingPage() {
               <span className="text-xs font-bold text-[#4169FF] uppercase tracking-wider">50+ Tahun</span>
               <h4 className="font-bold text-sm text-[#151515] uppercase">Senior & Lansia</h4>
               <p className="text-[11px] text-[#59544D] leading-relaxed font-medium">
-                Mode keterbacaan teks besar (18px+), navigasi tenang, dan refleksi hidup bermakna.
+                Teks yang lebih besar dan mudah dibaca, tampilan yang tenang, dan tanpa terburu-buru.
               </p>
             </div>
           </div>
@@ -298,12 +298,13 @@ export default function LandingPage() {
                 Pintu Keamanan Pertama
               </span>
               <h3 className="text-lg sm:text-xl font-bold text-[#151515] uppercase pt-1">
-                Filter Krisis Deterministik Tanpa Keterlibatan AI
+                Kalau Terasa Terlalu Berat, Bantuan Manusia Langsung Ada
               </h3>
               <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed font-medium">
-                Jika sistem mendeteksi sinyal bahaya akut atau pikiran melukai diri, sistem segera
-                menghentikan alur asesmen normal dan langsung menyajikan kontak darurat Kemenkes Sejiwa
-                (119 ext 8) dan Lisa Helpline tanpa penundaan bot atau model bahasa.
+                Kalau tulisanmu menunjukkan kamu sedang dalam bahaya atau ingin melukai diri, kami langsung
+                menghentikan alur biasa dan menampilkan kontak bantuan: Kemenkes Sejiwa (119 ext 8) dan
+                Lisa Helpline. Deteksinya memakai aturan tetap, bukan AI, jadi tidak ada yang menunda bantuan untukmu.
+                Kamu penting, dan kamu tidak harus melewatinya sendirian.
               </p>
             </div>
 
@@ -316,7 +317,7 @@ export default function LandingPage() {
                 icon={<PhoneCall className="w-4 h-4" />}
                 className="w-full sm:w-auto"
               >
-                Akses Saluran Darurat
+                Lihat Kontak Bantuan Darurat
               </Button>
             </div>
           </div>

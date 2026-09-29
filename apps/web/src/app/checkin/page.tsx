@@ -44,8 +44,8 @@ export default function CheckinPage() {
 
   const moods: Array<{ id: MoodScore; label: string; emoji: string; sub: string; activeClass: string }> = [
     { id: 'sangat_baik', label: 'Sangat Baik', emoji: '😊', sub: 'Bertenaga', activeClass: 'bg-lime text-ink' },
-    { id: 'baik', label: 'Cukup Baik', emoji: '🙂', sub: 'Terkendali', activeClass: 'bg-cobalt text-white' },
-    { id: 'netral', label: 'Biasa Saja', emoji: '😐', sub: 'Stabil', activeClass: 'bg-yellow text-ink' },
+    { id: 'baik', label: 'Cukup Baik', emoji: '🙂', sub: 'Oke', activeClass: 'bg-cobalt text-white' },
+    { id: 'netral', label: 'Biasa Saja', emoji: '😐', sub: 'Lumayan', activeClass: 'bg-yellow text-ink' },
     { id: 'berat', label: 'Terasa Berat', emoji: '😟', sub: 'Cemas / Lelah', activeClass: 'bg-tangerine text-white' },
     { id: 'kewalahan', label: 'Kewalahan', emoji: '😞', sub: 'Sangat Lelah', activeClass: 'bg-coral text-white' },
   ];
@@ -141,7 +141,7 @@ export default function CheckinPage() {
             GIMANA KEADAANMU HARI INI?
           </h1>
           <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-xl font-medium">
-            Ambil jeda satu menit untuk mengenali apa yang sedang terjadi di dalam dirimu saat ini.
+            Ambil jeda satu menit untuk menyapa dirimu sendiri. Apa pun jawabannya, semuanya boleh.
           </p>
         </div>
 
@@ -149,7 +149,7 @@ export default function CheckinPage() {
           {/* PRIMARY: Large Tactile Mood Selector */}
           <div className="space-y-3">
             <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-ink">
-              1. PILIH SUASANA HATIMU SAAT INI:
+              1. LAGI TERASA SEPERTI APA?
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {moods.map((m) => {
@@ -203,7 +203,7 @@ export default function CheckinPage() {
           {/* Stressor Chips */}
           <div className="space-y-3">
             <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-ink">
-              3. SUMBER TEKANAN TERBESAR HARI INI (OPSIONAL):
+              3. ADA YANG TERASA MEMBEBANI HARI INI? (BOLEH DILEWATI)
             </label>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => {
@@ -229,11 +229,11 @@ export default function CheckinPage() {
               value={briefNote}
               onChange={handleNoteChange}
               rows={2}
-              placeholder="Ceritakan sedikit apa yang ada di pikiranmu..."
+              placeholder="Kalau mau, ceritakan sedikit apa yang ada di pikiranmu..."
             />
             <div className="p-3 rounded-md bg-yellow/20 border-2 border-ink shadow-hard-sm flex items-center gap-2 text-xs text-ink font-medium">
               <AlertTriangle className="w-4 h-4 text-ink shrink-0" />
-              <span>Privasi aman dan tersimpan anonim di peramban Anda.</span>
+              <span>Catatanmu tersimpan anonim di peramban perangkatmu.</span>
             </div>
           </div>
 
@@ -247,7 +247,7 @@ export default function CheckinPage() {
               disabled={!selectedMood || saved}
               icon={saved ? <CheckCircle2 className="w-5 h-5" /> : undefined}
             >
-              {saved ? 'CHECK-IN TERSIMPAN!' : 'SIMPAN CHECK-IN HARI INI →'}
+              {saved ? 'TERSIMPAN. TERIMA KASIH SUDAH MENYAPA DIRIMU' : 'SIMPAN CHECK-IN HARI INI →'}
             </Button>
           </div>
         </form>
@@ -277,7 +277,7 @@ export default function CheckinPage() {
                     </div>
                     {entry.stressorTags.length > 0 && (
                       <p className="text-[11px] text-ink/70 font-medium">
-                        Pemicu: {entry.stressorTags.join(', ')}
+                        Yang terasa berat: {entry.stressorTags.join(', ')}
                       </p>
                     )}
                     {entry.briefNote && (

@@ -153,7 +153,7 @@ export default function RecoveryPage() {
         type: 'success',
         message: backupSession !== session
           ? 'Cadangan baru berhasil dibuat. Kunci pemulihan telah diperbarui; salin dan simpan 12 kelompok baru yang ditampilkan di atas.'
-          : 'Data sesi, check-in, dan jurnal berhasil dienkripsi dan dicadangkan ke cloud secara aman (Zero-Knowledge).'
+          : 'Data sesi, check-in, dan jurnal berhasil dienkripsi dan dicadangkan ke cloud secara aman (hanya kamu yang bisa membukanya).'
       });
     } catch (err: any) {
       setBackupNotice({
@@ -173,7 +173,7 @@ export default function RecoveryPage() {
     if (parts.length !== 12) {
       setRestoreStatus({
         type: 'error',
-        message: 'Format salah: Kunci harus terdiri tepat dari 12 kata dipisahkan spasi.'
+        message: 'Format kunci belum sesuai: harus 12 bagian, dipisahkan spasi.'
       });
       return;
     }
@@ -218,7 +218,7 @@ export default function RecoveryPage() {
 
           setRestoreStatus({
             type: 'success',
-            message: 'Seluruh riwayat check-in, jurnal, dan sesi berhasil didekripsi & dipulihkan dari cloud! Mengarahkan ke Dashboard...'
+            message: 'Seluruh riwayat check-in, jurnal, dan sesi berhasil dibuka & dipulihkan dari cloud. Mengarahkan ke Beranda...'
           });
           setTimeout(() => {
             window.location.href = '/dashboard';
@@ -238,7 +238,7 @@ export default function RecoveryPage() {
       setSession(restoredSession);
       setRestoreStatus({
         type: 'warning',
-        message: 'Sesi dipulihkan secara lokal (tidak ditemukan cadangan cloud untuk 12 kata ini). Mengarahkan ke Dashboard...'
+        message: 'Sesi dipulihkan secara lokal (tidak ditemukan cadangan cloud untuk kunci ini). Mengarahkan ke Beranda...'
       });
       setTimeout(() => {
         window.location.href = '/dashboard';
@@ -246,7 +246,7 @@ export default function RecoveryPage() {
     } catch (err: any) {
       setRestoreStatus({
         type: 'error',
-        message: err?.message || 'Gagal memulihkan sesi. Pastikan 12 kata kunci sesuai.'
+        message: err?.message || 'Gagal memulihkan sesi. Pastikan kunci pemulihannya sesuai.'
       });
     } finally {
       setIsRestoring(false);
@@ -256,7 +256,7 @@ export default function RecoveryPage() {
   const handleWipe = () => {
     if (
       confirm(
-        'Apakah Anda yakin ingin menghapus seluruh data anonim yang tersimpan lokal di peramban ini? Tindakan ini tidak dapat dibatalkan. Cadangan cloud terenkripsi dan kunci yang pernah disalin ke clipboard tidak dihapus.'
+        'Apakah kamu yakin ingin menghapus seluruh data anonim yang tersimpan lokal di peramban ini? Tindakan ini tidak dapat dibatalkan. Cadangan cloud terenkripsi dan kunci yang pernah disalin ke clipboard tidak dihapus.'
       )
     ) {
       clearAnonymousSession();
@@ -289,7 +289,7 @@ export default function RecoveryPage() {
         <div className="space-y-3">
           <Badge variant="cobalt" size="md">
             <Key className="w-3.5 h-3.5 mr-1" />
-            Utilitas Cadangan Anonim & E2EE Sync
+            Cadangan & Pemulihan Anonim
           </Badge>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-[#151515] tracking-tight">
             Kunci Akses Sesi Pribadimu
@@ -344,7 +344,7 @@ export default function RecoveryPage() {
             <div className="space-y-1">
               <h3 className="text-sm sm:text-base font-extrabold text-[#151515] flex items-center gap-2">
                 <CloudUpload className="w-4 h-4 text-[#4169FF]" />
-                <span>Cadangkan ke Cloud Terenkripsi (Zero-Knowledge E2EE)</span>
+                <span>Cadangkan ke Cloud (Terenkripsi, Hanya Kamu yang Bisa Buka)</span>
               </h3>
               <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed max-w-lg font-medium">
                 Data check-in dan jurnalmu dienkripsi menggunakan AES-GCM 256-bit langsung di peramban sebelum dikirim. Server tidak pernah memiliki kunci dekripsi.
@@ -359,7 +359,7 @@ export default function RecoveryPage() {
               icon={<CloudUpload className="w-3.5 h-3.5" />}
               className="shrink-0"
             >
-              {isBackingUp ? 'Mengenkripsi...' : 'Cadangkan Sekarang'}
+              {isBackingUp ? 'Mengamankan...' : 'Cadangkan Sekarang'}
             </Button>
           </div>
 
@@ -392,7 +392,7 @@ export default function RecoveryPage() {
               <span>Pulihkan Sesi di Perangkat Baru</span>
             </h3>
             <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed font-medium">
-              Masukkan 12 bagian kunci (atau 12 kata lama) untuk mendekripsi cadangan cloud.
+              Masukkan 12 bagian kunci (atau 12 kata lama) untuk membuka cadangan cloud.
             </p>
           </div>
 
@@ -433,7 +433,7 @@ export default function RecoveryPage() {
                 disabled={isRestoring || !restoreInput.trim()}
                 icon={<RefreshCw className={`w-3.5 h-3.5 ${isRestoring ? 'animate-spin' : ''}`} />}
               >
-                {isRestoring ? 'Mendekripsi & Memulihkan...' : 'Dekripsi & Pulihkan Sesi'}
+                {isRestoring ? 'Membuka cadangan & memulihkan...' : 'Buka Cadangan & Pulihkan Sesi'}
               </Button>
             </div>
           </form>

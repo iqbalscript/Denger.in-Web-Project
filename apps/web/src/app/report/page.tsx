@@ -211,10 +211,10 @@ Catatan: ${summary.encouragementNote}
             Laporan Kemajuan Mingguan (Follow-Up)
           </Badge>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-none">
-            SINTESIS EVALUASI &amp; REFLEKSI 7 HARI
+            RANGKUMAN &amp; REFLEKSI 7 HARI
           </h1>
           <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-xl font-medium">
-            Sintesis berkala membantu melihat progres nyata langkah-langkah kecilmu, membuktikan bahwa setiap jeda dan refleksi memiliki arti.
+            Rangkuman berkala membantu melihat progres nyata langkah-langkah kecilmu, membuktikan bahwa setiap jeda dan refleksi memiliki arti.
           </p>
         </div>
 
@@ -222,17 +222,17 @@ Catatan: ${summary.encouragementNote}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white border-2 border-ink rounded-lg p-5 space-y-2.5 shadow-hard-sm text-left">
             <div className="flex items-center justify-between text-xs text-ink/70 font-bold uppercase tracking-wide">
-              <span>Konsistensi Evaluasi</span>
+              <span>Keteraturan Check-in</span>
               <Calendar className="w-3.5 h-3.5 text-cobalt" />
             </div>
             <p className="text-2xl font-black text-ink">{activeDaysCount} / 7 Hari</p>
             <ProgressBar value={consistencyPercent} max={100} />
-            <span className="text-[11px] text-cobalt font-black uppercase tracking-wider block">{consistencyPercent}% Rutinitas Terjaga</span>
+            <span className="text-[11px] text-cobalt font-black uppercase tracking-wider block">{consistencyPercent}% Hari Aktif</span>
           </div>
 
           <div className="bg-white border-2 border-ink rounded-lg p-5 space-y-2.5 shadow-hard-sm text-left">
             <div className="flex items-center justify-between text-xs text-ink/70 font-bold uppercase tracking-wide">
-              <span>Jalur Misi Harian</span>
+              <span>Misi Harian</span>
               <Target className="w-3.5 h-3.5 text-cobalt" />
             </div>
             <p className="text-2xl font-black text-ink">Hari ke-{currentDay}</p>
@@ -312,7 +312,7 @@ Catatan: ${summary.encouragementNote}
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-black uppercase tracking-wider text-ink flex items-center gap-2">
                 <Zap className="w-4 h-4 text-cobalt" />
-                <span>PEMICU BEBAN PALING SERING MUNCUL:</span>
+                <span>YANG PALING SERING TERASA BERAT:</span>
               </h3>
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
@@ -335,7 +335,7 @@ Catatan: ${summary.encouragementNote}
         <div className="bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-4 shadow-hard-sm text-left">
           <h3 className="text-xs font-black uppercase tracking-wider text-ink flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-cobalt" />
-            <span>PENGAMATAN &amp; SINTESIS POLA:</span>
+            <span>YANG KAMI LIHAT DARI MINGGUMU:</span>
           </h3>
 
           {loading ? (
@@ -347,10 +347,10 @@ Catatan: ${summary.encouragementNote}
             <div className="space-y-3">
               <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
                 {summary?.keyObservation ||
-                  'Evaluasi mingguanmu menunjukkan upaya berkelanjutan untuk memberi ruang jeda bagi pikiran dan tubuh.'}
+                  'Minggu ini kamu terus berusaha memberi ruang jeda untuk pikiran dan tubuhmu, dan itu layak dihargai.'}
               </p>
               <p className="text-xs sm:text-sm text-ink leading-relaxed font-bold bg-yellow/20 p-4 rounded-md border-2 border-ink shadow-hard-sm">
-                🌱 <strong>PESAN PENGUAT:</strong> {summary?.encouragementNote}
+                🌱 <strong>PESAN UNTUKMU:</strong> {summary?.encouragementNote}
               </p>
             </div>
           )}
@@ -362,7 +362,7 @@ Catatan: ${summary.encouragementNote}
             <div className="space-y-1">
               <h3 className="text-xs font-black uppercase tracking-wider text-ink flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-cobalt" />
-                <span>REFLEKSI PEKANAN MANDIRI (+20 LANGKAH)</span>
+                <span>REFLEKSI MINGGUAN (+20 LANGKAH)</span>
               </h3>
               <p className="text-xs text-ink/70 font-medium leading-relaxed">
                 Apa satu hal yang paling kamu sadari atau pelajari tentang dinamika emosimu selama sepekan terakhir?
@@ -413,7 +413,7 @@ Catatan: ${summary.encouragementNote}
                 <span className="text-[10px] text-ink/60 font-bold uppercase tracking-wider">
                   {weeklyReflectionText.trim().length < 20
                     ? `${weeklyReflectionText.trim().length}/20 karakter minimal`
-                    : '✓ Syarat refleksi terpenuhi'}
+                    : '✓ Cukup, terima kasih sudah menulis'}
                 </span>
                 <Button
                   type="submit"
@@ -422,7 +422,7 @@ Catatan: ${summary.encouragementNote}
                   disabled={weeklyReflectionText.trim().length < 20}
                   className="w-full sm:w-auto"
                 >
-                  SIMPAN REFLEKSI PEKANAN →
+                  SIMPAN REFLEKSI MINGGUAN →
                 </Button>
               </div>
             </form>
@@ -453,7 +453,7 @@ Catatan: ${summary.encouragementNote}
               FOKUS MINGGU DEPAN:
             </span>
             <p className="text-sm font-black text-ink uppercase tracking-wide">
-              Mempertahankan ritme misi harian 5 menit &amp; latihan relaksasi pernapasan saat pemicu stres muncul.
+              Lanjutkan misi harian 5 menit, dan coba latihan napas pelan saat stres muncul.
             </p>
           </div>
 

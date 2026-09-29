@@ -49,6 +49,6 @@ export async function POST(request: NextRequest, context: Context) {
     return jsonOk({ crisis: false, reply, moderation }, { status: 201 });
   } catch (error) {
     console.error('Failed to create forum reply:', error instanceof Error ? error.message : error);
-    return jsonError('Terjadi kendala saat menyimpan balasan. Silakan coba lagi.', 500);
+    return jsonError('Balasanmu belum tersimpan karena ada kendala di sisi kami. Coba lagi, ya.', 500);
   } finally { release(); }
 }
