@@ -116,6 +116,9 @@ export default function ForumPage() {
   const [composer, setComposer] = useState<{ storyId: string; parent?: ForumReplyItem; trigger?: HTMLElement } | null>(null);
   const [replyBody, setReplyBody] = useState('');
   const [replyNotice, setReplyNotice] = useState<string | null>(null);
+  const [reportTarget, setReportTarget] = useState<{ storyId: string; reply: ForumReplyItem; trigger?: HTMLElement } | null>(null);
+  const [reportReason, setReportReason] = useState('other_safety');
+  const [reportNotice, setReportNotice] = useState<string | null>(null);
   const [replySubmitting, setReplySubmitting] = useState(false);
   const replySubmittingRef = useRef(false);
 
@@ -402,7 +405,7 @@ export default function ForumPage() {
                           {reply.parentReplyId && <p className="text-[11px] font-bold text-ink/60">↳ {reply.parentContextUnavailable ? 'konteks balasan tidak tersedia' : `membalas ${reply.replyingToAlias}`}</p>}
                           <div className="flex justify-between gap-2"><strong className="text-xs">{reply.authorAlias}</strong><time className="text-[11px] text-ink/60" dateTime={reply.createdAt}>{new Date(reply.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</time></div>
                           <p className="text-xs sm:text-sm whitespace-pre-line">{reply.body}</p>
-                          <div className="flex gap-2"><button type="button" onClick={(event) => openComposer(post.id, reply, event.currentTarget)} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button><button type="button" aria-label={`Laporkan balasan ${reply.authorAlias}`} onClick={async () => { await fetch(`/api/forum/${post.id}/replies/${reply.id}/report`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'other_safety' }) }); }} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt"><Flag className="inline w-3 h-3 mr-1" />LAPORKAN</button></div>
+                          <div className="flex gap-2"><button type="button" onClick={(event) => openComposer(post.id, reply, event.currentTarget)} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button><button type="button" aria-label={`Laporkan balasan ${reply.authorAlias}`} onClick={(event) => { setReportTarget({ storyId: post.id, reply, trigger: event.currentTarget }); setReportReason('other_safety'); setReportNotice(null); }} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt"><Flag className="inline w-3 h-3 mr-1" />LAPORKAN</button></div>
                         </article>
                       ))}
                     </section>
@@ -424,6 +427,16 @@ export default function ForumPage() {
                 <p id="reply-status" aria-live="polite" className="text-xs font-bold">{replyNotice}</p>
               </form>
             </div>
+          </div>
+        )}
+
+        {reportTarget && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="report-title">
+            <form onSubmit={async (event) => { event.preventDefault(); const res = await fetch(`/api/forum/${reportTarget.storyId}/replies/${reportTarget.reply.id}/report`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: reportReason }) }); setReportNotice(res.ok ? 'Laporan diterima untuk ditinjau.' : 'Laporan belum terkirim. Coba lagi.'); if (res.ok) setTimeout(() => { reportTarget.trigger?.focus(); setReportTarget(null); }, 900); }} className="bg-white w-full max-w-md border-2 border-ink rounded-lg shadow-hard-lg p-5 space-y-3">
+              <div className="flex justify-between items-center"><h2 id="report-title" className="font-black uppercase text-sm">Laporkan balasan</h2><button type="button" aria-label="Tutup laporan" onClick={() => { reportTarget.trigger?.focus(); setReportTarget(null); }} className="min-w-[44px] min-h-[44px] font-black">×</button></div>
+              <label className="block text-xs font-bold" htmlFor="report-reason">Alasan laporan</label><select id="report-reason" value={reportReason} onChange={(event) => setReportReason(event.target.value)} className="w-full min-h-[44px] border-2 border-ink rounded px-2"><option value="harassment_or_bullying">Perundungan atau pelecehan</option><option value="self_harm_or_dangerous_advice">Saran menyakiti diri atau berbahaya</option><option value="contact_or_privacy">Kontak atau privasi</option><option value="scam_or_spam">Scam atau spam</option><option value="impersonation">Penyamaran</option><option value="other_safety">Masalah keamanan lainnya</option></select>
+              <button type="submit" className="min-h-[44px] px-4 border-2 border-ink rounded bg-yellow font-bold shadow-hard-sm">KIRIM LAPORAN</button><p aria-live="polite" className="text-xs font-bold">{reportNotice}</p>
+            </form>
           </div>
         )}
 
