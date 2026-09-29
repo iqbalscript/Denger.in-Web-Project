@@ -6,6 +6,15 @@ import type { InterventionDomain } from '@dengarin/types';
  * lanjutan"), so nothing goes public without an explicit approval step.
  */
 export type ForumModerationStatus = 'pending_review' | 'approved' | 'rejected';
+export type ForumReplyState = 'open' | 'locked';
+export type ForumReportReason =
+  | 'harassment_or_bullying'
+  | 'self_harm_or_dangerous_advice'
+  | 'contact_or_privacy'
+  | 'scam_or_spam'
+  | 'impersonation'
+  | 'other_safety';
+export type ForumReportStatus = 'pending_review' | 'resolved' | 'dismissed';
 
 export interface ForumPostRecord {
   id: string;
@@ -16,6 +25,8 @@ export interface ForumPostRecord {
   createdAt: string;
   moderationStatus: ForumModerationStatus;
   supportCount: number;
+  replyState: ForumReplyState;
+  replyCount: number;
 }
 
 export interface CreateForumPostInput {
@@ -24,6 +35,45 @@ export interface CreateForumPostInput {
   title: string;
   body: string;
   initialStatus?: ForumModerationStatus;
+}
+
+/** A public reply never contains the private thread capability or its hash. */
+export interface ForumReplyRecord {
+  id: string;
+  storyId: string;
+  parentReplyId: string | null;
+  authorAlias: string;
+  body: string;
+  moderationStatus: ForumModerationStatus;
+  createdAt: string;
+  moderatedAt: string | null;
+  /** Present only for an approved, publicly visible parent. */
+  replyingToAlias: string | null;
+  /** True when a formerly visible parent was moderated away. */
+  parentContextUnavailable: boolean;
+}
+
+export interface CreateForumReplyInput {
+  storyId: string;
+  parentReplyId?: string;
+  /** HMAC(server secret, story ID + opaque browser capability), never public. */
+  participantKeyHash: string;
+  /** Server-generated collision-resistant candidates, never supplied by a browser. */
+  aliasCandidates: string[];
+  body: string;
+  initialStatus: ForumModerationStatus;
+}
+
+export interface ForumReplyPage {
+  replies: ForumReplyRecord[];
+  nextCursor: string | null;
+  approvedCount: number;
+}
+
+export interface CreateForumReplyReportInput {
+  storyId: string;
+  replyId: string;
+  reason: ForumReportReason;
 }
 
 /**
@@ -37,6 +87,10 @@ export interface ForumRepository {
   listPendingReview(limit?: number): Promise<ForumPostRecord[]>;
   moderate(postId: string, status: ForumModerationStatus): Promise<ForumPostRecord | undefined>;
   incrementSupport(postId: string): Promise<ForumPostRecord | undefined>;
+  createReply(input: CreateForumReplyInput): Promise<ForumReplyRecord | undefined>;
+  listApprovedReplies(storyId: string, limit: number, cursor?: string): Promise<ForumReplyPage | undefined>;
+  createReplyReport(input: CreateForumReplyReportInput): Promise<boolean>;
+  moderateReply(replyId: string, status: ForumModerationStatus): Promise<ForumReplyRecord | undefined>;
 }
 
 /**

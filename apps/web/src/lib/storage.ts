@@ -16,6 +16,21 @@ const STORAGE_KEY = `${DENGARIN_STORAGE_PREFIX}anonymous_session`;
 const CHECKINS_KEY = `${DENGARIN_STORAGE_PREFIX}checkins`;
 const DRAFT_STORAGE_KEY = `${DENGARIN_STORAGE_PREFIX}assessment_draft`;
 const MISSION_KEY_PREFIX = `${DENGARIN_STORAGE_PREFIX}mission_`;
+const FORUM_THREAD_KEY_PREFIX = `${DENGARIN_STORAGE_PREFIX}forum_thread_key_`;
+
+/** A 256-bit per-story capability. It is not an account or cross-thread ID. */
+export function getForumThreadKey(storyId: string): string | null {
+  if (typeof window === 'undefined' || !storyId) return null;
+  try {
+    const key = `${FORUM_THREAD_KEY_PREFIX}${storyId}`;
+    const existing = localStorage.getItem(key);
+    if (existing && /^[A-Za-z0-9_-]{43}$/.test(existing)) return existing;
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    const created = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    localStorage.setItem(key, created);
+    return created;
+  } catch { return null; }
+}
 
 // Curated non-PII words for anonymous identity generation (e.g. "Bunga Tenang #2481")
 const ALIAS_NOUNS = [

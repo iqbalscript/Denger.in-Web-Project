@@ -28,7 +28,7 @@ export function createRateLimiter(windowMs = WINDOW_MS, maxEntries = 32, now = D
 }
 
 const limiter = createRateLimiter();
-export type PublicRoute = 'chat' | 'room-tts' | 'admin-login' | 'forum-write' | 'forum-support' | 'weekly-report' | 'sync-read' | 'sync-write';
+export type PublicRoute = 'chat' | 'room-tts' | 'admin-login' | 'forum-write' | 'forum-support' | 'forum-reply-create' | 'forum-reply-list' | 'forum-reply-report' | 'weekly-report' | 'sync-read' | 'sync-write';
 const limits: Record<PublicRoute, number> = {
   chat: 30,
   // Additional quota for expensive, optional Gemini TTS. This is intentionally
@@ -37,6 +37,9 @@ const limits: Record<PublicRoute, number> = {
   'admin-login': 20,
   'forum-write': 60,
   'forum-support': 120,
+  'forum-reply-create': 30,
+  'forum-reply-list': 120,
+  'forum-reply-report': 30,
   'weekly-report': 120,
   'sync-read': 120,
   'sync-write': 60
@@ -90,6 +93,16 @@ export function acquireChatSlot(): (() => void) | null {
   activeChat += 1;
   let released = false;
   return () => { if (!released) { activeChat -= 1; released = true; } };
+}
+
+let activeForumReplyWrites = 0;
+const MAX_ACTIVE_FORUM_REPLY_WRITES = 4;
+/** Local concurrency guard; distributed rate limiting remains Redis/edge work. */
+export function acquireForumReplyWriteSlot(): (() => void) | null {
+  if (activeForumReplyWrites >= MAX_ACTIVE_FORUM_REPLY_WRITES) return null;
+  activeForumReplyWrites += 1;
+  let released = false;
+  return () => { if (!released) { activeForumReplyWrites -= 1; released = true; } };
 }
 
 let activeTts = 0;

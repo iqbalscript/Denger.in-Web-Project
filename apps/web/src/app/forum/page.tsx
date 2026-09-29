@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Users,
   ArrowLeft,
-  Heart,
+  MessageCircle,
+  Flag,
   PlusCircle,
   Sparkles,
   ShieldCheck,
@@ -24,6 +25,7 @@ import {
   Textarea
 } from '@/components/ui';
 import type { InterventionDomain } from '@dengarin/types';
+import { getForumThreadKey } from '@/lib/storage';
 
 interface ForumPostItem {
   id: string;
@@ -33,7 +35,9 @@ interface ForumPostItem {
   body: string;
   createdAt: string;
   supportCount: number;
+  replyCount?: number;
 }
+interface ForumReplyItem { id: string; parentReplyId: string | null; authorAlias: string; body: string; createdAt: string; replyingToAlias: string | null; parentContextUnavailable: boolean; }
 
 const INITIAL_FALLBACK_POSTS: ForumPostItem[] = [
   {
@@ -108,19 +112,12 @@ export default function ForumPage() {
   const [submitNotice, setSubmitNotice] = useState<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
   const isSubmittingRef = useRef(false);
 
-  // Supported posts tracking in local storage
-  const [supportedPosts, setSupportedPosts] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('dengarin_supported_posts');
-      if (stored) {
-        setSupportedPosts(new Set(JSON.parse(stored)));
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  const [replyPages, setReplyPages] = useState<Record<string, { replies: ForumReplyItem[]; count: number; loading: boolean }>>({});
+  const [composer, setComposer] = useState<{ storyId: string; parent?: ForumReplyItem; trigger?: HTMLElement } | null>(null);
+  const [replyBody, setReplyBody] = useState('');
+  const [replyNotice, setReplyNotice] = useState<string | null>(null);
+  const [replySubmitting, setReplySubmitting] = useState(false);
+  const replySubmittingRef = useRef(false);
 
   const fetchPosts = useCallback(async (selectedDomain?: string) => {
     setLoading(true);
@@ -162,49 +159,29 @@ export default function ForumPage() {
     setIsModalOpen(true);
   };
 
-  const handleSupport = async (postId: string) => {
-    if (supportedPosts.has(postId)) return;
-
-    const prevSupported = new Set(supportedPosts);
-    const prevPosts = posts;
-
-    setPosts((prev) =>
-      prev.map((p) => (p.id === postId ? { ...p, supportCount: p.supportCount + 1 } : p))
-    );
-
-    const updatedSupported = new Set(supportedPosts);
-    updatedSupported.add(postId);
-    setSupportedPosts(updatedSupported);
+  const loadReplies = async (postId: string) => {
+    setReplyPages((value) => ({ ...value, [postId]: { replies: value[postId]?.replies ?? [], count: value[postId]?.count ?? 0, loading: true } }));
     try {
-      localStorage.setItem('dengarin_supported_posts', JSON.stringify(Array.from(updatedSupported)));
-    } catch {
-      // ignore
-    }
-
-    if (!postId.startsWith('seed-')) {
-      try {
-        const res = await fetch(`/api/forum/${postId}/support`, { method: 'POST' });
-        if (!res.ok) {
-          // Revert optimistic update on failure
-          setPosts(prevPosts);
-          setSupportedPosts(prevSupported);
-          try {
-            localStorage.setItem('dengarin_supported_posts', JSON.stringify(Array.from(prevSupported)));
-          } catch {
-            // ignore
-          }
-        }
-      } catch {
-        // Revert on network failure
-        setPosts(prevPosts);
-        setSupportedPosts(prevSupported);
-        try {
-          localStorage.setItem('dengarin_supported_posts', JSON.stringify(Array.from(prevSupported)));
-        } catch {
-          // ignore
-        }
-      }
-    }
+      const res = await fetch(`/api/forum/${postId}/replies`);
+      const json = await res.json(); const data = json.data ?? json;
+      if (res.ok) setReplyPages((value) => ({ ...value, [postId]: { replies: data.replies, count: data.approvedCount, loading: false } }));
+    } finally { setReplyPages((value) => value[postId] ? ({ ...value, [postId]: { ...value[postId], loading: false } }) : value); }
+  };
+  const openComposer = (storyId: string, parent?: ForumReplyItem, trigger?: HTMLElement) => { setComposer({ storyId, parent, trigger }); setReplyBody(''); setReplyNotice(null); };
+  const submitReply = async (event: React.FormEvent) => {
+    event.preventDefault(); if (!composer || replySubmittingRef.current || replyBody.trim().length < 3 || replyBody.trim().length > 800) return;
+    const threadKey = getForumThreadKey(composer.storyId); if (!threadKey) { setReplyNotice('Sesi anonim tidak tersedia. Coba lagi.'); return; }
+    replySubmittingRef.current = true; setReplySubmitting(true); setReplyNotice(null);
+    try {
+      const res = await fetch(`/api/forum/${composer.storyId}/replies`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body: replyBody, parentReplyId: composer.parent?.id, threadKey }) });
+      const json = await res.json().catch(() => null); const data = json?.data ?? json;
+      if (data?.crisis) { window.location.assign('/crisis'); return; }
+      if (!res.ok) { setReplyNotice(json?.error ?? 'Balasan belum terkirim. Coba lagi.'); return; }
+      setReplyNotice(data.moderation?.status === 'pending_review' ? 'Balasan sedang ditinjau moderator.' : 'Balasan terkirim.');
+      setReplyBody(''); if (data.moderation?.status === 'approved') await loadReplies(composer.storyId);
+      setTimeout(() => { composer.trigger?.focus(); setComposer(null); }, 900);
+    } catch { setReplyNotice('Koneksi terputus. Balasan belum terkirim; kamu dapat mencoba lagi.'); }
+    finally { replySubmittingRef.current = false; setReplySubmitting(false); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -380,8 +357,8 @@ export default function ForumPage() {
         ) : (
           <div className="space-y-4">
             {posts.map((post) => {
-              const hasSupported = supportedPosts.has(post.id);
               const categoryLabel = CATEGORIES.find((c) => c.domain === post.domain)?.label || 'Beban Pikiran';
+              const thread = replyPages[post.id];
 
               return (
                 <div
@@ -404,28 +381,11 @@ export default function ForumPage() {
                     {post.body}
                   </p>
 
-                  <div className="pt-3 flex items-center justify-between text-xs text-ink/70 border-t-2 border-ink">
-                    <button
-                      type="button"
-                      onClick={() => handleSupport(post.id)}
-                      className={`flex items-center gap-1.5 font-bold py-1 px-2.5 rounded border-2 border-ink transition-all ${
-                        hasSupported
-                          ? 'bg-coral/20 text-coral shadow-hard-sm'
-                          : 'bg-white hover:bg-paper text-ink shadow-hard-sm'
-                      }`}
-                    >
-                      <Heart
-                        className={`w-3.5 h-3.5 ${
-                          hasSupported ? 'fill-coral text-coral' : 'text-ink'
-                        }`}
-                      />
-                      <span>
-                        {hasSupported
-                          ? `Kamu & ${post.supportCount - 1 > 0 ? post.supportCount - 1 : 0} orang merasakan hal serupa`
-                          : `${post.supportCount} orang merasakan hal serupa`}
-                      </span>
+                  <div className="pt-3 flex flex-wrap items-center gap-2 text-xs text-ink/70 border-t-2 border-ink">
+                    <button type="button" onClick={() => thread ? setReplyPages((value) => { const next = { ...value }; delete next[post.id]; return next; }) : loadReplies(post.id)} className="min-h-[44px] px-3 border-2 border-ink rounded font-bold shadow-hard-sm hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">
+                      <MessageCircle className="inline w-3.5 h-3.5 mr-1" /> {thread ? 'SEMBUNYIKAN BALASAN' : `LIHAT ${post.replyCount ?? 0} BALASAN`}
                     </button>
-
+                    <button type="button" onClick={(event) => openComposer(post.id, undefined, event.currentTarget)} className="min-h-[44px] px-3 border-2 border-ink rounded font-bold shadow-hard-sm hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button>
                     <span className="text-[11px] text-ink/50 font-bold">
                       {new Date(post.createdAt).toLocaleDateString('id-ID', {
                         day: 'numeric',
@@ -433,9 +393,37 @@ export default function ForumPage() {
                       })}
                     </span>
                   </div>
+                  {thread && (
+                    <section aria-label="Balasan cerita" className="space-y-3 pt-2">
+                      {thread.loading && <p aria-live="polite" className="text-xs font-bold">Memuat balasan…</p>}
+                      {!thread.loading && thread.replies.length === 0 && <p className="text-xs text-ink/70">Belum ada balasan. Jadilah yang pertama memberi dukungan yang aman.</p>}
+                      {thread.replies.map((reply) => (
+                        <article key={reply.id} className={`border-2 border-ink rounded p-3 space-y-2 ${reply.parentReplyId ? 'ml-3 sm:ml-6' : ''}`}>
+                          {reply.parentReplyId && <p className="text-[11px] font-bold text-ink/60">↳ {reply.parentContextUnavailable ? 'konteks balasan tidak tersedia' : `membalas ${reply.replyingToAlias}`}</p>}
+                          <div className="flex justify-between gap-2"><strong className="text-xs">{reply.authorAlias}</strong><time className="text-[11px] text-ink/60" dateTime={reply.createdAt}>{new Date(reply.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</time></div>
+                          <p className="text-xs sm:text-sm whitespace-pre-line">{reply.body}</p>
+                          <div className="flex gap-2"><button type="button" onClick={(event) => openComposer(post.id, reply, event.currentTarget)} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button><button type="button" aria-label={`Laporkan balasan ${reply.authorAlias}`} onClick={async () => { await fetch(`/api/forum/${post.id}/replies/${reply.id}/report`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'other_safety' }) }); }} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt"><Flag className="inline w-3 h-3 mr-1" />LAPORKAN</button></div>
+                        </article>
+                      ))}
+                    </section>
+                  )}
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {composer && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="reply-composer-title" onKeyDown={(event) => { if (event.key === 'Escape' && !replySubmitting) { composer.trigger?.focus(); setComposer(null); } }}>
+            <div className="bg-white w-full max-w-lg border-2 border-ink rounded-lg shadow-hard-lg p-5 space-y-3">
+              <div className="flex items-center justify-between gap-3"><h2 id="reply-composer-title" className="font-black uppercase text-sm">{composer.parent ? `Membalas ${composer.parent.authorAlias}` : 'Balas cerita ini'}</h2><button type="button" aria-label="Tutup penulis balasan" onClick={() => { composer.trigger?.focus(); setComposer(null); }} className="min-w-[44px] min-h-[44px] font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">×</button></div>
+              <p className="text-xs text-ink/70">Nama samaran dibuat server untuk percakapan ini saja. Hapus Data Lokal menghapus kunci lokal, bukan balasan yang sudah publik.</p>
+              <form onSubmit={submitReply} className="space-y-3">
+                <textarea autoFocus value={replyBody} onChange={(event) => setReplyBody(event.target.value)} minLength={3} maxLength={800} required aria-describedby="reply-limit reply-status" className="w-full min-h-28 border-2 border-ink rounded p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt" placeholder="Tulis dukungan dengan aman, tanpa kontak atau tautan." />
+                <div className="flex items-center justify-between text-xs"><span id="reply-limit">{replyBody.length}/800 karakter</span><button type="submit" disabled={replySubmitting || replyBody.trim().length < 3 || replyBody.trim().length > 800} className="min-h-[44px] px-4 border-2 border-ink rounded bg-lime font-bold shadow-hard-sm disabled:opacity-50">{replySubmitting ? 'MENGIRIM…' : 'KIRIM BALASAN'}</button></div>
+                <p id="reply-status" aria-live="polite" className="text-xs font-bold">{replyNotice}</p>
+              </form>
+            </div>
           </div>
         )}
 

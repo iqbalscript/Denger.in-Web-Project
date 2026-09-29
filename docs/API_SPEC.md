@@ -303,6 +303,7 @@ Admin accounts have no signup route — they are provisioned out-of-band via `np
 | `OPENROUTER_SITE_URL` / `OPENROUTER_SITE_NAME` | `services/orchestrator` (Tier 2) | Optional `HTTP-Referer`/`X-Title` headers, free-tier attribution only |
 | `DATABASE_URL` | `services/persistence` factory | PostgreSQL connection string; unset = in-memory fallback |
 | `ADMIN_SESSION_SECRET` | `apps/web/src/lib/api/adminSession.ts` | HMAC secret signing the admin session cookie; required for `/api/admin/login` |
+| `FORUM_THREAD_ALIAS_SECRET` | `apps/web/src/lib/api/threadAlias.ts` | HMAC secret for per-story anonymous reply capabilities; required for reply creation |
 | `ADMIN_SEED_USERNAME` / `ADMIN_SEED_PASSWORD` | `services/persistence/scripts/seedAdmin.ts` | One-time values read only when running `npm run db:seed-admin` |
 
 ---
