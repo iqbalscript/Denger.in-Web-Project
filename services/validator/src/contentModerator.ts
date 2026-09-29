@@ -15,6 +15,9 @@ export interface ForumPostContent {
 }
 
 export const MAX_FORUM_PSEUDONYM_LENGTH = 50;
+export const MAX_FORUM_REPLY_LENGTH = 800;
+
+export interface ForumReplyContent { body: string; }
 
 /** Normalize only for inspection; the displayed alias is never silently rewritten. */
 function pseudonymForInspection(value: string): string {
@@ -146,4 +149,22 @@ export function moderateForumPost(input: ForumPostContent): ModerationResult {
     tags: Array.from(new Set(tags)),
     safetyScore: 95
   };
+}
+
+/** Strict deterministic policy for targeted peer-to-peer replies. No model is used. */
+export function moderateForumReply(input: ForumReplyContent): ModerationResult {
+  const body = input.body.trim();
+  const normalized = body.normalize('NFKC').replace(/\p{Cf}/gu, '');
+  const compact = normalized.replace(/[._-]+/g, ' ');
+  if (body.length < 3) return { status: 'rejected', reason: 'Balasan terlalu singkat (minimal 3 karakter).', tags: [], safetyScore: 0 };
+  if (body.length > MAX_FORUM_REPLY_LENGTH) return { status: 'rejected', reason: 'Balasan melebihi batas maksimum 800 karakter.', tags: [], safetyScore: 0 };
+  if (/<\/?[a-z][^>]*>|javascript:|data:text\/html|on\w+\s*=/iu.test(normalized)) return { status: 'rejected', reason: 'Markup atau kode tidak diizinkan.', tags: [], safetyScore: 0 };
+  if (/(?:https?:\/\/|www\.|\b[\p{L}\p{N}-]+\.(?:com|net|org|id|co|io|me|xyz)\b|\b[\p{L}\p{N}-]+\s+(?:dot|titik)\s+(?:com|net|org|id|co|io|me|xyz)\b)/iu.test(compact) || /\b[\w.+-]+@[\w-]+\.[\w.-]+\b/u.test(compact) || /(?:^|\D)(?:\+?62[\s().-]*|0)8(?:[\s().-]*\d){8,12}(?!\d)/u.test(compact) || /\b(?:wa|whats\s*app|telegram|instagram|tiktok|line|dm)\b/iu.test(compact)) return { status: 'rejected', reason: 'Kontak, tautan, atau ajakan pindah percakapan tidak diizinkan.', tags: [], safetyScore: 0 };
+  if (/\b(?:mati\s*aja|bunuh\s*diri\s*aja|sayat|gantung\s*diri|loncat\s*dari|minum\s*(?:racun|baygon)|biar\s*dia\s*mati)\b/iu.test(compact)) return { status: 'rejected', reason: 'Dorongan menyakiti diri atau orang lain tidak diizinkan.', tags: [], safetyScore: 0 };
+  if (/\b(?:mulai|berhenti|naikkan|turunkan|gandakan)\s+(?:minum\s+)?(?:obat|pil|antidepresan|penenang)|\b(?:dosis|resep)\s+(?:obat|pil|antidepresan|penenang)\b/iu.test(compact)) return { status: 'rejected', reason: 'Instruksi pengobatan tidak diizinkan.', tags: [], safetyScore: 0 };
+  if (/\b(?:anjing\s*lu|goblok|tolol|bangsat|lonte|pelacur|memalukan|lemah\s*banget|cari\s*perhatian)\b/iu.test(compact)) return { status: 'rejected', reason: 'Penghinaan atau perundungan tidak diizinkan.', tags: [], safetyScore: 0 };
+  if (/\b(?:pacar\s*aku\s*aja|rahasia\s*kita|foto\s*(?:kamu|mu)|umur\s*(?:kamu|mu)|ketemu\s*yuk|seks|telanjang)\b/iu.test(compact)) return { status: 'rejected', reason: 'Konten seksual, grooming, atau paksaan tidak diizinkan.', tags: [], safetyScore: 0 };
+  if (/\b(?:slot\s*gacor|judi\s*online|pinjol\s*langsung\s*cair|transfer\s*dulu|investasi\s*pasti|aku\s*(?:admin|dokter|psikolog))\b/iu.test(compact)) return { status: 'rejected', reason: 'Penipuan, promosi, atau penyamaran tidak diizinkan.', tags: [], safetyScore: 0 };
+  if (/\b(?:trauma|kekerasan|pelecehan|putus\s*asa|tidak\s*ada\s*harapan|kdrt)\b/iu.test(compact)) return { status: 'pending_review', reason: 'Balasan memerlukan peninjauan keamanan.', tags: [], safetyScore: 60 };
+  return { status: 'approved', tags: ['supportive_reply'], safetyScore: 95 };
 }
