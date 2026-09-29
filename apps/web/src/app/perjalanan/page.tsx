@@ -22,18 +22,22 @@ import {
   LANGKAH_AMOUNTS,
 } from '@/lib/gamification';
 import type { GamificationStateV1 } from '@dengarin/types';
-import { PageContainer, ContentColumn, Button } from '@/components/ui';
+import { loadWellbeingTimeline, type WellbeingTimeline as TimelineData } from '@/lib/wellbeingTimeline';
+import { PageContainer, ContentColumn, Button, WellbeingTimeline } from '@/components/ui';
 
 export default function PerjalananPage() {
   const [gamState, setGamState] = useState<GamificationStateV1 | null>(null);
+  const [timeline, setTimeline] = useState<TimelineData | null>(null);
 
   useEffect(() => {
     setGamState(loadGamificationState());
+    setTimeline(loadWellbeingTimeline());
 
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'dengarin_gamification_v1' || e.key === null) {
         setGamState(loadGamificationState());
       }
+      setTimeline(loadWellbeingTimeline());
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
@@ -129,6 +133,9 @@ export default function PerjalananPage() {
             ))}
           </div>
         </div>
+
+        {/* Personal Well-being Timeline (14 hari) */}
+        {timeline && <WellbeingTimeline timeline={timeline} />}
 
         {/* Ritme 7 Hari */}
         <div className="bg-white border-2 border-ink rounded-lg p-6 space-y-3 shadow-hard-sm text-left">
