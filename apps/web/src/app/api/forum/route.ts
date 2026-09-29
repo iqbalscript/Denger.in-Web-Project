@@ -6,6 +6,7 @@ import { jsonError, jsonOk } from '@/lib/api/response';
 import { isRateLimited } from '@/lib/api/rateLimit';
 import { readJsonLimited } from '@/lib/api/requestLimits';
 import { invalidateForumPosts, readThroughForumPosts } from '@/lib/api/forumCache';
+import { withReplyStats } from '@/lib/api/forumReplyStats';
 
 import { moderateForumPost } from '@dengarin/validator';
 
@@ -20,7 +21,7 @@ interface CreateForumPostBody {
 export async function GET(request: NextRequest) {
   try {
     const domainParam = request.nextUrl.searchParams.get('domain') as InterventionDomain | null;
-    const posts = await readThroughForumPosts(`domain=${domainParam ?? ''}`, () => forumRepository.listApproved(50, domainParam || undefined));
+    const posts = await readThroughForumPosts(`domain=${domainParam ?? ''}`, async () => withReplyStats(await forumRepository.listApproved(50, domainParam || undefined)));
     return jsonOk({ posts });
   } catch (err) {
     console.error('Failed to list forum posts:', err);

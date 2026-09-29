@@ -1,6 +1,6 @@
 import type { Pool, PoolClient } from 'pg';
 import type { InterventionDomain } from '@dengarin/types';
-import type { CreateForumReplyInput, CreateForumReplyReportInput, CreateForumPostInput, ForumModerationStatus, ForumPostRecord, ForumReplyPage, ForumReplyRecord, ForumRepository } from '../types.ts';
+import type { CreateForumReplyInput, CreateForumReplyReportInput, CreateForumPostInput, ForumModerationStatus, ForumPostRecord, ForumReplyPage, ForumReplyRecord, ForumReplyStats, ForumRepository } from '../types.ts';
 import { getPool } from '../db/pool.ts';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -23,6 +23,12 @@ function parseCursor(cursor: string): { createdAt: string; id: string } | undefi
   return separator > 0 && UUID_PATTERN.test(id) && !Number.isNaN(Date.parse(createdAt)) ? { createdAt, id } : undefined;
 }
 
+/** 42P01 = tabel tidak ada, 42703 = kolom tidak ada: migrasi balasan belum diterapkan. */
+function isReplySchemaMissing(error: unknown): boolean {
+  const code = error && typeof error === 'object' && 'code' in error ? (error as { code?: unknown }).code : undefined;
+  return code === '42P01' || code === '42703';
+}
+
 const postFields = `id, author_pseudonym, domain, title, body, moderation_status, support_count, created_at`;
 const replyFields = `r.id, r.story_id, r.parent_reply_id, r.author_alias, r.body, r.moderation_status, r.created_at, r.moderated_at, CASE WHEN parent.moderation_status = 'approved' THEN parent.author_alias ELSE NULL END AS replying_to_alias, (r.parent_reply_id IS NOT NULL AND (parent.id IS NULL OR parent.moderation_status <> 'approved')) AS parent_context_unavailable`;
 
@@ -43,7 +49,21 @@ export function createPostgresForumRepository(pool: Pool = getPool()): ForumRepo
     async moderate(postId: string, status: ForumModerationStatus): Promise<ForumPostRecord | undefined> {
       if (!UUID_PATTERN.test(postId)) return undefined;
       const result = await pool.query<ForumPostRow>(`UPDATE forum_posts SET moderation_status = $2 WHERE id = $1 RETURNING ${postFields}`, [postId, status]);
+      if (result.rows[0] && status !== 'approved') {
+        // Cerita yang tidak disetujui tidak boleh menerima balasan. Terpisah dari
+        // UPDATE di atas supaya moderasi tetap jalan di database yang belum punya
+        // kolom reply_state (migrasi balasan belum diterapkan).
+        try { await pool.query("UPDATE forum_posts SET reply_state = 'locked' WHERE id = $1", [postId]); }
+        catch (error) { if (!isReplySchemaMissing(error)) throw error; }
+      }
       return result.rows[0] ? rowToRecord(result.rows[0]) : undefined;
+    },
+    async getReplyStats(storyIds: string[]): Promise<Record<string, ForumReplyStats>> {
+      const ids = storyIds.filter((id) => UUID_PATTERN.test(id));
+      if (!ids.length) return {};
+      const result = await pool.query<{ id: string; reply_state: 'open' | 'locked'; reply_count: string | number }>(
+        `SELECT p.id, p.reply_state, (SELECT count(*) FROM forum_replies r WHERE r.story_id = p.id AND r.moderation_status = 'approved') AS reply_count FROM forum_posts p WHERE p.id = ANY($1::uuid[])`, [ids]);
+      return Object.fromEntries(result.rows.map((row) => [row.id, { replyState: row.reply_state, replyCount: Number(row.reply_count) }]));
     },
     async incrementSupport(postId: string): Promise<ForumPostRecord | undefined> {
       if (!UUID_PATTERN.test(postId)) return undefined;

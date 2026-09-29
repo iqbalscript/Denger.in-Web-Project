@@ -65,6 +65,17 @@ export function createInMemoryForumRepository(): ForumRepository {
       return updated;
     },
 
+    async getReplyStats(storyIds: string[]) {
+      const stats: Record<string, { replyState: 'open' | 'locked'; replyCount: number }> = {};
+      for (const id of storyIds) {
+        const story = posts.get(id);
+        if (!story) continue;
+        const replyCount = [...replies.values()].filter((reply) => reply.storyId === id && reply.moderationStatus === 'approved').length;
+        stats[id] = { replyState: story.moderationStatus === 'approved' ? story.replyState : 'locked', replyCount };
+      }
+      return stats;
+    },
+
     async incrementSupport(postId: string): Promise<ForumPostRecord | undefined> {
       const existing = posts.get(postId);
       if (!existing) {

@@ -29,6 +29,13 @@ export interface ForumPostRecord {
   replyCount: number;
 }
 
+/** Status komentar sebuah cerita; dihitung terpisah dari feed supaya feed tidak bergantung pada skema balasan. */
+export interface ForumReplyStats {
+  replyState: ForumReplyState;
+  /** Jumlah balasan yang sudah disetujui. */
+  replyCount: number;
+}
+
 export interface CreateForumPostInput {
   authorPseudonym: string;
   domain: InterventionDomain;
@@ -91,6 +98,13 @@ export interface ForumRepository {
   listApprovedReplies(storyId: string, limit: number, cursor?: string): Promise<ForumReplyPage | undefined>;
   createReplyReport(input: CreateForumReplyReportInput): Promise<boolean>;
   moderateReply(replyId: string, status: ForumModerationStatus): Promise<ForumReplyRecord | undefined>;
+  /**
+   * Hitungan balasan dan status kunci untuk sekumpulan cerita. Sengaja query
+   * TERPISAH dari list/create: PostgreSQL bisa melempar 42P01/42703 bila migrasi
+   * balasan belum diterapkan, dan pemanggil (lib/api/forumReplyStats.ts) menanganinya
+   * dengan tetap menyajikan feed tanpa hitungan.
+   */
+  getReplyStats(storyIds: string[]): Promise<Record<string, ForumReplyStats>>;
 }
 
 /**
