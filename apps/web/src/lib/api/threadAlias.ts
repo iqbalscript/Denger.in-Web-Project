@@ -5,9 +5,33 @@ const NOUNS = ['Awan', 'Senja', 'Hujan', 'Embun', 'Pelita', 'Angin', 'Daun', 'Su
 const QUALIFIERS = ['Teduh', 'Tenang', 'Hangat', 'Jernih', 'Lembut', 'Sabar', 'Damai', 'Sejuk', 'Tabah', 'Bijak', 'Ramah', 'Tulus', 'Hening', 'Kecil', 'Lega', 'Cerah', 'Rindu', 'Tegar', 'Sederhana', 'Penuh', 'Akrab', 'Pelan', 'Kuat', 'Baik', 'Sore', 'Pagi', 'Luas', 'Dekat', 'Harum', 'Biru', 'Hijau', 'Jingga'];
 const DETAILS = ['Pagi', 'Sore', 'Malam', 'Ruang', 'Jalan', 'Langkah', 'Nada', 'Rona', 'Rasa', 'Arah', 'Cerita', 'Hening', 'Teduh', 'Hangat', 'Lembut', 'Jernih', 'Damai', 'Kecil', 'Luas', 'Pelan', 'Tulus', 'Baik', 'Ramah', 'Biru', 'Jingga', 'Hijau', 'Emas', 'Putih', 'Lapis', 'Bening', 'Sinar', 'Pijar'];
 
+let warnedDerivedSecret = false;
+
+/**
+ * Secret HMAC untuk identitas anonim per cerita.
+ *
+ * Utamanya dari `FORUM_THREAD_ALIAS_SECRET`. Bila tidak diisi (mis. slot
+ * environment variable di hosting sudah penuh), diturunkan satu arah dari
+ * `ADMIN_SESSION_SECRET` dengan pemisah domain, sehingga tidak membuka secret
+ * admin dan tidak sama dengan kunci lain yang dipakai secret itu.
+ * Konsekuensi: memutar `ADMIN_SESSION_SECRET` juga mengganti alias peserta
+ * (pengguna mendapat nama samaran baru di thread yang sama).
+ */
+function threadAliasSecret(): string | undefined {
+  const explicit = process.env.FORUM_THREAD_ALIAS_SECRET;
+  if (explicit) return explicit;
+  const base = process.env.ADMIN_SESSION_SECRET;
+  if (!base) return undefined;
+  if (!warnedDerivedSecret) {
+    warnedDerivedSecret = true;
+    console.warn('[Forum] FORUM_THREAD_ALIAS_SECRET kosong; memakai turunan dari ADMIN_SESSION_SECRET.');
+  }
+  return createHmac('sha256', base).update('dengarin:forum-thread-alias:v1').digest('hex');
+}
+
 export function deriveThreadParticipantHash(storyId: string, threadKey: string): string | undefined {
   if (!THREAD_KEY_PATTERN.test(threadKey)) return undefined;
-  const secret = process.env.FORUM_THREAD_ALIAS_SECRET;
+  const secret = threadAliasSecret();
   if (!secret) return undefined;
   return createHmac('sha256', secret).update(`${storyId}\u0000${threadKey}`).digest('base64url');
 }
