@@ -211,6 +211,9 @@ try {
   assert.ok(cachedB.length >= 2, 'cache balasan cerita B tidak ikut terbuang');
   const cacheValues = await Promise.all(cachedB.map(key => client.get(key)));
   assert.ok(cacheValues.every(value => !/threadKey|participantKey|uji-a/i.test(value ?? '')), 'kunci thread tidak masuk Redis');
+  const feed = (await (await request(a.base, '/api/forum?domain=campus')).json()).data.posts;
+  assert.equal(feed.find(post => post.id === storyA).replyCount, 1, 'hitungan balasan di feed ikut segar');
+  assert.equal(feed.find(post => post.id === storyB).replyCount, 0);
   assert.equal((await sendReply(storyA, 'Balasan dengan kunci pendek', 'pendek')).status, 400);
   pass('Komentar forum: cache dan versi per cerita, balasan baru langsung tampil, cerita lain tidak terbuang, kunci thread tidak masuk Redis');
 
