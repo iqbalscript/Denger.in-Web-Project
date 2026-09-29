@@ -52,10 +52,10 @@ async function waitFor(check, child, milliseconds = 60000) {
   throw new Error(`Timeout menunggu service.\n${child?.log ?? ''}`);
 }
 function pass(name) { passed++; console.log(`PASS ${passed}: ${name}`); }
-async function request(base, route, body) {
+async function request(base, route, body, extraHeaders = {}) {
   return fetch(`${base}${route}`, {
     method: body ? 'POST' : 'GET',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
+    headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...extraHeaders },
     body: body ? JSON.stringify(body) : undefined,
     signal: AbortSignal.timeout(25000)
   });
@@ -64,14 +64,13 @@ async function request(base, route, body) {
 async function clearQuota() {
   const keys = await client.keys('dengarin:ratelimit:*');
   if (keys.length) await client.del(keys);
-  // Fixed windows reset at minute boundaries. Leave enough time for the burst.
-  const remaining = 60000 - Date.now() % 60000;
-  if (remaining < 15000) await delay(remaining + 50);
+  // Jendela dimulai dari permintaan pertama (TTL), bukan jam dinding, jadi
+  // tidak perlu menunggu pergantian menit setelah kunci dihapus.
 }
 const message = 'redis integration pesan sintetis untuk pengujian';
-async function burst(base, count) {
+async function burst(base, count, headers = {}) {
   const statuses = [];
-  for (let i = 0; i < count; i++) statuses.push((await request(base, '/api/chat', { message })).status);
+  for (let i = 0; i < count; i++) statuses.push((await request(base, '/api/chat', { message }, headers)).status);
   return statuses;
 }
 async function cleanup() {
@@ -106,7 +105,7 @@ try {
   pass('Redis terisolasi: PONG');
   process.env.REDIS_URL = redisUrl;
   const { aiCacheKey, readAiCache, writeAiCache } = await import('../../apps/web/src/lib/api/aiCache.ts');
-  const env = { ...process.env, REDIS_URL: redisUrl, DEEPSEEK_API_KEY: '', OPENROUTER_API_KEY: '', GEMINI_API_KEY: '', DATABASE_URL: '', NEXT_TELEMETRY_DISABLED: '1', NODE_ENV: production ? 'production' : 'development' };
+  const env = { ...process.env, REDIS_URL: redisUrl, DEEPSEEK_API_KEY: '', OPENROUTER_API_KEY: '', GEMINI_API_KEY: '', DATABASE_URL: '', NEXT_TELEMETRY_DISABLED: '1', TRUSTED_PROXY_HOPS: '1', RATE_LIMIT_HASH_SECRET: 'redis-integration-secret-0123456789', NODE_ENV: production ? 'production' : 'development' };
   const next = path.join(root, 'node_modules/next/dist/bin/next');
   const cwd = path.join(temporary, 'apps/web');
   if (production) {
