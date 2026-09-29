@@ -46,7 +46,7 @@ const INITIAL_FALLBACK_POSTS: ForumPostItem[] = [
     domain: 'campus',
     title: 'Merasa tertinggal dari teman-teman yang sudah wisuda...',
     body: 'Setiap buka media sosial rasanya sesak melihat teman seangkatan sudah mulai kerja. Tapi pelan-pelan saya belajar bahwa setiap orang punya garis waktu masing-masing. Fokus hari ini hanya menyelesaikan revisi satu bab saja.',
-    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    createdAt: '2026-09-29T02:00:00.000Z',
     supportCount: 24,
   },
   {
@@ -55,7 +55,7 @@ const INITIAL_FALLBACK_POSTS: ForumPostItem[] = [
     domain: 'finance',
     title: 'Bernapas lega setelah memberanikan diri membuat daftar hutang',
     body: 'Awalnya takut sekali melihat total tagihan. Tapi setelah diurai satu per satu dan menghubungi layanan pengaduan resmi, bebannya mulai terasa bisa dikelola. Jangan lari dari kenyataan, hadapi pelan-pelan.',
-    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+    createdAt: '2026-09-28T19:00:00.000Z',
     supportCount: 41,
   },
   {
@@ -64,7 +64,7 @@ const INITIAL_FALLBACK_POSTS: ForumPostItem[] = [
     domain: 'work',
     title: 'Belajar menetapkan batas jam kerja setelah sempat burnout parah',
     body: 'Dulu saya selalu merasa bersalah kalau tidak membalas chat kantor di malam hari. Sampai fisik saya drop total. Sekarang jam 7 malam laptop ditutup. Pekerjaan penting, tapi kesehatan mental saya tidak tergantikan.',
-    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    createdAt: '2026-09-28T07:00:00.000Z',
     supportCount: 38,
   },
   {
@@ -73,10 +73,25 @@ const INITIAL_FALLBACK_POSTS: ForumPostItem[] = [
     domain: 'family',
     title: 'Menerima bahwa ekspektasi orang tua bukan kewajiban mutlak',
     body: 'Lelah sekali bertahun-tahun berusaha memenuhi standar keluarga yang tidak ada habisnya. Hari ini saya mulai berani menyuarakan apa yang sebenarnya saya inginkan dengan nada tenang.',
-    createdAt: new Date(Date.now() - 3600000 * 36).toISOString(),
+    createdAt: '2026-09-27T19:00:00.000Z',
     supportCount: 19,
   }
 ];
+
+const INDONESIAN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+/** Uses the serialized instant directly, avoiding server/browser locale and timezone drift during hydration. */
+function formatForumDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${date.getUTCDate()} ${INDONESIAN_MONTHS[date.getUTCMonth()]}`;
+}
+
+function formatForumDateTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${formatForumDate(value)}, ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')} UTC`;
+}
 
 const CATEGORIES: { id: string; label: string; domain?: InterventionDomain }[] = [
   { id: 'all', label: 'Semua Cerita' },
@@ -390,10 +405,7 @@ export default function ForumPage() {
                     </button>
                     <button type="button" onClick={(event) => openComposer(post.id, undefined, event.currentTarget)} className="min-h-[44px] px-3 border-2 border-ink rounded font-bold shadow-hard-sm hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button>
                     <span className="text-[11px] text-ink/50 font-bold">
-                      {new Date(post.createdAt).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                      })}
+                      {formatForumDate(post.createdAt)}
                     </span>
                   </div>
                   {thread && (
@@ -403,7 +415,7 @@ export default function ForumPage() {
                       {thread.replies.map((reply) => (
                         <article key={reply.id} className={`border-2 border-ink rounded p-3 space-y-2 ${reply.parentReplyId ? 'ml-3 sm:ml-6' : ''}`}>
                           {reply.parentReplyId && <p className="text-[11px] font-bold text-ink/60">↳ {reply.parentContextUnavailable ? 'konteks balasan tidak tersedia' : `membalas ${reply.replyingToAlias}`}</p>}
-                          <div className="flex justify-between gap-2"><strong className="text-xs">{reply.authorAlias}</strong><time className="text-[11px] text-ink/60" dateTime={reply.createdAt}>{new Date(reply.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</time></div>
+                          <div className="flex justify-between gap-2"><strong className="text-xs">{reply.authorAlias}</strong><time className="text-[11px] text-ink/60" dateTime={reply.createdAt}>{formatForumDateTime(reply.createdAt)}</time></div>
                           <p className="text-xs sm:text-sm whitespace-pre-line">{reply.body}</p>
                           <div className="flex gap-2"><button type="button" onClick={(event) => openComposer(post.id, reply, event.currentTarget)} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button><button type="button" aria-label={`Laporkan balasan ${reply.authorAlias}`} onClick={(event) => { setReportTarget({ storyId: post.id, reply, trigger: event.currentTarget }); setReportReason('other_safety'); setReportNotice(null); }} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt"><Flag className="inline w-3 h-3 mr-1" />LAPORKAN</button></div>
                         </article>

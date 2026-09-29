@@ -4,11 +4,16 @@ import type { CreateForumReplyInput, CreateForumReplyReportInput, CreateForumPos
 import { getPool } from '../db/pool.ts';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-interface ForumPostRow { id: string; author_pseudonym: string; domain: string; title: string; body: string; moderation_status: ForumModerationStatus; support_count: number; created_at: Date; reply_state: 'open' | 'locked'; reply_count: string | number; }
+/**
+ * Keep the story-feed projection compatible with the deployed pre-reply
+ * schema. Reply-specific columns and tables are intentionally only queried
+ * by reply operations after the dedicated reply migration has been applied.
+ */
+interface ForumPostRow { id: string; author_pseudonym: string; domain: string; title: string; body: string; moderation_status: ForumModerationStatus; support_count: number; created_at: Date; }
 interface ForumReplyRow { id: string; story_id: string; parent_reply_id: string | null; author_alias: string; body: string; moderation_status: ForumModerationStatus; created_at: Date; moderated_at: Date | null; replying_to_alias: string | null; parent_context_unavailable: boolean; }
 
 function rowToRecord(row: ForumPostRow): ForumPostRecord {
-  return { id: row.id, authorPseudonym: row.author_pseudonym, domain: row.domain as InterventionDomain, title: row.title, body: row.body, moderationStatus: row.moderation_status, supportCount: row.support_count, createdAt: row.created_at.toISOString(), replyState: row.reply_state, replyCount: Number(row.reply_count) };
+  return { id: row.id, authorPseudonym: row.author_pseudonym, domain: row.domain as InterventionDomain, title: row.title, body: row.body, moderationStatus: row.moderation_status, supportCount: row.support_count, createdAt: row.created_at.toISOString(), replyState: 'open', replyCount: 0 };
 }
 function rowToReply(row: ForumReplyRow): ForumReplyRecord {
   return { id: row.id, storyId: row.story_id, parentReplyId: row.parent_reply_id, authorAlias: row.author_alias, body: row.body, moderationStatus: row.moderation_status, createdAt: row.created_at.toISOString(), moderatedAt: row.moderated_at?.toISOString() ?? null, replyingToAlias: row.replying_to_alias, parentContextUnavailable: row.parent_context_unavailable };
@@ -18,7 +23,7 @@ function parseCursor(cursor: string): { createdAt: string; id: string } | undefi
   return separator > 0 && UUID_PATTERN.test(id) && !Number.isNaN(Date.parse(createdAt)) ? { createdAt, id } : undefined;
 }
 
-const postFields = `id, author_pseudonym, domain, title, body, moderation_status, support_count, created_at, reply_state, (SELECT count(*) FROM forum_replies r WHERE r.story_id = forum_posts.id AND r.moderation_status = 'approved') AS reply_count`;
+const postFields = `id, author_pseudonym, domain, title, body, moderation_status, support_count, created_at`;
 const replyFields = `r.id, r.story_id, r.parent_reply_id, r.author_alias, r.body, r.moderation_status, r.created_at, r.moderated_at, CASE WHEN parent.moderation_status = 'approved' THEN parent.author_alias ELSE NULL END AS replying_to_alias, (r.parent_reply_id IS NOT NULL AND (parent.id IS NULL OR parent.moderation_status <> 'approved')) AS parent_context_unavailable`;
 
 /** Browser clients never access forum tables directly; all access is through this repository. */
@@ -37,7 +42,7 @@ export function createPostgresForumRepository(pool: Pool = getPool()): ForumRepo
     },
     async moderate(postId: string, status: ForumModerationStatus): Promise<ForumPostRecord | undefined> {
       if (!UUID_PATTERN.test(postId)) return undefined;
-      const result = await pool.query<ForumPostRow>(`UPDATE forum_posts SET moderation_status = $2, reply_state = CASE WHEN $2 = 'approved' THEN reply_state ELSE 'locked' END WHERE id = $1 RETURNING ${postFields}`, [postId, status]);
+      const result = await pool.query<ForumPostRow>(`UPDATE forum_posts SET moderation_status = $2 WHERE id = $1 RETURNING ${postFields}`, [postId, status]);
       return result.rows[0] ? rowToRecord(result.rows[0]) : undefined;
     },
     async incrementSupport(postId: string): Promise<ForumPostRecord | undefined> {
