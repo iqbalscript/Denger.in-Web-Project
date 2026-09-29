@@ -36,6 +36,42 @@ edge that strips incoming forwarding headers, establishes a verified client
 identity, and applies a shared distributed limiter. Keep a global cost ceiling
 and concurrency cap. Do not enable per-IP quotas from raw forwarding headers.
 
+## Kuota per-klien + pagar global (2026-09-29)
+
+Model di atas punya cacat: satu pemanggil yang menghabiskan kuota rute membuat
+semua orang kena 429. Sekarang tiap rute punya **dua lapis** (lihat
+`RATE_QUOTAS` di `apps/web/src/lib/api/rateLimit.ts`):
+
+| Lapis | Kunci Redis | Fungsi |
+| --- | --- | --- |
+| Klien | `dengarin:ratelimit:client:<rute>:<hmac-ip>` | Jatah satu klien per menit (`limit`, angka lama). |
+| Global | `dengarin:ratelimit:global:<rute>` | Pagar biaya untuk semua klien (`ceiling`, umumnya 10×). |
+
+- Permintaan yang **ditolak lapis klien tidak dihitung ke global**, jadi klien
+  yang sudah diblokir tidak bisa menguras jatah orang lain.
+- Kedua lapis dijalankan satu **skrip Lua atomik**; jendela dimulai dari
+  permintaan pertama (TTL), bukan jam dinding, sehingga jam antar-instance yang
+  tidak sinkron tidak memengaruhi dan tidak ada lonjakan 2× di pergantian menit.
+- `admin-login` memakai `ceiling = limit`: brute force dibatasi global apa pun
+  identitas kliennya. `room-tts` (Gemini, berbayar) ber-ceiling kecil (40).
+
+**Identitas klien itu opt-in.** Header `X-Forwarded-For` tetap tidak dipercaya
+kecuali operator mengisi `TRUSTED_PROXY_HOPS` (jumlah proxy tepercaya, 1–5) dan
+`RATE_LIMIT_HASH_SECRET` (≥16 karakter). Aplikasi lalu memakai entri ke-N dari
+**kanan** (yang ditulis proxy terdekat), memotong IPv6 ke /64, dan menyimpan
+hanya `HMAC-SHA256(secret, ip)` 128-bit dengan TTL 60 detik. IP mentah tidak
+pernah ditulis ke Redis atau log. Tanpa konfigurasi, semua klien jatuh ke satu
+bucket `anon` per rute dengan angka lama, persis perilaku M01 semula.
+
+Bila konfigurasi salah (mis. origin bisa diakses langsung), pemanggil hanya bisa
+mengganti bucket kliennya, tidak pernah melewati `ceiling` global.
+
+Ketika Redis mati/lambat (>1 dtk), `isRateLimited` jatuh ke penghitung memori
+(kuota klien di tabel 2.048 entri, ceiling per rute di tabel lama). Bila tabel
+klien penuh, klien baru tidak ditolak; hanya ceiling yang berlaku. `getRedis()`
+juga menunda percobaan sambung ulang 2 detik setelah gagal supaya Redis yang
+mati tidak membuat setiap request menunggu satu putaran reconnect (~1 dtk).
+
 ## Deployment review (2026-09-20)
 
 The actual **web application production host is unverified**. This repository

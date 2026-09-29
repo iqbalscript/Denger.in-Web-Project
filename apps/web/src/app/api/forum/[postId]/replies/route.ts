@@ -14,7 +14,7 @@ interface Context { params: Promise<{ postId: string }>; }
 interface CreateReplyBody { body?: unknown; parentReplyId?: unknown; threadKey?: unknown; }
 
 export async function GET(request: NextRequest, context: Context) {
-  if (await isRateLimited('forum-reply-list')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('forum-reply-list', request)) return jsonError('Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.', 429);
   const { postId } = await context.params;
   const rawLimit = request.nextUrl.searchParams.get('limit');
   const requestedLimit = rawLimit === null ? DEFAULT_LIMIT : Number(rawLimit);

@@ -378,47 +378,75 @@ Opsi `setOnlyIfNotExists: true` berarti: **jangan timpa** entri yang sudah ditul
 
 ### Sesudah
 
+Versi pertama memakai satu key per rute yang dibagi SEMUA pengguna. Masalahnya:
+satu orang yang menghabiskan 30 chat/menit membuat semua orang mendapat 429.
+Sekarang ada dua lapis — jatah per klien dan pagar global — dijalankan sebagai
+satu skrip Lua:
+
 ```ts
-export async function isRateLimited(route: PublicRoute): Promise<boolean> {
-  const limit = limits[route];
-  const redis = await getRedis();
-  if (!redis) return limiter.check(route, limit);      // fallback in-memory
+const RATE_LIMIT_SCRIPT = `
+local window = tonumber(ARGV[3])
+local function hit(key)
+  local n = redis.call('INCR', key)
+  if n == 1 or redis.call('PTTL', key) < 0 then
+    redis.call('PEXPIRE', key, window)
+  end
+  return n
+end
+local client = hit(KEYS[1])
+if client > tonumber(ARGV[1]) then return {1, client, 0} end   -- klien habis, global tidak disentuh
+local global = hit(KEYS[2])
+if global > tonumber(ARGV[2]) then return {2, client, global} end
+return {0, client, global}
+`;
 
-  const windowIndex = Math.floor(Date.now() / WINDOW_MS);
-  const key = `${REDIS_PREFIX}ratelimit:${route}:${windowIndex}`;
-
-  try {
-    const replies = await redis.multi()
-      .incr(key)
-      .expire(key, Math.ceil(WINDOW_MS / 1_000))
-      .exec();
-
-    const count = Number(replies[0]);
-    if (!Number.isFinite(count)) return limiter.check(route, limit);
-    return count > limit;
-  } catch (error) {
-    return limiter.check(route, limit);
-  }
-}
+const reply: unknown = await redis.eval(RATE_LIMIT_SCRIPT, {
+  keys: [clientKey, globalKey],
+  arguments: [String(limit), String(ceiling), String(WINDOW_MS)]
+});
 ```
 
-**Tiga keputusan desain yang perlu kamu pahami:**
+**Keputusan desain yang perlu kamu pahami:**
 
-**a. Fixed window lewat nama key.** Indeks jendela (`Math.floor(Date.now() / 60000)`) ikut masuk ke nama key. Saat menit berganti, key-nya otomatis berbeda — jendela lama kedaluwarsa sendiri, tidak perlu pembersihan manual.
+**a. Skrip Lua menggantikan `MULTI`/`EXEC`.** Redis menjalankan satu skrip tanpa
+disela perintah lain, jadi "hitung → cek TTL → hitung lapis kedua" atomik. Bila
+`INCR` dan `EXPIRE` dikirim terpisah lalu proses mati di antaranya, key bisa
+menetap tanpa TTL dan mengunci kuota selamanya. Skrip juga memeriksa `PTTL < 0`,
+sehingga key tanpa TTL (mis. sisa versi lama) diperbaiki sendiri.
 
-**b. `MULTI`/`EXEC` itu atomik.** Kalau `INCR` dan `EXPIRE` dikirim terpisah dan proses mati di antaranya, key-nya ter-increment tapi tidak pernah punya TTL — ia akan menetap di Redis **selamanya** dan kuota rute itu terkunci permanen. `MULTI` menjamin keduanya dijalankan sebagai satu unit.
+**b. Jendela dari permintaan pertama, bukan dari jam.** Versi lama memasukkan
+`Math.floor(Date.now() / 60000)` ke nama key. Tiap instance memakai jam
+sendiri, jadi jam yang selisih beberapa detik memecah satu kuota jadi dua key,
+dan di pergantian menit pengguna bisa mendapat 2× kuota. Sekarang TTL 60 detik
+dimulai dari permintaan pertama; tidak ada jam yang perlu disepakati.
 
-**c. Fallback tidak pernah menjatuhkan request yang sah.** Kalau Redis mati, kita kembali ke penghitung memori. Lebih longgar, tapi pengguna yang tidak bersalah tidak ikut diblokir karena masalah infrastruktur.
+**c. Yang ditolak lapis klien tidak dihitung ke global.** Kalau dihitung, klien
+yang terus menekan setelah diblokir tetap menguras pagar global dan akhirnya
+mengunci semua orang, yaitu cacat semula dalam bentuk baru.
+
+**d. Redis tidak boleh menambah latensi tanpa batas.** Pemeriksaan dibungkus
+`withTimeout` (1 dtk) dan bila gagal jatuh ke penghitung memori. `getRedis()`
+menunda percobaan sambung ulang 2 detik setelah gagal.
+
+**e. Fallback tidak pernah menjatuhkan request yang sah.** Kalau Redis mati kita
+kembali ke penghitung memori: lebih longgar, tapi pengguna tidak ikut diblokir
+karena masalah infrastruktur.
 
 ### Properti keamanan yang DIPERTAHANKAN
 
-Kuota tetap **per-rute dan anonim**, bukan per-IP atau per-session:
+Identitas klien bersifat **opt-in**. Header seperti `X-Forwarded-For` gampang
+dipalsukan, jadi tanpa `TRUSTED_PROXY_HOPS` dan `RATE_LIMIT_HASH_SECRET`
+(`.env.example`) semua klien anonim berbagi satu bucket `anon` per rute dengan
+angka lama, persis M01. Bila diaktifkan:
 
-```ts
-/** Anonymous route-wide quota; session IDs and forwarding headers have no authority. */
-```
+- yang dipercaya adalah entri ke-N dari **kanan** `X-Forwarded-For` (ditulis proxy
+  tepercaya terdekat), bukan entri kiri yang bisa diisi pemanggil;
+- IPv6 dipotong ke /64;
+- yang tersimpan hanya `HMAC-SHA256(secret, ip)` 128-bit dengan TTL 60 detik. IP
+  mentah tidak pernah masuk ke Redis. Ini menjaga janji anonimitas Dengar.in:
+  tanpa `secret`, hash IPv4 bisa ditebak balik karena ruangnya hanya ~4 miliar.
 
-Ini disengaja (lihat `docs/M01_RATE_LIMITING.md`). Header seperti `X-Forwarded-For` gampang dipalsukan, dan memakai session ID sebagai kunci kuota akan membuat pengguna anonim bisa dilacak — bertentangan dengan janji anonimitas Dengar.in.
+Detail: `docs/M01_RATE_LIMITING.md`.
 
 ### `acquireChatSlot()` sengaja TIDAK dipindah ke Redis
 
@@ -681,7 +709,7 @@ API key AI serta `DATABASE_URL` dikosongkan; payload cache sintetis dipakai untu
 menguji hit dan fallback tanpa panggilan penyedia AI. Redis developer tidak
 dihapus atau dihentikan. Semua proses tes dan direktori sementara dibersihkan.
 
-Cakupan dev: PONG, health HTTP 200, diagnostik connected, TTL, kuota 30/3,
+Cakupan dev: PONG, health HTTP 200, diagnostik connected, TTL, kuota 30/3 (klien & global) dan klien berbeda tidak saling memblokir,
 cache AI miss/hit/history/fallback, penggunaan cache oleh route, crisis gate,
 pemindaian input sintetis di nilai string Redis, Redis mati/hidup, dan URL kosong.
 Mode produksi menambah build bersih, warm-up, header cache, pembuktian isi cache

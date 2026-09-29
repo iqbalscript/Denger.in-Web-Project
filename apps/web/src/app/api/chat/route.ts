@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Preserve local crisis guidance even when the shared anonymous AI quota is exhausted.
-  if (await isRateLimited('chat')) return jsonError('Terlalu banyak permintaan. Coba lagi sebentar lagi.', 429);
+  if (await isRateLimited('chat', request)) return jsonError('Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.', 429);
 
   const { cleared, evaluation } = runCrisisGate(body.message, body.ageBracket);
   if (!cleared) {
