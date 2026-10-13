@@ -301,7 +301,6 @@ Next.js route handlers in `apps/web/src/app/api/`. Full contracts: [`docs/API_SP
 - [`docs/SAFETY.md`](docs/SAFETY.md), [`docs/AI_POLICY.md`](docs/AI_POLICY.md), [`docs/API_SPEC.md`](docs/API_SPEC.md)
 - [`docs/RUANG_NGOBROL.md`](docs/RUANG_NGOBROL.md) and [`docs/VOICE_ACCESSIBILITY.md`](docs/VOICE_ACCESSIBILITY.md): voice room
 - [`AGENTS.md`](AGENTS.md): writing rules (Bahasa Lazim) and project dictionary
-- Proposal (not implemented): [Yang Tak Terucap](docs/yang-tak-terucap/00_README.md) · [backlog](docs/yang-tak-terucap/08_TASKS.md) · [full document](docs/DengarIn_Yang_Tak_Terucap_COMPLETE_DOCS.md)
 
 ## Team
 
