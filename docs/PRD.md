@@ -43,7 +43,7 @@ Dengar.in provides a frictionless, non-stigmatizing, and completely anonymous di
 
 1. **Age Bracket 15–17 (Teens)**:
    - High exam stress, social pressure, parental expectations.
-   - High-protection safety filters, child rights hotline (Teencare 1500-771, KPAI).
+   - High-protection safety filters, child rights hotline (TePSA Kemensos 1500-771, KPAI).
 2. **Age Bracket 18–24 (College / Early Career)**:
    - Thesis stress, post-grad anxiety, relocation loneliness.
    - Grounding exercises, career transition framing.

@@ -37,7 +37,7 @@ Mental distress does not happen in a vacuum. Most solutions provide either gener
 
 | Age Bracket | Life Stage | Primary Stressors / Contexts | Safeguards |
 | :--- | :--- | :--- | :--- |
-| **15–17** | SMA / SMK / Sederajat | Academic exams, peer pressure, identity, parental expectations | Stricter safety filters, teen-specific hotlines (KPAI / Teencare), zero adult content |
+| **15–17** | SMA / SMK / Sederajat | Academic exams, peer pressure, identity, parental expectations | Stricter safety filters, teen-specific hotlines (TePSA Kemensos / KPAI), zero adult content |
 | **18–24** | University / Early Career | Academic thesis/skripsi, financial adaptation, job seeking, imposter syndrome | Practical micro-missions, campus transition tools, peer solidarity |
 | **25–34** | Workforce / Early Family | Workplace burnout, career stagnation, debt/pinjol anxiety, sandwich generation | Financial stressor pathways, work-life boundary grounding |
 | **35–54** | Mid-career / Household | Family responsibilities, financial strain, elder care, long-term health anxiety | Low cognitive-load micro-interventions, practical relief steps |

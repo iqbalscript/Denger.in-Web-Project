@@ -576,8 +576,8 @@ Quick, calm access to professional emergency contacts, counseling, and crisis sh
 4. **KOMUNITAS DUKUNGAN:** Lime `#B8F34A` accent.
 
 ### Resource Card Specification:
-- **Name:** Professional institution name (e.g., `Layanan Sejiwa 119 ext. 8`).
-- **Badge:** `24/7`, `Bebas Pulsa`, or `WhatsApp`.
+- **Name:** Professional institution name (e.g., `Healing119 (Kemenkes) 119 ext. 8`).
+- **Badge:** `Gratis`, verified hours (only when the provider publishes them), or `WhatsApp`.
 - **Description:** Concise scope of assistance.
 - **Action Button:** `[ HUBUNGI SEKARANG ↗ ]` (Direct `tel:` or `https:` link).
 
@@ -596,8 +596,8 @@ Crisis mode is a **SPECIAL SYSTEM STATE** triggered automatically by the Crisis 
 │ yang siap mendengarkanmu sekarang.                          │
 │                                                             │
 │ ┌─────────────────────────────────────────────────────────┐ │
-│ │ LAYANAN SEJIWA (KEMENKES RI)                            │ │
-│ │ Siaga 24 Jam • Bebas Pulsa                              │ │
+│ │ HEALING119 (KEMENKES RI)                                │ │
+│ │ Gratis • Pagi hingga malam                              │ │
 │ │                                                         │ │
 │ │ [ 📞 HUBUNGI 119 EXT 8 ]                                │ │
 │ └─────────────────────────────────────────────────────────┘ │
