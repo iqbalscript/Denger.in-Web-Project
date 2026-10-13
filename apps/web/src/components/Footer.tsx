@@ -5,6 +5,13 @@ import { ShieldCheck, Key, BarChart3, Users } from 'lucide-react';
 const footerLink =
   'inline-flex items-center gap-1.5 min-h-[44px] text-base font-semibold text-[#151515] underline underline-offset-4 decoration-2 decoration-[#D8D3C9] hover:decoration-[#151515] transition-colors duration-200 ease-spring rounded-[4px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2';
 
+// Kontak darurat: nama di atas, nomor di bawah (tidak pernah terpotong di tengah).
+const contactLink =
+  'flex flex-col py-1.5 min-h-[44px] rounded-[4px] group focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2';
+const contactName = 'text-sm font-semibold text-[#59544D]';
+const contactNumber =
+  'text-base font-bold tabular-nums whitespace-nowrap underline underline-offset-4 decoration-2 decoration-[#D8D3C9] group-hover:decoration-current';
+
 export function Footer() {
   return (
     <footer className="bg-[#FFF8EF] border-t-2 border-[#151515] mt-20 text-[#151515] text-base">
@@ -77,23 +84,27 @@ export function Footer() {
             <h2 className="text-lg font-bold text-[#151515]">Kontak darurat</h2>
             <ul className="space-y-0.5">
               <li>
-                <a href="tel:119,8" className={`${footerLink} text-[#B3261E] decoration-[#B3261E]`}>
-                  Healing119 (Kemenkes): <span className="tabular-nums">119 ext 8</span>
+                <a href="tel:119,8" className={contactLink}>
+                  <span className={contactName}>Healing119 (Kemenkes)</span>
+                  <span className={`${contactNumber} text-[#B3261E]`}>119 ext 8</span>
                 </a>
               </li>
               <li>
-                <a href="https://wa.me/628113855472" target="_blank" rel="noopener noreferrer" className={footerLink}>
-                  LISA Helpline (WhatsApp): <span className="tabular-nums">0811-3855-472</span>
+                <a href="https://wa.me/628113855472" target="_blank" rel="noopener noreferrer" className={contactLink}>
+                  <span className={contactName}>LISA Helpline (WhatsApp)</span>
+                  <span className={`${contactNumber} text-[#151515]`}>0811-3855-472</span>
                 </a>
               </li>
               <li>
-                <a href="tel:1500771" className={footerLink}>
-                  TePSA Kemensos (anak, 15-17 th): <span className="tabular-nums">1500-771</span>
+                <a href="tel:1500771" className={contactLink}>
+                  <span className={contactName}>TePSA Kemensos (anak, 15-17 th)</span>
+                  <span className={`${contactNumber} text-[#151515]`}>1500-771</span>
                 </a>
               </li>
               <li>
-                <a href="tel:157" className={footerLink}>
-                  Kontak OJK (pinjol ilegal): <span className="tabular-nums">157</span>
+                <a href="tel:157" className={contactLink}>
+                  <span className={contactName}>Kontak OJK (pinjol ilegal)</span>
+                  <span className={`${contactNumber} text-[#151515]`}>157</span>
                 </a>
               </li>
               <li className="pt-2">

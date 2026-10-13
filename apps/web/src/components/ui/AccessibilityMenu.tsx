@@ -130,7 +130,7 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
         } ${focusRing}`}
       >
         <Accessibility className="w-5 h-5 shrink-0" aria-hidden="true" />
-        <span className="hidden xl:inline">Akses cepat</span>
+        <span className="hidden 2xl:inline">Akses cepat</span>
         {isCustomised && (
           <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#3357EE] border-2 border-white" aria-hidden="true" />
         )}

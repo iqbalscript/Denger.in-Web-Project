@@ -47,8 +47,9 @@ export function Navbar() {
     { href: '/checkin', label: 'Check-in', icon: Shield },
     { href: '/journal', label: 'Jurnal', icon: BookOpen },
     { href: '/forum', label: 'Ruang Cerita', icon: Users },
-    // Six links overflow the centre slot at lg (1024px); this one joins the row from xl only.
-    { href: '/care-passport', label: 'Catatan Konsultasi', icon: ClipboardList, desktopClass: 'hidden xl:inline-flex' },
+    // Enam tautan + tombol kanan tidak muat di bawah 1536px; tautan ini ikut baris
+    // atas mulai 2xl saja (tetap ada di menu seluler dan halaman lain).
+    { href: '/care-passport', label: 'Catatan Konsultasi', icon: ClipboardList, desktopClass: 'hidden 2xl:inline-flex' },
   ];
 
   // All links for mobile drawer
@@ -119,7 +120,8 @@ export function Navbar() {
                         : 'border-2 border-transparent text-[#151515] hover:text-[#3357EE] hover:bg-[#151515]/5 hover:underline underline-offset-4 decoration-2'
                     }`}
                   >
-                    <Icon className="w-[18px] h-[18px] shrink-0 text-current" aria-hidden="true" />
+                    {/* Ikon baru tampil mulai xl agar baris navigasi muat di laptop 1024px. */}
+                    <Icon className="hidden xl:block w-[18px] h-[18px] shrink-0 text-current" aria-hidden="true" />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -139,7 +141,8 @@ export function Navbar() {
                 }`}
               >
                 <HelpCircle className="w-[18px] h-[18px] text-[#151515] shrink-0" aria-hidden="true" />
-                <span>Bantuan</span>
+                <span className="hidden xl:inline">Bantuan</span>
+                <span className="sr-only xl:hidden">Bantuan dan kontak resmi</span>
               </Link>
 
               {/* Keluar Cepat + ESC (Desktop) */}
@@ -154,8 +157,8 @@ export function Navbar() {
                 aria-label="Bantuan darurat: hubungi layanan krisis"
               >
                 <PhoneCall className="w-[18px] h-[18px] text-white shrink-0" aria-hidden="true" />
-                <span className="hidden xl:inline">Bantuan darurat</span>
-                <span className="xl:hidden">Darurat</span>
+                <span className="hidden 2xl:inline">Bantuan darurat</span>
+                <span className="2xl:hidden">Darurat</span>
               </Link>
 
               {/* Akses cepat mandiri (pojok kanan atas, semua ukuran layar). Tombol menu

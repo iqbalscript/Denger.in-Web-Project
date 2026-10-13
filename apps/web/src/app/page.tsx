@@ -94,7 +94,7 @@ export default function LandingPage() {
 
   return (
     <>
-    <div className="space-y-24 sm:space-y-32 lg:space-y-40 pb-24">
+    <div className="space-y-20 sm:space-y-24 lg:space-y-32 pb-12 sm:pb-16">
       {/* Jarak antarbagian lebih lega khusus halaman depan (layar aplikasi tetap padat). */}
       {/* 1. EDITORIAL HERO (PRD-DESIGN.md section 15) */}
       <section className="pt-10 sm:pt-16 lg:pt-20" aria-labelledby="judul-utama">
@@ -119,7 +119,7 @@ export default function LandingPage() {
               </p>
 
               {/* Primary Call to Action Buttons (no entrance animation: holds the emergency-help button) */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row items-stretch gap-3 pt-1">
                 <Button
                   href="/consent"
                   variant="primary"

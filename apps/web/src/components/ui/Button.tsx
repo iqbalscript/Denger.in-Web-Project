@@ -79,7 +79,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             ? spinner
             : icon && (
                 <span
-                  className="shrink-0 -mr-2 inline-flex items-center justify-center w-8 h-8 rounded-[3px] border-2 border-current bg-[#151515]/[0.06] transition-transform duration-400 ease-spring group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105 group-active:translate-x-0 group-active:translate-y-0 group-active:scale-100"
+                  className="shrink-0 -mr-2 inline-flex items-center justify-center w-7 h-7 rounded-[3px] border-2 border-current bg-[#151515]/[0.06] transition-transform duration-400 ease-spring group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105 group-active:translate-x-0 group-active:translate-y-0 group-active:scale-100"
                   aria-hidden="true"
                 >
                   {icon}
