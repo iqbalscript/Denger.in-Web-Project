@@ -4,14 +4,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   AlertTriangle,
   BatteryMedium,
   Calendar,
   Sparkles,
 } from 'lucide-react';
-import { evaluateCrisisInput } from '@dengarin/crisis-engine';
-import { getAnonymousSession, saveDailyCheckin, getDailyCheckins } from '@/lib/storage';
+import { saveDailyCheckin, getDailyCheckins } from '@/lib/storage';
+import { useConsentGuard } from '@/lib/useConsentGuard';
+import { useCrisisGuard } from '@/lib/useCrisisGuard';
+import { InlineCrisisCard, CrisisBlockedNote } from '@/components/InlineCrisisCard';
+import { ConsentPending } from '@/components/ConsentPending';
 import type { MoodScore, DailyCheckin, CelebrationData } from '@dengarin/types';
 import {
   PageContainer,
@@ -21,13 +25,16 @@ import {
   Chip,
   Textarea,
   CelebrationToast,
+  Reveal,
+  MoodIcon,
 } from '@/components/ui';
 import { awardLangkah } from '@/lib/gamification';
 import { getLocalDateString } from '@/lib/calendar';
 
 export default function CheckinPage() {
   const router = useRouter();
-  const session = getAnonymousSession();
+  const { ready, session } = useConsentGuard();
+  const crisis = useCrisisGuard(session?.ageBracket);
 
   const [selectedMood, setSelectedMood] = useState<MoodScore | null>(null);
   const [energyLevel, setEnergyLevel] = useState<number>(5);
@@ -39,15 +46,16 @@ export default function CheckinPage() {
   const isSubmittingRef = useRef(false);
 
   useEffect(() => {
+    if (!ready) return;
     setHistory(getDailyCheckins());
-  }, []);
+  }, [ready]);
 
-  const moods: Array<{ id: MoodScore; label: string; emoji: string; sub: string; activeClass: string }> = [
-    { id: 'sangat_baik', label: 'Sangat Baik', emoji: '😊', sub: 'Bertenaga', activeClass: 'bg-lime text-ink' },
-    { id: 'baik', label: 'Cukup Baik', emoji: '🙂', sub: 'Oke', activeClass: 'bg-cobalt text-white' },
-    { id: 'netral', label: 'Biasa Saja', emoji: '😐', sub: 'Lumayan', activeClass: 'bg-yellow text-ink' },
-    { id: 'berat', label: 'Terasa Berat', emoji: '😟', sub: 'Cemas / Lelah', activeClass: 'bg-tangerine text-white' },
-    { id: 'kewalahan', label: 'Kewalahan', emoji: '😞', sub: 'Sangat Lelah', activeClass: 'bg-coral text-white' },
+  const moods: Array<{ id: MoodScore; label: string; sub: string; activeClass: string }> = [
+    { id: 'sangat_baik', label: 'Sangat Baik', sub: 'Bertenaga', activeClass: 'bg-lime text-ink' },
+    { id: 'baik', label: 'Cukup Baik', sub: 'Oke', activeClass: 'bg-cobalt text-white' },
+    { id: 'netral', label: 'Biasa Saja', sub: 'Lumayan', activeClass: 'bg-yellow text-ink' },
+    { id: 'berat', label: 'Terasa Berat', sub: 'Cemas / Lelah', activeClass: 'bg-tangerine text-white' },
+    { id: 'kewalahan', label: 'Kewalahan', sub: 'Sangat Lelah', activeClass: 'bg-coral text-white' },
   ];
 
   const tags = [
@@ -70,26 +78,17 @@ export default function CheckinPage() {
     const text = e.target.value;
     setBriefNote(text);
 
-    // Live safety filter (ZERO AI)
-    const check = evaluateCrisisInput(text, session?.ageBracket || '18-24');
-    if (check.isCrisis) {
-      router.push('/crisis');
-    }
+    // Live safety filter (ZERO AI): inline crisis card, no navigation (M6).
+    crisis.checkText(text);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMood || saved || isSubmittingRef.current) return;
-    isSubmittingRef.current = true;
 
-    // Safety check on note
-    if (briefNote.trim()) {
-      const check = evaluateCrisisInput(briefNote, session?.ageBracket || '18-24');
-      if (check.isCrisis) {
-        router.push('/crisis');
-        return;
-      }
-    }
+    // Safety check on note: keep the text, block the save.
+    if (!crisis.allowSubmit(briefNote)) return;
+    isSubmittingRef.current = true;
 
     const newCheckin: DailyCheckin = {
       id: Date.now().toString(),
@@ -117,40 +116,42 @@ export default function CheckinPage() {
     }, 1200);
   };
 
+  if (!ready) return <ConsentPending />;
+
   return (
     <PageContainer size="narrow">
-      <ContentColumn size="md" className="space-y-8 text-left">
-        <div>
+      <ContentColumn size="md" className="space-y-10 text-left">
+        <div className="animate-reveal-up">
           <Button
             href="/dashboard"
             variant="outline"
             size="sm"
-            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+            icon={<ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />}
           >
             KEMBALI KE DASHBOARD
           </Button>
         </div>
 
         {/* Heading */}
-        <div className="space-y-2">
-          <Badge variant="calm" size="md">
-            <Sparkles className="w-3.5 h-3.5 mr-1" />
+        <div className="space-y-4 animate-reveal-up [animation-delay:80ms]">
+          <Badge variant="yellow" size="md">
+            <Sparkles className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
             Check-in Mandiri Harian
           </Badge>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-none">
-            GIMANA KEADAANMU HARI INI?
+          <h1 className="text-[2rem] sm:text-4xl lg:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
+            Gimana keadaanmu hari ini?
           </h1>
-          <p className="text-xs sm:text-sm text-ink/80 leading-relaxed max-w-xl font-medium">
+          <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed max-w-[36rem]">
             Ambil jeda satu menit untuk menyapa dirimu sendiri. Apa pun jawabannya, semuanya boleh.
           </p>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-8">
+        <form onSubmit={handleSave} className="space-y-10 animate-reveal-up [animation-delay:160ms]">
           {/* PRIMARY: Large Tactile Mood Selector */}
-          <div className="space-y-3">
-            <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-ink">
-              1. LAGI TERASA SEPERTI APA?
-            </label>
+          <div className="space-y-3" role="group" aria-labelledby="label-mood">
+            <p id="label-mood" className="text-lg font-bold text-ink leading-snug">
+              1. Lagi terasa seperti apa?
+            </p>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {moods.map((m) => {
                 const isSelected = selectedMood === m.id;
@@ -159,19 +160,18 @@ export default function CheckinPage() {
                     key={m.id}
                     type="button"
                     onClick={() => setSelectedMood(m.id)}
-                    className={`p-4 rounded-md border-2 border-ink flex flex-col items-center justify-center gap-1 transition-all cursor-pointer focus-visible:outline-ink min-h-[96px] last:col-span-2 sm:last:col-span-1 ${
+                    aria-pressed={isSelected}
+                    className={`p-4 rounded-md border-2 border-ink flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[104px] last:col-span-2 sm:last:col-span-1 ${
                       isSelected
-                        ? `${m.activeClass} shadow-hard font-black translate-x-[1px] translate-y-[1px]`
-                        : 'bg-white hover:bg-paper font-bold shadow-hard-sm text-ink'
+                        ? `${m.activeClass} shadow-hard font-bold -translate-x-[1px] -translate-y-[1px]`
+                        : 'bg-white hover:bg-paper font-semibold shadow-hard-sm text-ink hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
                     }`}
                   >
-                    <span className="text-3xl mb-1 select-none" aria-hidden="true">
-                      {m.emoji}
-                    </span>
-                    <span className="text-xs text-center leading-tight uppercase tracking-wide">
+                    <MoodIcon mood={m.id} className="w-8 h-8 mb-1.5" />
+                    <span className="text-sm text-center leading-tight">
                       {m.label}
                     </span>
-                    <span className="text-[10px] opacity-80">{m.sub}</span>
+                    <span className="text-xs font-medium">{m.sub}</span>
                   </button>
                 );
               })}
@@ -179,32 +179,34 @@ export default function CheckinPage() {
           </div>
 
           {/* Energy Level Slider */}
-          <div className="space-y-3 p-4 bg-white border-2 border-ink rounded-md shadow-hard-sm">
-            <div className="flex items-center justify-between">
-              <label className="text-xs sm:text-sm font-black uppercase tracking-wider text-ink flex items-center gap-1.5">
-                <BatteryMedium className="w-4 h-4 text-cobalt" />
-                <span>2. TINGKAT ENERGIMU (1–10)</span>
+          <div className="space-y-4 p-5 sm:p-6 bg-white border border-borderSubtle rounded-md">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label htmlFor="tingkat-energi" className="text-lg font-bold text-ink leading-snug flex items-center gap-2">
+                <BatteryMedium className="w-5 h-5 text-ink" aria-hidden="true" />
+                <span>2. Tingkat energimu (1–10)</span>
               </label>
-              <span className="text-xs font-black uppercase px-2.5 py-1 bg-yellow border border-ink rounded shadow-hard-sm">
+              <span aria-live="polite" className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-yellow border-2 border-ink rounded shadow-hard-sm tabular-nums">
                 SKOR: {energyLevel} / 10
               </span>
             </div>
             <input
+              id="tingkat-energi"
               type="range"
               min="1"
               max="10"
               value={energyLevel}
               onChange={(e) => setEnergyLevel(Number(e.target.value))}
               aria-label="Tingkat energi dari 1 sampai 10"
-              className="w-full h-3 bg-paper border-2 border-ink rounded appearance-none cursor-pointer accent-cobalt"
+              className="w-full h-3 bg-paper border-2 border-ink rounded appearance-none cursor-pointer accent-ink"
             />
           </div>
 
           {/* Stressor Chips */}
-          <div className="space-y-3">
-            <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-ink">
-              3. ADA YANG TERASA MEMBEBANI HARI INI? (BOLEH DILEWATI)
-            </label>
+          <div className="space-y-3" role="group" aria-labelledby="label-beban">
+            <p id="label-beban" className="text-lg font-bold text-ink leading-snug">
+              3. Ada yang terasa membebani hari ini?{' '}
+              <span className="text-sm font-medium text-[#59544D]">(boleh dilewati)</span>
+            </p>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => {
                 const isSelected = selectedTags.includes(tag);
@@ -213,6 +215,7 @@ export default function CheckinPage() {
                     key={tag}
                     selected={isSelected}
                     onClick={() => toggleTag(tag)}
+                    aria-pressed={isSelected}
                     size="sm"
                   >
                     {tag}
@@ -231,61 +234,72 @@ export default function CheckinPage() {
               rows={2}
               placeholder="Kalau mau, ceritakan sedikit apa yang ada di pikiranmu..."
             />
-            <div className="p-3 rounded-md bg-yellow/20 border-2 border-ink shadow-hard-sm flex items-center gap-2 text-xs text-ink font-medium">
-              <AlertTriangle className="w-4 h-4 text-ink shrink-0" />
+            {crisis.cardVisible && (
+              <InlineCrisisCard
+                contacts={crisis.contacts}
+                onAcknowledge={crisis.acknowledge}
+                blockedNote="Catatanmu tetap ada di sini dan check-in belum kami simpan."
+              />
+            )}
+            {crisis.isCrisis && <CrisisBlockedNote id="checkin-krisis-catatan" />}
+            <div className="p-3 rounded-md bg-[#FFF4CC] flex items-center gap-2 text-sm text-ink">
+              <AlertTriangle className="w-4 h-4 text-ink shrink-0" aria-hidden="true" />
               <span>Catatanmu tersimpan anonim di peramban perangkatmu.</span>
             </div>
           </div>
 
           {/* Submit */}
-          <div className="pt-2">
+          <div className="pt-2" role="status">
             <Button
               type="submit"
               variant="primary"
               size="lg"
               fullWidth
-              disabled={!selectedMood || saved}
-              icon={saved ? <CheckCircle2 className="w-5 h-5" /> : undefined}
+              disabled={!selectedMood || saved || crisis.isCrisis}
+              aria-describedby={crisis.isCrisis ? 'checkin-krisis-catatan' : undefined}
+              iconPosition={saved ? 'start' : 'end'}
+              icon={saved ? <CheckCircle2 className="w-5 h-5" aria-hidden="true" /> : <ArrowRight className="w-4 h-4" />}
             >
-              {saved ? 'TERSIMPAN. TERIMA KASIH SUDAH MENYAPA DIRIMU' : 'SIMPAN CHECK-IN HARI INI →'}
+              {saved ? 'TERSIMPAN. TERIMA KASIH SUDAH MENYAPA DIRIMU' : 'SIMPAN CHECK-IN HARI INI'}
             </Button>
           </div>
         </form>
 
         {/* History Section */}
         {history.length > 0 && (
-          <div className="pt-8 border-t-2 border-ink space-y-4">
-            <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-ink flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-cobalt" />
-              <span>RIWAYAT CHECK-IN TERAKHIR ({history.length})</span>
-            </h3>
+          <section aria-labelledby="judul-riwayat" className="pt-10 border-t-2 border-ink space-y-5">
+            <h2 id="judul-riwayat" className="text-xl sm:text-2xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-ink" aria-hidden="true" />
+              <span>Riwayat check-in terakhir <span className="text-[#59544D] font-medium tabular-nums">({history.length})</span></span>
+            </h2>
 
-            <div className="space-y-2.5">
-              {history.slice(0, 4).map((entry) => (
-                <div
+            <div className="space-y-3">
+              {history.slice(0, 4).map((entry, index) => (
+                <Reveal
                   key={entry.id}
-                  className="p-4 rounded-md bg-white border-2 border-ink shadow-hard-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                  delay={index * 70}
+                  className="p-4 rounded-md bg-white border border-borderSubtle flex flex-col sm:flex-row sm:items-start justify-between gap-2 text-sm"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-black text-ink uppercase tracking-wide">
+                      <span className="font-bold text-ink capitalize">
                         {entry.mood.replace('_', ' ')}
                       </span>
-                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-paper border border-ink rounded">
+                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 bg-paper border border-borderSubtle rounded tabular-nums">
                         Energi: {entry.energyLevel}/10
                       </span>
                     </div>
                     {entry.stressorTags.length > 0 && (
-                      <p className="text-[11px] text-ink/70 font-medium">
+                      <p className="text-sm text-[#59544D]">
                         Yang terasa berat: {entry.stressorTags.join(', ')}
                       </p>
                     )}
                     {entry.briefNote && (
-                      <p className="text-xs text-ink italic font-medium">&quot;{entry.briefNote}&quot;</p>
+                      <p className="text-[15px] text-ink italic leading-relaxed">&quot;{entry.briefNote}&quot;</p>
                     )}
                   </div>
 
-                  <span className="text-[11px] text-ink/60 font-bold shrink-0">
+                  <span className="text-xs text-[#59544D] font-medium shrink-0 tabular-nums">
                     {new Date(entry.timestamp).toLocaleDateString('id-ID', {
                       day: 'numeric',
                       month: 'short',
@@ -293,10 +307,10 @@ export default function CheckinPage() {
                       minute: '2-digit',
                     })}
                   </span>
-                </div>
+                </Reveal>
               ))}
             </div>
-          </div>
+          </section>
         )}
       </ContentColumn>
 

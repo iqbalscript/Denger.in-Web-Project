@@ -105,7 +105,7 @@ try {
   pass('Redis terisolasi: PONG');
   process.env.REDIS_URL = redisUrl;
   const { aiCacheKey, readAiCache, writeAiCache } = await import('../../apps/web/src/lib/api/aiCache.ts');
-  const env = { ...process.env, REDIS_URL: redisUrl, DEEPSEEK_API_KEY: '', OPENROUTER_API_KEY: '', GEMINI_API_KEY: '', DATABASE_URL: '', NEXT_TELEMETRY_DISABLED: '1', FORUM_THREAD_ALIAS_SECRET: 'redis-integration-thread-secret-0123456789', TRUSTED_PROXY_HOPS: '1', RATE_LIMIT_HASH_SECRET: 'redis-integration-secret-0123456789', NODE_ENV: production ? 'production' : 'development' };
+  const env = { ...process.env, REDIS_URL: redisUrl, DEEPSEEK_API_KEY: '', OPENROUTER_API_KEY: '', GEMINI_API_KEY: '', DATABASE_URL: '', AI_RESPONSE_CACHE: 'true', NEXT_TELEMETRY_DISABLED: '1', FORUM_THREAD_ALIAS_SECRET: 'redis-integration-thread-secret-0123456789', TRUSTED_PROXY_HOPS: '1', RATE_LIMIT_HASH_SECRET: 'redis-integration-secret-0123456789', NODE_ENV: production ? 'production' : 'development' };
   const next = path.join(root, 'node_modules/next/dist/bin/next');
   const cwd = path.join(temporary, 'apps/web');
   if (production) {

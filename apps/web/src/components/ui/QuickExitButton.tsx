@@ -42,9 +42,9 @@ export function QuickExitButton({ className = '', variant = 'navbar' }: QuickExi
         onClick={executeQuickExit}
         title="Keluar Cepat (Tekan ESC untuk segera mengalihkan ke halaman netral)"
         aria-label="Keluar Cepat (Tekan ESC)"
-        className={`fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-2.5 rounded-[4px] bg-[#151515] text-white font-bold text-xs border-2 border-[#151515] shadow-[3px_3px_0px_#FF5252] hover:bg-[#FF5252] hover:border-[#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5252] touch-target-base ${className}`}
+        className={`fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-2.5 rounded-[4px] bg-[#151515] text-white font-bold text-xs border-2 border-[#151515] shadow-[3px_3px_0px_#FF5252] hover:bg-[#FF5252] hover:border-[#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2 touch-target-base ${className}`}
       >
-        <LogOut className="w-4 h-4 text-[#FF5252]" />
+        <LogOut className="w-4 h-4 text-[#FF5252]" aria-hidden="true" />
         <span>Keluar Cepat (ESC)</span>
       </button>
     );
@@ -56,10 +56,10 @@ export function QuickExitButton({ className = '', variant = 'navbar' }: QuickExi
       onClick={executeQuickExit}
       title="Keluar Cepat: Segera alihkan peramban ke halaman netral (atau tekan ESC)"
       aria-label="Keluar Cepat (Tekan ESC)"
-      className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-bold border-2 border-[#151515] bg-white hover:bg-[#FF5252] hover:text-white text-[#151515] shadow-[2px_2px_0px_#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5252] whitespace-nowrap ${className}`}
+      className={`group inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-bold border-2 border-[#151515] bg-white hover:bg-[#FF5252] hover:text-white text-[#151515] shadow-[2px_2px_0px_#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2 whitespace-nowrap ${className}`}
     >
-      <LogOut className="w-3.5 h-3.5 text-[#FF5252] group-hover:text-white shrink-0" />
-      <span>Keluar Cepat <kbd className="hidden sm:inline-block text-[10px] font-mono px-1 py-0.5 bg-[#FFF8EF] rounded-[2px] border border-[#151515] ml-0.5">ESC</kbd></span>
+      <LogOut className="w-3.5 h-3.5 text-[#FF5252] group-hover:text-white shrink-0 transition-colors duration-120" aria-hidden="true" />
+      <span>Keluar Cepat <kbd className="hidden sm:inline-block text-[11px] font-mono px-1 py-0.5 bg-[#FFF8EF] text-[#151515] rounded-[2px] border border-[#151515] ml-0.5">ESC</kbd></span>
     </button>
   );
 }

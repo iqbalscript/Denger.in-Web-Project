@@ -24,14 +24,27 @@
   --ring: #4169FF;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   color: var(--text-primary);
   background-color: var(--background);
-  font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-space-grotesk), 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Keep headlines from leaving a single orphaned word on the last line */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 /* Accessibility Mode: 18px+ base font */
@@ -73,7 +86,27 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-    transform: none !important;
+  }
+}
+
+/*
+ * Scroll reveal (see components/ui/Reveal.tsx). Content is only hidden when
+ * scripts run and the viewer allows motion, so it can never get stuck invisible
+ * without JS or for reduced-motion users.
+ */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  /* Only while entering; Reveal switches to data-reveal="done" afterwards so the
+     element's own transition utilities (hover/press) apply again. */
+  [data-reveal='shown'] {
+    transition:
+      opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  [data-reveal='hidden'] {
+    opacity: 0;
+    transform: translateY(24px);
   }
 }
 

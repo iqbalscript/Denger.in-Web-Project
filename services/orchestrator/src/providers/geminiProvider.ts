@@ -58,13 +58,16 @@ export function createGeminiProvider(
         contents = [{ role: 'user', parts: [{ text: request.userPrompt }] }];
       }
 
-      const endpoint = `${GEMINI_BASE_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      // The key travels in a header, never in the URL: query strings end up in
+      // proxy/CDN access logs and error messages, headers do not.
+      const endpoint = `${GEMINI_BASE_URL}/${encodeURIComponent(model)}:generateContent`;
 
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey
           },
           body: JSON.stringify({
             systemInstruction: {

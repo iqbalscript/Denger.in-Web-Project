@@ -3,8 +3,74 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckSquare, Square, ArrowRight, Lock } from 'lucide-react';
-import { initAnonymousSession } from '@/lib/storage';
+import { grantConsent } from '@/lib/storage';
+import { sanitizeNextPath } from '@/lib/consent';
 import { PageContainer, SplitLayout, Button, Badge } from '@/components/ui';
+
+const PRINCIPLES = [
+  {
+    number: '01',
+    tone: 'bg-cobalt text-white',
+    title: 'Privasimu kami jaga (tanpa registrasi)',
+    body: 'Kami tidak pernah meminta nama lengkap, email, nomor telepon, atau identitas kependudukan. Sesimu hanya dikenali lewat kode acak di peramban perangkatmu.',
+  },
+  {
+    number: '02',
+    tone: 'bg-yellow text-ink',
+    title: 'Yang bisa & tidak bisa kami lakukan',
+    body: (
+      <>
+        Dengar.in menemanimu berefleksi dan mengambil langkah kecil, tetapi{' '}
+        <strong className="text-ink font-bold">BUKAN pengganti psikolog, psikiater, diagnosis klinis, atau resep obat</strong>.
+      </>
+    ),
+  },
+  {
+    number: '03',
+    tone: 'bg-coral text-white',
+    title: 'Kamu tidak sendirian saat krisis',
+    body: 'Jika tulisanmu menunjukkan kamu sedang dalam krisis atau berpikir untuk menyakiti diri, kami langsung menampilkan kontak darurat resmi (Healing119 Kemenkes, 119 ext 8) tanpa campur tangan AI.',
+  },
+  {
+    number: '04',
+    tone: 'bg-lime text-ink',
+    title: 'Ke mana tulisanmu pergi',
+    body: (
+      <ul className="space-y-2 list-disc pl-5 marker:text-ink">
+        <li>
+          <strong className="text-ink font-bold">Jurnal, check-in, dan misi</strong> tersimpan di perangkatmu dan tidak dikirim ke AI.
+        </li>
+        <li>
+          <strong className="text-ink font-bold">Pesan di Ngobrol dan Ruang Ngobrol</strong> dikirim ke penyedia AI pihak ketiga
+          supaya bisa dibalas: DeepSeek, Google Gemini (cadangan), dan OpenRouter (pemeriksa jawaban). Server mereka bisa
+          berada di luar Indonesia, dan layanan gratis tertentu bisa memakai data untuk melatih model. Jadi, jangan tulis
+          nama, alamat, atau hal yang bisa mengenalimu.
+        </li>
+        <li>
+          <strong className="text-ink font-bold">Mode suara</strong> memakai fitur pengenal suara peramban (di Chrome
+          diproses Google), dan suara balasannya dibuat oleh Google Gemini.
+        </li>
+        <li>
+          <strong className="text-ink font-bold">Care Passport</strong> hanya berjalan kalau kamu menyetujuinya lagi di
+          halamannya sendiri. Ringkasannya diproses model milik tim Dengar.in di server AMD, bukan penyedia AI di atas.
+        </li>
+        <li>
+          <strong className="text-ink font-bold">Ruang Cerita</strong> menyimpan cerita yang kamu bagikan di server kami
+          supaya bisa dibaca orang lain secara anonim.
+        </li>
+        <li>
+          <strong className="text-ink font-bold">Cadangan cloud</strong> hanya dibuat kalau kamu memintanya, dan sudah
+          dienkripsi di perangkatmu sebelum dikirim.
+        </li>
+        <li>
+          {/* True while the chat AI-response cache stays off by default (lib/api/aiCache.ts, AI_RESPONSE_CACHE). */}
+          <strong className="text-ink font-bold">Obrolanmu dan balasan AI</strong> tidak disimpan di server Dengar.in.
+          Penyimpanan di sisi penyedia AI mengikuti aturan mereka masing-masing.
+        </li>
+      </ul>
+    ),
+  },
+];
 
 export default function ConsentPage() {
   const router = useRouter();
@@ -15,98 +81,78 @@ export default function ConsentPage() {
 
   const handleStart = () => {
     if (!canProceed) return;
-    initAnonymousSession(true);
-    router.push('/onboarding');
+    grantConsent();
+    // Return to the page that asked for consent (internal paths only).
+    const next = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('next')
+      : null;
+    router.push(sanitizeNextPath(next));
   };
 
   const leftContent = (
     <div className="space-y-6">
-      <div className="space-y-3">
+      <div className="space-y-3 animate-reveal-up">
         <Badge variant="calm" size="md">
-          <Lock className="w-3.5 h-3.5 mr-1" />
+          <Lock className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
           Persetujuan Layanan &amp; Privasi
         </Badge>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight uppercase leading-none">
+        <h1 className="text-[2.25rem] sm:text-5xl lg:text-[3.5rem] font-bold text-ink tracking-[-0.03em] uppercase leading-[1.02]">
           SEBELUM KITA MULAI.
         </h1>
-        <p className="text-sm sm:text-base text-ink/80 leading-relaxed max-w-xl font-medium">
+        <p className="text-lg sm:text-xl text-[#4A453E] leading-[1.45] max-w-[34rem] font-medium">
           Kami ingin kamu merasa aman sejak langkah pertama. Dengar.in tidak meminta identitasmu, dan kami jujur soal batasnya: kami pendamping, bukan pengganti penanganan medis darurat.
         </p>
       </div>
 
-      <div className="space-y-4 pt-2">
-        {/* Principle 1 */}
-        <div className="p-4 bg-white border-2 border-ink rounded-md shadow-hard-sm flex items-start gap-4">
-          <div className="w-10 h-10 rounded-md bg-cobalt text-white flex items-center justify-center shrink-0 border-2 border-ink shadow-hard-sm font-black text-base">
-            01
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-sm font-black text-ink uppercase tracking-wider">
-              1. Privasimu Kami Jaga (Tanpa Registrasi)
-            </h3>
-            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
-              Kami tidak pernah meminta nama lengkap, email, nomor telepon, atau identitas kependudukan. Sesimu hanya dikenali lewat kode acak di peramban perangkatmu.
-            </p>
-          </div>
-        </div>
-
-        {/* Principle 2 */}
-        <div className="p-4 bg-white border-2 border-ink rounded-md shadow-hard-sm flex items-start gap-4">
-          <div className="w-10 h-10 rounded-md bg-yellow text-ink flex items-center justify-center shrink-0 border-2 border-ink shadow-hard-sm font-black text-base">
-            02
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-sm font-black text-ink uppercase tracking-wider">
-              2. Yang Bisa &amp; Tidak Bisa Kami Lakukan
-            </h3>
-            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
-              Dengar.in menemanimu berefleksi dan mengambil langkah kecil, tetapi <strong className="text-ink font-bold">BUKAN pengganti psikolog, psikiater, diagnosis klinis, atau resep obat</strong>.
-            </p>
-          </div>
-        </div>
-
-        {/* Principle 3 */}
-        <div className="p-4 bg-white border-2 border-ink rounded-md shadow-hard-sm flex items-start gap-4">
-          <div className="w-10 h-10 rounded-md bg-coral text-white flex items-center justify-center shrink-0 border-2 border-ink shadow-hard-sm font-black text-base">
-            03
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-sm font-black text-ink uppercase tracking-wider">
-              3. Kamu Tidak Sendirian Saat Krisis
-            </h3>
-            <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
-              Jika tulisanmu menunjukkan kamu sedang dalam krisis atau berpikir untuk menyakiti diri, kami langsung menampilkan kontak darurat resmi (Kemenkes Sejiwa 119 ext 8) tanpa campur tangan AI.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ol className="space-y-6 pt-2">
+        {PRINCIPLES.map((item, index) => (
+          <li
+            key={item.number}
+            style={{ animationDelay: `${160 + index * 80}ms` }}
+            className="animate-reveal-up flex items-start gap-4 border-t-2 border-ink pt-5"
+          >
+            <span
+              className={`w-10 h-10 rounded-[4px] flex items-center justify-center shrink-0 border-2 border-ink font-bold text-base tabular-nums ${item.tone}`}
+              aria-hidden="true"
+            >
+              {item.number}
+            </span>
+            <div className="space-y-1.5">
+              <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25]">{item.title}</h2>
+              <div className="text-[15px] sm:text-base text-[#4A453E] leading-relaxed">{item.body}</div>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 
   const rightContent = (
-    <div className="bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-6 shadow-hard lg:sticky lg:top-24">
-      <div className="space-y-1.5 border-b-2 border-ink pb-4">
-        <h3 className="font-black text-base text-ink uppercase tracking-wider">Sebelum Lanjut</h3>
-        <p className="text-xs text-ink/70 font-medium">Cukup centang dua hal ini, lalu kita mulai dengan tenang.</p>
+    <div className="animate-reveal-up [animation-delay:120ms] bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-6 shadow-hard-lg lg:sticky lg:top-24">
+      <div className="space-y-1.5 border-b border-[#D8D3C9] pb-4">
+        <h2 id="judul-persetujuan" className="font-bold text-xl text-ink tracking-[-0.01em] leading-[1.25]">Sebelum lanjut</h2>
+        <p className="text-[15px] text-[#59544D] leading-relaxed">Cukup centang dua hal ini, lalu kita mulai dengan tenang.</p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3" role="group" aria-labelledby="judul-persetujuan">
         <button
           type="button"
           role="checkbox"
           aria-checked={agreedTerms}
           onClick={() => setAgreedTerms(!agreedTerms)}
-          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-3 border-2 border-ink transition-all ${
-            agreedTerms ? 'bg-cobalt/10 shadow-hard-sm font-bold' : 'bg-paper hover:bg-paper-dark'
+          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-4 border-2 border-ink transition-[transform,box-shadow,background-color] duration-200 ease-spring ${
+            agreedTerms
+              ? 'bg-[#E6ECFF] shadow-hard-sm'
+              : 'bg-paper hover:bg-[#F7F0E6] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard-sm active:translate-x-0 active:translate-y-0 active:shadow-none'
           }`}
         >
           {agreedTerms ? (
-            <CheckSquare className="w-5 h-5 text-cobalt shrink-0 mt-0.5" />
+            <CheckSquare className="w-5 h-5 text-cobalt shrink-0 mt-0.5" aria-hidden="true" />
           ) : (
-            <Square className="w-5 h-5 text-ink/40 shrink-0 mt-0.5" />
+            <Square className="w-5 h-5 text-[#7A756D] shrink-0 mt-0.5" aria-hidden="true" />
           )}
-          <span className="text-xs sm:text-sm text-ink leading-snug font-medium">
-            Saya paham identitas saya anonim, dan saya bisa memulihkan sesi saya dengan kunci pemulihan 12 bagian.
+          <span className="text-[15px] text-ink leading-snug font-medium">
+            Saya paham identitas saya anonim, pesan obrolan saya diproses penyedia AI pihak ketiga seperti dijelaskan di poin 04, dan saya bisa memulihkan sesi saya dengan kunci pemulihan 12 bagian.
           </span>
         </button>
 
@@ -115,16 +161,18 @@ export default function ConsentPage() {
           role="checkbox"
           aria-checked={agreedDisclaimer}
           onClick={() => setAgreedDisclaimer(!agreedDisclaimer)}
-          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-3 border-2 border-ink transition-all ${
-            agreedDisclaimer ? 'bg-cobalt/10 shadow-hard-sm font-bold' : 'bg-paper hover:bg-paper-dark'
+          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-4 border-2 border-ink transition-[transform,box-shadow,background-color] duration-200 ease-spring ${
+            agreedDisclaimer
+              ? 'bg-[#E6ECFF] shadow-hard-sm'
+              : 'bg-paper hover:bg-[#F7F0E6] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard-sm active:translate-x-0 active:translate-y-0 active:shadow-none'
           }`}
         >
           {agreedDisclaimer ? (
-            <CheckSquare className="w-5 h-5 text-cobalt shrink-0 mt-0.5" />
+            <CheckSquare className="w-5 h-5 text-cobalt shrink-0 mt-0.5" aria-hidden="true" />
           ) : (
-            <Square className="w-5 h-5 text-ink/40 shrink-0 mt-0.5" />
+            <Square className="w-5 h-5 text-[#7A756D] shrink-0 mt-0.5" aria-hidden="true" />
           )}
-          <span className="text-xs sm:text-sm text-ink leading-snug font-medium">
+          <span className="text-[15px] text-ink leading-snug font-medium">
             Saya memahami bahwa Dengar.in adalah pendamping mandiri dan bukan layanan penanganan gawat darurat medis atau psikologis.
           </span>
         </button>
@@ -137,21 +185,21 @@ export default function ConsentPage() {
           fullWidth
           disabled={!canProceed}
           onClick={handleStart}
+          iconPosition="end"
           icon={<ArrowRight className="w-4 h-4" />}
-          className="flex-row-reverse"
         >
           SAYA SETUJU, LANJUTKAN
         </Button>
       </div>
 
-      <p className="text-[11px] text-ink/60 text-center leading-tight font-medium">
+      <p className="text-xs text-[#59544D] text-center leading-relaxed">
         Kunci pemulihan 12 bagian akan dibuat secara lokal di akhir proses ini.
       </p>
     </div>
   );
 
   return (
-    <PageContainer size="default">
+    <PageContainer size="default" className="sm:py-16 lg:py-20">
       <SplitLayout left={leftContent} right={rightContent} ratio="7-5" />
     </PageContainer>
   );

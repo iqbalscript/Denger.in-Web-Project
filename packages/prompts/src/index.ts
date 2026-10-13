@@ -132,3 +132,5 @@ export function buildChatUserPrompt(
   return `Pesan pengguna (sudah lolos gerbang krisis deterministik): "${message.trim()}"`;
 }
 
+export * from './carePassport.ts';
+export * from './openingLines.ts';

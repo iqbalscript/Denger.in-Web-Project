@@ -62,19 +62,17 @@ console.log('✔ API Response Unwrapping verified.');
 // 2. Telephone Dial Number Extractor Regression (BUG-09)
 console.log('2. Testing Telephone Dial Number Extractor...');
 
-function getDialableTel(phone) {
-  if (!phone) return '';
-  const baseNumber = phone.split(/\s*ext/i)[0] || '';
-  return baseNumber.replace(/[^0-9]/g, '');
-}
+// The real helper used by /crisis, /resources and the Footer. 119 ext 8 must
+// keep its extension as a dialer pause (",8"), not drop it (audit L4).
+const { toTelHref } = await import('../../packages/config/src/index.ts');
 
-assert.equal(getDialableTel('119 ext 8'), '119', '119 ext 8 must dial 119 without ext suffix');
-assert.equal(getDialableTel('119 Ext. 8'), '119', 'Case insensitive extension parsing');
-assert.equal(getDialableTel('119 EXT 8'), '119', 'All-caps extension parsing');
-assert.equal(getDialableTel('021-500-454'), '021500454', 'Standard hyphenated number');
-assert.equal(getDialableTel('08111929557'), '08111929557', 'Plain mobile number');
-assert.equal(getDialableTel(''), '', 'Empty phone string');
-assert.equal(getDialableTel(undefined), '', 'Undefined phone');
+assert.equal(toTelHref('119 ext 8'), 'tel:119,8', '119 ext 8 must dial 119 then extension 8');
+assert.equal(toTelHref('119 Ext. 8'), 'tel:119,8', 'Case insensitive extension parsing');
+assert.equal(toTelHref('119 EXT 8'), 'tel:119,8', 'All-caps extension parsing');
+assert.equal(toTelHref('021-500-454'), 'tel:021500454', 'Standard hyphenated number');
+assert.equal(toTelHref('08111929557'), 'tel:08111929557', 'Plain mobile number');
+assert.equal(toTelHref(''), '', 'Empty phone string');
+assert.equal(toTelHref(undefined), '', 'Undefined phone');
 
 console.log('✔ Telephone dialable extraction verified.');
 

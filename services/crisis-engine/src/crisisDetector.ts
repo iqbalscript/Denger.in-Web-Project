@@ -96,54 +96,69 @@ const CRISIS_RULES: PatternRule[] = [
   }
 ];
 
-// Curated Emergency Contacts for Crisis Escalation
+// Curated Emergency Contacts for Crisis Escalation.
+// KEEP IN SYNC with packages/config EMERGENCY_CONTACTS (phone, whatsapp, website,
+// availableHours, cost) and use the same ids. tests/crisis/emergencyContactsConsistency.test.mjs
+// fails when the two lists drift.
 const STATIC_EMERGENCY_CONTACTS: EmergencyContact[] = [
+  // Sources for every field: see the comment block above EMERGENCY_CONTACTS in
+  // packages/config/src/index.ts (official pages, accessed 2026-10-14).
   {
-    id: 'sejiwa-119',
-    name: 'Kemenkes Sejiwa',
+    id: 'healing119-kemenkes',
+    name: 'Healing119 (Kemenkes)',
     category: 'national_emergency',
     phone: '119 ext 8',
-    website: 'https://sejiwa.kemkes.go.id',
-    availableHours: '24 Jam / 7 Hari',
+    website: 'https://healing119.id',
+    availableHours: 'Pagi hingga malam',
     cost: 'gratis',
-    description: 'Layanan darurat kesehatan jiwa resmi Kementerian Kesehatan RI.',
+    description: 'Hotline kesehatan mental dan pencegahan bunuh diri Kementerian Kesehatan RI. Chat WhatsApp tersedia lewat healing119.id.',
     targetAgeBrackets: ['15-17', '18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
     verificationStatus: 'verified_official'
   },
   {
-    id: 'lisa-crisis',
-    name: 'Lisa Helpline (Love Inside Suicide Awareness)',
+    id: 'lisa-helpline',
+    name: 'LISA Helpline (Bali Bersama Bisa Foundation)',
     category: 'crisis_hotline',
-    phone: '021-3777-5472',
-    whatsapp: '0811-381-5472',
-    website: 'https://lisahelpline.org',
-    availableHours: '24 Jam / 7 Hari',
-    cost: 'tarif_standar',
-    description: 'Pendampingan krisis emosional dan pencegahan bunuh diri.',
+    whatsapp: '0811-3855-472',
+    website: 'https://bisahelpline.org',
+    availableHours: 'Sesi online terjadwal, bisa masuk daftar tunggu (ID / EN)',
+    cost: 'gratis',
+    description: 'Dukungan emosional dan pencegahan bunuh diri lewat WhatsApp oleh pendengar terlatih.',
     targetAgeBrackets: ['15-17', '18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
     verificationStatus: 'verified_official'
   },
   {
-    id: 'teencare-kpai',
-    name: 'Teencare & KPAI (Kemensos / KPAI)',
+    id: 'tepsa-kemensos',
+    name: 'TePSA Kemensos (Telepon Pelayanan Sosial Anak)',
     category: 'teen_protection',
     phone: '1500-771',
-    whatsapp: '0811-177-2273',
-    website: 'https://kpai.go.id',
-    availableHours: '24 Jam / 7 Hari',
+    website: 'https://kemensos.go.id',
+    availableHours: 'Jam layanan: tanyakan saat menelepon',
     cost: 'gratis',
-    description: 'Layanan perlindungan dan pendampingan khusus anak dan remaja di bawah 18 tahun.',
+    description: 'Layanan telepon khusus anak dan remaja di bawah 18 tahun dari Kementerian Sosial.',
     targetAgeBrackets: ['15-17'],
     verificationStatus: 'verified_official'
   },
   {
-    id: 'yayasan-pulih-crisis',
+    id: 'kpai-pengaduan',
+    name: 'KPAI (Komisi Perlindungan Anak Indonesia)',
+    category: 'teen_protection',
+    phone: '021-3190-1556',
+    whatsapp: '0811-177-2273',
+    website: 'https://kpai.go.id',
+    availableHours: 'Jam layanan: tanyakan saat menghubungi',
+    cost: 'tarif_standar',
+    description: 'Saluran pengaduan resmi untuk perlindungan anak di bawah 18 tahun.',
+    targetAgeBrackets: ['15-17'],
+    verificationStatus: 'todo_human_verification'
+  },
+  {
+    id: 'yayasan-pulih',
     name: 'Yayasan Pulih',
     category: 'crisis_hotline',
     phone: '021-788-42580',
     whatsapp: '0811-8436-633',
-    website: 'https://yayasanpulih.org',
-    availableHours: 'Senin–Jumat (09:00–17:00 WIB)',
+    availableHours: 'Hari dan jam kerja',
     cost: 'tarif_standar',
     description: 'Konseling trauma dan pemulihan psikologis.',
     targetAgeBrackets: ['18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
@@ -217,20 +232,23 @@ export function evaluateCrisisInput(
     severity = 'high';
   }
 
-  // Filter contacts by age bracket
-  const relevantContacts = STATIC_EMERGENCY_CONTACTS.filter((c) =>
+  // Filter contacts by age bracket. The bracket is caller-supplied (an API
+  // body field), so an unknown value must never produce an EMPTY contact list
+  // on a crisis result: fall back to the full catalog instead.
+  const bracketContacts = STATIC_EMERGENCY_CONTACTS.filter((c) =>
     c.targetAgeBrackets.includes(ageBracket)
   );
+  const relevantContacts = bracketContacts.length > 0 ? bracketContacts : STATIC_EMERGENCY_CONTACTS;
 
   // Age-tailored empathetic crisis intervention copy
   let interventionCopy = '';
   if (isCrisis) {
     if (ageBracket === '15-17') {
       interventionCopy =
-        'Kami mendengar rasa sakitmu, dan kamu sangat berharga. Kamu tidak harus memikul beban ini sendirian. Silakan segera hubungi saluran perlindungan remaja atau Kemenkes Sejiwa di bawah ini. Ada orang yang siap mendengarkan dan melindungimu sekarang.';
+        'Kami mendengar rasa sakitmu, dan kamu sangat berharga. Kamu tidak harus memikul beban ini sendirian. Silakan segera hubungi saluran perlindungan remaja atau Healing119 (Kemenkes) di bawah ini. Ada orang yang siap mendengarkan dan melindungimu sekarang.';
     } else {
       interventionCopy =
-        'Kami mendengar betapa beratnya situasi yang sedang kamu alami. Keselamatan dan hidupmu sangat berharga. Tolong luangkan satu langkah untuk menghubungi saluran darurat profesional di bawah ini. Layanan ini gratis, rahasia, dan ada konselor yang siap menemanimu saat ini.';
+        'Kami mendengar betapa beratnya situasi yang sedang kamu alami. Keselamatan dan hidupmu sangat berharga. Tolong luangkan satu langkah untuk menghubungi saluran darurat profesional di bawah ini. Healing119 dari Kemenkes gratis dan bisa dihubungi tanpa menyebut nama.';
     }
   }
 

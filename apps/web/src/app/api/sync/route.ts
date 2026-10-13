@@ -6,12 +6,15 @@ import { isRateLimited } from '@/lib/api/rateLimit';
 import { readJsonLimited } from '@/lib/api/requestLimits';
 
 /**
- * Encrypted cross-device sync skeleton (README Roadmap — "Opsi sinkronisasi
- * antarperangkat terenkripsi menggunakan frasa 12-kata"). The server only
- * ever stores an opaque, client-encrypted blob keyed by a hash of the
- * recovery mnemonic — it never sees the mnemonic itself or plaintext session
- * data. TODO(Sprint 2+): real end-to-end encryption is implemented
- * client-side; this route only demonstrates the storage contract.
+ * Encrypted cross-device sync for the 12-word recovery key. Encryption happens
+ * client-side (lib/crypto/e2ee.ts); the server only stores an opaque blob and
+ * never sees the mnemonic or plaintext session data.
+ *
+ * Two read paths:
+ * - `?backupId=` (v2): versioned backups whose writes are authorised by a
+ *   `writeProof` (see lib/api/syncAuth.ts).
+ * - `?mnemonicHash=` (legacy): pre-v2 backups keyed by a hash of the mnemonic,
+ *   kept readable so older backups can still be restored.
  */
 export async function GET(request: NextRequest) {
   if (await isRateLimited('sync-read', request)) return jsonError('Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.', 429);

@@ -38,7 +38,7 @@ function normalizeSafetyText(value: string): string {
     .trim();
 }
 
-function containsUnsafeMedicalAdvice(value: string): boolean {
+export function containsUnsafeMedicalAdvice(value: string): boolean {
   const text = normalizeSafetyText(value);
   const compact = text.replace(/\s+/g, '');
   const condition = '(?:bipolar|depresi(?:\\s+mayor)?|skizofrenia|gangguan\\s+kecemasan|anxiety\\s+disorder|adhd|gad|ocd|ptsd)';

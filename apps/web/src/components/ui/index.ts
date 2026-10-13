@@ -13,3 +13,5 @@ export * from './CelebrationToast';
 export * from './WellbeingTimeline';
 export * from './ChatProgress';
 export * from './PrivacyWarningPopup';
+export * from './Reveal';
+export * from './MoodIcon';

@@ -11,9 +11,21 @@ import { getRedis, REDIS_PREFIX } from '../redis.ts';
  * menjadi nama key — fungsi hash itu satu arah, jadi isi curhat tidak bisa
  * dipulihkan dari key. Yang tersimpan sebagai value hanyalah jawaban AI yang
  * sudah lolos validasi whitelist.
+ *
+ * OPT-IN SAJA (audit H6): jawaban AI lazim mengutip isi curhat, jadi menyimpannya
+ * di Redis bersama tetap membawa data sensitif meski key-nya hash. /api/chat
+ * hanya memakai cache ini bila `AI_RESPONSE_CACHE=true` diset eksplisit; bawaan
+ * mati. Fungsi baca/tulis di bawah sengaja tidak memeriksa flag (dipakai tes
+ * integrasi Redis); gerbangnya ada di pemanggil lewat isAiResponseCacheEnabled().
  */
 
-const TTL_SECONDS = 3_600;
+/** Diperpendek dari 1 jam: kalaupun diaktifkan, jejak sensitif cepat kedaluwarsa. */
+export const AI_CACHE_TTL_SECONDS = 600;
+
+/** True hanya bila operator mengaktifkan cache dengan `AI_RESPONSE_CACHE=true`. */
+export function isAiResponseCacheEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  return env.AI_RESPONSE_CACHE?.trim().toLowerCase() === 'true';
+}
 
 interface AiCacheInput {
   message: string;
@@ -65,7 +77,7 @@ export async function readAiCache(key: string): Promise<CachedResult | null> {
 export async function writeAiCache(key: string, result: OrchestratorResult): Promise<void> {
   // Jawaban tier 'fallback' adalah teks darurat deterministik, bukan hasil AI.
   // Menyimpannya akan mengunci pengguna berikutnya pada jawaban darurat itu
-  // selama satu jam meskipun penyedia AI sudah pulih.
+  // selama TTL meskipun penyedia AI sudah pulih.
   if (result.tier === 'fallback') return;
 
   const redis = await getRedis();
@@ -80,7 +92,7 @@ export async function writeAiCache(key: string, result: OrchestratorResult): Pro
 
   try {
     await redis.set(key, JSON.stringify(payload), {
-      expiration: { type: 'EX', value: TTL_SECONDS }
+      expiration: { type: 'EX', value: AI_CACHE_TTL_SECONDS }
     });
   } catch (error) {
     console.error('[AiCache] gagal menulis:', error instanceof Error ? error.message : error);

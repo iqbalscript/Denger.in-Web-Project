@@ -11,12 +11,42 @@ import {
   HeartHandshake,
   CheckCircle2,
 } from 'lucide-react';
-import { PageContainer, Button, Badge, PrivacyWarningPopup } from '@/components/ui';
+import { PageContainer, Button, PrivacyWarningPopup, Reveal, MoodIcon } from '@/components/ui';
 import { TOPIC_PILLARS } from '@dengarin/config';
 import { initAnonymousSession, saveDailyCheckin, getTodayCheckin } from '@/lib/storage';
 import { awardLangkah } from '@/lib/gamification';
 import { getLocalDateString } from '@/lib/calendar';
 import type { MoodScore } from '@dengarin/types';
+
+// Bento cells get distinct flat surfaces from the landing palette (cream + cobalt + lime, PRD §5.2).
+const PILLAR_SURFACES = [
+  { tile: 'bg-[#B8F34A]', icon: 'bg-white', tagline: 'text-[#151515]', body: 'text-[#2E2B26]', rule: 'border-[#8FBF2F]' },
+  { tile: 'bg-white', icon: 'bg-[#B8F34A]', tagline: 'text-[#2B51E6]', body: 'text-[#59544D]', rule: 'border-[#D8D3C9]' },
+  { tile: 'bg-[#E6ECFF]', icon: 'bg-white', tagline: 'text-[#2B51E6]', body: 'text-[#4A453E]', rule: 'border-[#BAC9FE]' },
+];
+
+const AGE_GROUPS = [
+  {
+    range: '15-17 tahun',
+    title: 'Remaja & pelajar',
+    body: 'Bahasa yang ramah untuk remaja, plus perlindungan khusus dan rujukan TePSA Kemensos/KPAI bila kamu butuh.',
+  },
+  {
+    range: '18-29 tahun',
+    title: 'Dewasa muda',
+    body: 'Skripsi, awal karier, krisis seperempat abad, dan belajar mandiri. Wajar kalau terasa berat.',
+  },
+  {
+    range: '30-49 tahun',
+    title: 'Dewasa & keluarga',
+    body: 'Generasi sandwich, tanggung jawab menafkahi, dan lelah bekerja. Kamu boleh merasa capek.',
+  },
+  {
+    range: '50+ tahun',
+    title: 'Senior & lansia',
+    body: 'Teks yang lebih besar dan mudah dibaca, tampilan yang tenang, dan tanpa terburu-buru.',
+  },
+];
 
 export default function LandingPage() {
   const [selectedQuickMood, setSelectedQuickMood] = useState<MoodScore | null>(null);
@@ -29,17 +59,17 @@ export default function LandingPage() {
     }
   }, []);
 
-  const moodOptions: Array<{ id: MoodScore; emoji: string; label: string; color: string }> = [
-    { id: 'sangat_baik', emoji: '😊', label: 'Bertenaga', color: '#B8F34A' },
-    { id: 'baik', emoji: '🙂', label: 'Cukup Baik', color: '#93C5FD' },
-    { id: 'netral', emoji: '😐', label: 'Biasa Saja', color: '#FFD84D' },
-    { id: 'berat', emoji: '😟', label: 'Berat', color: '#FF8A3D' },
-    { id: 'kewalahan', emoji: '😞', label: 'Kewalahan', color: '#FF5252' },
+  const moodOptions: Array<{ id: MoodScore; label: string; color: string }> = [
+    { id: 'sangat_baik', label: 'Bertenaga', color: '#B8F34A' },
+    { id: 'baik', label: 'Cukup Baik', color: '#C7D3FF' },
+    { id: 'netral', label: 'Biasa Saja', color: '#FFD84D' },
+    { id: 'berat', label: 'Berat', color: '#FF8A3D' },
+    { id: 'kewalahan', label: 'Kewalahan', color: '#FF5252' },
   ];
 
   const handleQuickMoodClick = (mood: MoodScore) => {
     setSelectedQuickMood(mood);
-    const session = initAnonymousSession(false);
+    const session = initAnonymousSession();
     saveDailyCheckin({
       id: Date.now().toString(),
       userId: session.userId,
@@ -67,37 +97,63 @@ export default function LandingPage() {
       {/* Privacy Warning Popup - shows once on first visit */}
       <PrivacyWarningPopup />
       {/* 1. EDITORIAL HERO (PRD-DESIGN.md section 15) */}
-      <section className="pt-8 sm:pt-14">
+      <section className="pt-8 sm:pt-14" aria-labelledby="judul-utama">
         <PageContainer size="default">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             {/* Left Column: Hero Content */}
             <div className="lg:col-span-7 space-y-6 text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[4px] bg-[#B8F34A] border-2 border-[#151515] text-[#151515] text-xs font-bold shadow-[2px_2px_0px_#151515]">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#151515]" />
-                <span className="uppercase tracking-wider">100% Anonim • Tanpa Akun • Tanpa Dihakimi</span>
+              <div className="animate-reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-[4px] bg-[#B8F34A] border-2 border-[#151515] text-[#151515] text-xs font-bold shadow-[2px_2px_0px_#151515]">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#151515]" aria-hidden="true" />
+                <span className="uppercase tracking-wider">100% anonim, tanpa akun</span>
               </div>
 
               {/* Display Headline per PRD-DESIGN.md */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#151515] tracking-tight leading-[1.05] uppercase">
+              <h1 id="judul-utama" className="animate-reveal-up [animation-delay:80ms] text-[2.5rem] sm:text-5xl lg:text-[4rem] font-bold text-[#151515] tracking-[-0.03em] leading-[1.02] uppercase">
                 GAK HARUS <br />
                 BERES SEMUANYA <br />
                 <span className="text-[#4169FF] underline decoration-[#B8F34A] decoration-4 underline-offset-4">HARI INI.</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-[#59544D] max-w-xl font-medium leading-relaxed">
-                Kalau hari ini terasa berat, kamu tidak sendirian. Di sini kamu boleh rehat sebentar, bercerita tanpa takut dihakimi, lalu melangkah pelan-pelan. Mulai dari satu hal kecil, sesuai kemampuanmu.
+              <p className="animate-reveal-up [animation-delay:160ms] text-lg sm:text-xl text-[#4A453E] max-w-[34rem] font-medium leading-[1.45]">
+                Kalau hari ini terasa berat, kamu tidak sendirian. Rehat sebentar, bercerita tanpa dihakimi, lalu melangkah pelan-pelan.
               </p>
 
+              {/* Primary Call to Action Buttons (no entrance animation: holds the emergency-help button) */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+                <Button
+                  href="/consent"
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  icon={<ArrowRight className="w-4 h-4" />}
+                  iconPosition="end"
+                  className="text-[#151515] font-bold uppercase tracking-wide flex-1 sm:flex-initial whitespace-nowrap"
+                >
+                  Mulai Tanpa Akun
+                </Button>
+
+                <Button
+                  href="/crisis"
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  icon={<PhoneCall className="w-4 h-4 text-[#FF5252]" />}
+                  className="font-bold uppercase tracking-wide flex-1 sm:flex-initial whitespace-nowrap"
+                >
+                  Bantuan Darurat
+                </Button>
+              </div>
+
               {/* QUICK MOOD CHECK-IN WIDGET ON LANDING */}
-              <div className="p-4 sm:p-5 rounded-[6px] bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#151515] space-y-3 max-w-xl">
+              <div className="animate-reveal-up [animation-delay:240ms] mt-2 p-4 sm:p-5 rounded-[6px] bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#151515] space-y-3 max-w-xl" role="group" aria-labelledby="label-mood-cepat">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#151515] uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#4169FF]" />
+                  <span id="label-mood-cepat" className="text-sm font-bold text-[#151515] flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-[#4169FF]" aria-hidden="true" />
                     Apa kabar hatimu hari ini?
                   </span>
                   {moodSavedNotice && (
-                    <span className="text-[11px] font-bold text-[#151515] bg-[#B8F34A] px-2 py-0.5 rounded-[2px] border border-[#151515] flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> Tersimpan
+                    <span role="status" className="text-[11px] font-bold text-[#151515] bg-[#B8F34A] px-2 py-0.5 rounded-[2px] border border-[#151515] flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" aria-hidden="true" /> Tersimpan
                     </span>
                   )}
                 </div>
@@ -110,79 +166,54 @@ export default function LandingPage() {
                         key={m.id}
                         type="button"
                         onClick={() => handleQuickMoodClick(m.id)}
+                        aria-pressed={isSelected}
                         style={{
                           backgroundColor: isSelected ? m.color : '#FFFFFF',
                         }}
-                        className={`py-2 px-1 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-all duration-120 cursor-pointer min-h-[58px] ${isSelected
+                        className={`py-2 px-1 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[64px] ${isSelected
                             ? 'shadow-[2px_2px_0px_#151515] -translate-x-[1px] -translate-y-[1px]'
-                            : 'hover:bg-[#FFF8EF] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515]'
+                            : 'hover:bg-[#FFF8EF] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515] active:translate-x-0 active:translate-y-0 active:shadow-none'
                           }`}
                       >
-                        <span className="text-xl select-none" aria-hidden="true">{m.emoji}</span>
-                        <span className="text-[10px] text-center font-bold uppercase leading-tight truncate w-full text-[#151515]">{m.label}</span>
+                        <MoodIcon mood={m.id} className="w-6 h-6 text-[#151515]" />
+                        <span className="text-[11px] sm:text-xs text-center font-semibold leading-tight truncate w-full text-[#151515]">{m.label}</span>
                       </button>
                     );
                   })}
                 </div>
+                <p className="flex items-center gap-1.5 text-[13px] text-[#59544D]">
+                  <Lock className="w-3.5 h-3.5 text-[#2B51E6] shrink-0" aria-hidden="true" />
+                  Pilihanmu hanya tersimpan di perangkat ini.
+                </p>
               </div>
 
-              {/* Primary Call to Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
-                <Button
-                  href="/consent"
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  icon={<ArrowRight className="w-4 h-4" />}
-                  className="flex-row-reverse text-[#151515] font-bold uppercase tracking-wide flex-1 sm:flex-initial"
-                >
-                  Mulai Tanpa Akun
-                </Button>
-
-                <Button
-                  href="/resources"
-                  variant="secondary"
-                  size="lg"
-                  fullWidth
-                  icon={<PhoneCall className="w-4 h-4 text-[#FF5252]" />}
-                  className="font-bold uppercase tracking-wide flex-1 sm:flex-initial"
-                >
-                  Bantuan Darurat
-                </Button>
-              </div>
-
-              {/* Anonymity Guarantee Reassurance */}
-              <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-[#59544D] font-bold uppercase tracking-wider">
-                <Lock className="w-3.5 h-3.5 text-[#4169FF] shrink-0" />
-                <span>Tanpa Nama • Tanpa Email • Data Privat di Perangkat Ini</span>
-              </div>
             </div>
 
             {/* Right Column: Abstract Colorful Neo-Brutalist Composition */}
-            <div className="lg:col-span-5 relative flex items-center justify-center">
+            <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-reveal-up [animation-delay:320ms]">
               <div className="relative w-full max-w-[340px] sm:max-w-[380px] p-6 bg-[#4169FF] border-2 border-[#151515] shadow-[6px_6px_0px_#151515] rounded-[8px] space-y-4 text-left text-white">
                 <div className="inline-block px-2.5 py-1 bg-[#B8F34A] text-[#151515] border-2 border-[#151515] font-bold text-xs uppercase tracking-wider rounded-[4px] shadow-[2px_2px_0px_#151515]">
                   Ruang Aman Anonim
                 </div>
 
-                <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tight leading-tight">
+                <p className="text-2xl sm:text-[1.75rem] font-bold tracking-[-0.02em] leading-[1.15]">
                   Tenang. <br />
-                  Semua Bisa <br />
-                  Diurai Perlahan.
-                </h3>
+                  Semua bisa <br />
+                  diurai perlahan.
+                </p>
 
-                <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-medium">
+                <p className="text-sm text-white leading-relaxed">
                   Dengar.in bukan diagnosis medis, melainkan teman refleksi yang mendengarkan tanpa menghakimi dan menemanimu mengambil satu langkah kecil hari ini.
                 </p>
 
                 {/* Sub-card composition element */}
-                <div className="p-3.5 bg-white text-[#151515] border-2 border-[#151515] shadow-[3px_3px_0px_#151515] rounded-[4px] space-y-1">
+                <div className="p-3.5 bg-white text-[#151515] border-2 border-[#151515] shadow-[3px_3px_0px_#151515] rounded-[4px] space-y-1 md:-ml-10 md:translate-y-2">
                   <div className="flex items-center justify-between text-xs font-bold uppercase">
                     <span>Misi Hari Ini</span>
-                    <span className="text-[#4169FF]">5 Menit</span>
+                    <span className="text-[#4169FF] tabular-nums">5 Menit</span>
                   </div>
-                  <p className="text-xs text-[#59544D] font-medium">
-                    &quot;Berhenti sejenak. Tarik napas 4 detik, embuskan pelan 4 detik. Tidak perlu terburu-buru.&quot;
+                  <p className="text-sm text-[#59544D] leading-relaxed">
+                    “Berhenti sejenak. Tarik napas 4 detik, embuskan pelan 4 detik. Tidak perlu terburu-buru.”
                   </p>
                 </div>
               </div>
@@ -192,49 +223,64 @@ export default function LandingPage() {
       </section>
 
       {/* 2. THREE PRIMARY TOPIC PILLARS */}
-      <section>
+      <section aria-labelledby="judul-pilar">
         <PageContainer size="default">
-          <div className="text-center space-y-2 mb-10">
-            <Badge variant="cobalt" size="md">
-              Fokus Utama
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#151515] tracking-tight uppercase">
-              Tiga Hal yang Sering Terasa Berat
+          <Reveal className="max-w-2xl space-y-3 mb-10 sm:mb-12">
+            <h2 id="judul-pilar" className="text-[1.75rem] sm:text-4xl font-bold text-[#151515] tracking-[-0.02em] leading-[1.15]">
+              Tiga hal yang sering terasa berat
             </h2>
-            <p className="text-xs sm:text-sm text-[#59544D] max-w-xl mx-auto leading-relaxed font-medium">
-              Beban-beban ini nyata, dan kamu tidak perlu memikulnya dalam diam. Pilih yang paling terasa untukmu saat ini.
+            <p className="text-base text-[#59544D] leading-relaxed max-w-[65ch]">
+              Beban-beban ini nyata, dan kamu tidak perlu memikulnya dalam diam.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {topicPillarsList.map((pillar) => {
+          {/* Asymmetric bento: the first pillar leads, the other two stack beside it */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 lg:grid-rows-2 gap-6">
+            {topicPillarsList.map((pillar, index) => {
               const Icon = pillar.id === 'finance' ? Coins : pillar.id === 'trauma' ? HeartHandshake : ShieldCheck;
+              const isLead = index === 0;
+              const surface = PILLAR_SURFACES[index % PILLAR_SURFACES.length];
               return (
-                <div
+                <Reveal
                   key={pillar.id}
-                  className="p-6 space-y-4 text-left flex flex-col justify-between bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#151515] rounded-[6px] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] transition-all duration-120"
+                  delay={index * 80}
+                  className={`text-left flex flex-col justify-between border-2 border-[#151515] rounded-[8px] ${surface.tile} ${
+                    isLead
+                      ? 'md:col-span-2 lg:col-span-7 lg:row-span-2 p-7 sm:p-10 gap-8 shadow-[4px_4px_0px_#151515]'
+                      : 'lg:col-span-5 p-6 sm:p-7 gap-5 shadow-[3px_3px_0px_#151515]'
+                  }`}
                 >
-                  <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-[4px] bg-[#B8F34A] text-[#151515] border-2 border-[#151515] flex items-center justify-center shadow-[2px_2px_0px_#151515]">
-                      <Icon className="w-5 h-5" />
+                  <div className={isLead ? 'space-y-5' : 'space-y-3'}>
+                    <div
+                      className={`rounded-[4px] text-[#151515] border-2 border-[#151515] flex items-center justify-center shadow-[2px_2px_0px_#151515] ${surface.icon} ${
+                        isLead ? 'w-14 h-14' : 'w-10 h-10'
+                      }`}
+                    >
+                      <Icon className={isLead ? 'w-7 h-7' : 'w-5 h-5'} aria-hidden="true" />
                     </div>
-                    <div className="space-y-1">
-                      <h3 className="font-bold text-base text-[#151515] leading-snug uppercase">
+                    <div className="space-y-1.5">
+                      <h3
+                        className={`font-bold text-[#151515] ${
+                          isLead
+                            ? 'text-2xl sm:text-[2rem] tracking-[-0.02em] leading-[1.15]'
+                            : 'text-xl tracking-[-0.01em] leading-[1.25]'
+                        }`}
+                      >
                         {pillar.label}
                       </h3>
-                      <p className="text-xs font-bold text-[#4169FF] uppercase tracking-wider">
+                      <p className={`text-[15px] font-semibold leading-snug ${surface.tagline}`}>
                         {pillar.tagline}
                       </p>
                     </div>
-                    <p className="text-xs text-[#59544D] leading-relaxed font-medium">
+                    <p className={`leading-relaxed ${surface.body} ${isLead ? 'text-base sm:text-lg max-w-[32rem]' : 'text-[15px]'}`}>
                       {pillar.description}
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t-2 border-[#151515]/10 flex items-center justify-between text-xs font-bold text-[#151515]">
-                    <span>{pillar.isSensitive ? 'Opsi Lewati Tersedia' : 'Misi Mandiri Harian'}</span>
+                  <div className={`pt-4 border-t flex items-center justify-between text-sm font-semibold text-[#151515] ${surface.rule}`}>
+                    <span>{pillar.isSensitive ? 'Opsi lewati tersedia' : 'Misi mandiri harian'}</span>
                   </div>
-                </div>
+                </Reveal>
               );
             })}
           </div>
@@ -242,68 +288,46 @@ export default function LandingPage() {
       </section>
 
       {/* 3. FOUR ADAPTIVE AGE DEMOGRAPHICS */}
-      <section className="bg-white border-y-2 border-[#151515] py-12">
+      <section aria-labelledby="judul-usia">
         <PageContainer size="default">
-          <div className="text-center space-y-2 mb-8">
-            <h3 className="text-xl sm:text-2xl font-bold text-[#151515] tracking-tight uppercase">
-              Untuk Siapa Pun, di Usia Berapa Pun
-            </h3>
-            <p className="text-xs sm:text-sm text-[#59544D] max-w-lg mx-auto font-medium">
+          <Reveal className="max-w-2xl space-y-3 mb-10 sm:mb-12">
+            <h2 id="judul-usia" className="text-[1.75rem] sm:text-4xl font-bold text-[#151515] tracking-[-0.02em] leading-[1.15]">
+              Untuk siapa pun, di usia berapa pun
+            </h2>
+            <p className="text-base text-[#59544D] leading-relaxed">
               Bahasa dan pertanyaan kami sesuaikan supaya terasa dekat dan nyaman untukmu.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-            <div className="p-4 rounded-[4px] bg-[#FFF8EF] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] space-y-1">
-              <span className="text-xs font-bold text-[#4169FF] uppercase tracking-wider">15–17 Tahun</span>
-              <h4 className="font-bold text-sm text-[#151515] uppercase">Remaja & Pelajar</h4>
-              <p className="text-[11px] text-[#59544D] leading-relaxed font-medium">
-                Bahasa yang ramah untuk remaja, plus perlindungan khusus dan rujukan Teencare/KPAI bila kamu butuh.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-[4px] bg-[#FFF8EF] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] space-y-1">
-              <span className="text-xs font-bold text-[#4169FF] uppercase tracking-wider">18–29 Tahun</span>
-              <h4 className="font-bold text-sm text-[#151515] uppercase">Dewasa Muda</h4>
-              <p className="text-[11px] text-[#59544D] leading-relaxed font-medium">
-                Skripsi, awal karier, krisis seperempat abad, dan belajar mandiri. Wajar kalau terasa berat.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-[4px] bg-[#FFF8EF] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] space-y-1">
-              <span className="text-xs font-bold text-[#4169FF] uppercase tracking-wider">30–49 Tahun</span>
-              <h4 className="font-bold text-sm text-[#151515] uppercase">Dewasa & Keluarga</h4>
-              <p className="text-[11px] text-[#59544D] leading-relaxed font-medium">
-                Generasi sandwich, tanggung jawab menafkahi, dan lelah bekerja. Kamu boleh merasa capek.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-[4px] bg-[#FFF8EF] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] space-y-1">
-              <span className="text-xs font-bold text-[#4169FF] uppercase tracking-wider">50+ Tahun</span>
-              <h4 className="font-bold text-sm text-[#151515] uppercase">Senior & Lansia</h4>
-              <p className="text-[11px] text-[#59544D] leading-relaxed font-medium">
-                Teks yang lebih besar dan mudah dibaca, tampilan yang tenang, dan tanpa terburu-buru.
-              </p>
-            </div>
-          </div>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10 text-left">
+            {AGE_GROUPS.map((group, index) => (
+              <Reveal as="li" key={group.range} delay={index * 80} className="border-t-2 border-[#151515] pt-4 space-y-2">
+                <span className="block text-xs font-bold text-[#4169FF] uppercase tracking-[0.05em] tabular-nums">
+                  {group.range}
+                </span>
+                <h3 className="font-bold text-lg text-[#151515] leading-[1.25]">{group.title}</h3>
+                <p className="text-[15px] text-[#59544D] leading-relaxed">{group.body}</p>
+              </Reveal>
+            ))}
+          </ul>
         </PageContainer>
       </section>
 
-      {/* 4. DETERMINISTIC CRISIS SAFETY GATE COMMITMENT */}
-      <section>
+      {/* 4. DETERMINISTIC CRISIS SAFETY GATE COMMITMENT (never animated or hidden) */}
+      <section aria-labelledby="judul-krisis">
         <PageContainer size="default">
-          <div className="rounded-[6px] border-2 border-[#151515] bg-[#FFEBEB] p-6 sm:p-10 shadow-[4px_4px_0px_#151515] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-left">
-            <div className="space-y-2 max-w-xl">
-              <span className="text-xs font-bold uppercase tracking-wider text-white bg-[#FF5252] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
+          <div className="rounded-[8px] border-2 border-[#151515] bg-[#FFEBEB] p-6 sm:p-10 shadow-[4px_4px_0px_#151515] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-left">
+            <div className="space-y-3 max-w-2xl">
+              <span className="inline-block text-xs font-bold uppercase tracking-wider text-white bg-[#FF5252] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
                 Pintu Keamanan Pertama
               </span>
-              <h3 className="text-lg sm:text-xl font-bold text-[#151515] uppercase pt-1">
-                Kalau Terasa Terlalu Berat, Bantuan Manusia Langsung Ada
-              </h3>
-              <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed font-medium">
+              <h2 id="judul-krisis" className="text-2xl sm:text-[1.75rem] font-bold text-[#151515] tracking-[-0.01em] leading-[1.2] pt-1">
+                Kalau terasa terlalu berat, bantuan manusia langsung ada
+              </h2>
+              <p className="text-[15px] sm:text-base text-[#4A453E] leading-relaxed">
                 Kalau tulisanmu menunjukkan kamu sedang dalam bahaya atau ingin melukai diri, kami langsung
-                menghentikan alur biasa dan menampilkan kontak bantuan: Kemenkes Sejiwa (119 ext 8) dan
-                Lisa Helpline. Deteksinya memakai aturan tetap, bukan AI, jadi tidak ada yang menunda bantuan untukmu.
+                menghentikan alur biasa dan menampilkan kontak bantuan: Healing119 dari Kemenkes (119 ext 8) dan
+                LISA Helpline. Deteksinya memakai aturan tetap, bukan AI, jadi tidak ada yang menunda bantuan untukmu.
                 Kamu penting, dan kamu tidak harus melewatinya sendirian.
               </p>
             </div>
@@ -315,9 +339,9 @@ export default function LandingPage() {
                 size="md"
                 fullWidth
                 icon={<PhoneCall className="w-4 h-4" />}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto min-h-[48px]"
               >
-                Lihat Kontak Bantuan Darurat
+                Bantuan Darurat
               </Button>
             </div>
           </div>

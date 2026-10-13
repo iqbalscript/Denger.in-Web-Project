@@ -21,12 +21,12 @@ export function GlassCard({
   };
 
   const hoverClass = hoverEffect
-    ? 'transition-all duration-120 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515]'
+    ? 'transition-all duration-120 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515]'
     : '';
 
   return (
     <div
-      className={`rounded-[6px] ${tintClasses[tint]} ${hoverClass} ${className}`}
+      className={`rounded-[8px] ${tintClasses[tint]} ${hoverClass} ${className}`}
       {...props}
     >
       {children}

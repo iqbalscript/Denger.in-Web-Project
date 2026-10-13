@@ -12,32 +12,83 @@ import type {
 } from '@dengarin/types';
 
 /**
- * Verified Indonesian Emergency Contacts & Helplines
- * Grounded in national services, verified non-profit crisis centers, and age-specific protections.
+ * Indonesian Emergency Contacts & Helplines
+ *
+ * Every field below was checked against the provider's own official channel
+ * (or, where the live site was down, the Internet Archive copy of that
+ * official site). Accessed 2026-10-14 unless stated. Anything not confirmed
+ * by an official source is marked UNVERIFIED and must not be expanded on.
+ *
+ * healing119-kemenkes
+ *   - https://www.healing119.id/ : "Layanan Hotline Kesehatan Mental dan Bunuh
+ *     Diri Kementerian Kesehatan", "Hubungi 119 ext. 8", WhatsApp button (no
+ *     number published). Hours/cost not stated on the site.
+ *   - https://kesprimkom.kemkes.go.id/konten/127/151/0/cegah-bunuh-diri-dukung-kesehatan-jiwa-kenali-layanan-healing119-id
+ *     (Kemenkes, 7 Aug 2025): "disediakan secara gratis", "beroperasi dari
+ *     pagi hingga malam hari", "dukungan psikologis awal", anonymous, can refer.
+ *   - No official source confirms 24/7, so no "24 jam" claim. The WhatsApp
+ *     number quoted in the press is not on any Kemenkes page, so it is omitted.
+ * lisa-helpline
+ *   - http://lisahelpline.org redirects to https://bisahelpline.org (its HTTPS
+ *     certificate does not cover lisahelpline.org). bisahelpline.org (Bali
+ *     Bersama Bisa Foundation, operator of LISA): "Messages can be sent to our
+ *     WhatsApp number +628113855472. Online support sessions are scheduled with
+ *     Certified Listeners and may be placed on a waiting list."; /about-us/:
+ *     "free online counselling", Indonesian and English. /contact/ lists no
+ *     phone number, so the old 021-3777-5472 (found in no source) was removed,
+ *     as was the 0811-381-5472 English line (third-party directories only).
+ * yayasan-pulih
+ *   - https://web.archive.org/web/20260911113333/https://yayasanpulih.org/ :
+ *     "Telp : +62 21 788 42 580".
+ *   - https://web.archive.org/web/20230831094436/http://yayasanpulih.org/layanan-psikologi/ :
+ *     "021-78842580 atau via Whatsapp 08118436633 (pada jam kerja dan hari kerja)".
+ *   - Live yayasanpulih.org (2026-10-14): expired TLS certificate and a hosting
+ *     placeholder page, so no website link is shown. Exact clock hours
+ *     (09:00-17:00) appear only in media, so they are not claimed.
+ * tepsa-kemensos
+ *   - https://kemensos.go.id/en/childrens-social-service-telephone-tepsa-ready-to-receive-online-services
+ *     (Kemensos, 9 Apr 2020): "TePSA Call Center Service 1500771", telecounseling
+ *     for children incl. emergency response and referral.
+ *   - UNVERIFIED: 24-hour operation (third-party directories only) is no longer
+ *     claimed. UNVERIFIED: cost; kept as before ('gratis').
+ *   - Previously merged with KPAI under the name "Teencare"; TePSA is a Kemensos
+ *     service, KPAI is a separate commission, so they are now two entries.
+ * kpai-pengaduan
+ *   - https://web.archive.org/web/20260609055833/https://www.kpai.go.id/ (live
+ *     kpai.go.id is in maintenance; www returns HTTP 521): "Pengaduan: (+62)
+ *     021 31901556", email pengaduan@kpai.go.id.
+ *   - UNVERIFIED: WhatsApp 0811-177-2273 (kpai.go.id post, Jan 2024, per audit
+ *     H2; not re-checkable today). 2025-2026 media cite 0811-1002-7727 instead.
+ *     Kept as-is pending direct confirmation. Hours UNVERIFIED (not claimed).
+ * satgas-pasti-ojk
+ *   - https://ojk.go.id/id/berita-dan-kegiatan/publikasi/Pages/Jadwal-Operasional-Kontak-157.aspx
+ *     (22 Jul 2025): telephone 157 "Senin s.d. Minggu (24 Jam setiap hari)"
+ *     from 10 Oct 2025; WhatsApp 081-157-157-157 "Senin s.d. Minggu, 07.45 –
+ *     16.50 WIB". konsumen.ojk.go.id times out; kontak157.ojk.go.id is the live
+ *     official Kontak 157 portal. UNVERIFIED: cost (kept as before).
  */
 export const EMERGENCY_CONTACTS: EmergencyContact[] = [
   {
-    id: 'kemenkes-sejiwa',
-    name: 'Kemenkes Sejiwa (Kementerian Kesehatan RI)',
+    id: 'healing119-kemenkes',
+    name: 'Healing119 (Kemenkes)',
     category: 'national_emergency',
     phone: '119 ext 8',
-    website: 'https://sejiwa.kemkes.go.id',
-    availableHours: '24 Jam / 7 Hari',
+    website: 'https://healing119.id',
+    availableHours: 'Pagi hingga malam',
     cost: 'gratis',
-    description: 'Layanan konsultasi kesehatan jiwa resmi Kemenkes RI untuk kondisi krisis dan tekanan mental darurat.',
+    description: 'Layanan hotline kesehatan mental dan pencegahan bunuh diri Kementerian Kesehatan RI. Dukungan psikologis awal tanpa perlu menyebut nama, dan bisa dirujuk ke layanan profesional. Chat WhatsApp tersedia lewat healing119.id.',
     targetAgeBrackets: ['15-17', '18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
     verificationStatus: 'verified_official'
   },
   {
     id: 'lisa-helpline',
-    name: 'Lisa Helpline (Love Inside Suicide Awareness)',
+    name: 'LISA Helpline (Bali Bersama Bisa Foundation)',
     category: 'crisis_hotline',
-    phone: '021-3777-5472',
-    whatsapp: '0811-381-5472',
-    website: 'https://lisahelpline.org',
-    availableHours: '24 Jam / 7 Hari (Bilingual ID / EN)',
-    cost: 'tarif_standar',
-    description: 'Layanan pencegahan bunuh diri dan pendampingan krisis emosional dengan konselor terlatih.',
+    whatsapp: '0811-3855-472',
+    website: 'https://bisahelpline.org',
+    availableHours: 'Sesi online terjadwal, bisa masuk daftar tunggu (ID / EN)',
+    cost: 'gratis',
+    description: 'Dukungan emosional dan pencegahan bunuh diri lewat WhatsApp oleh pendengar terlatih, dalam bahasa Indonesia atau Inggris.',
     targetAgeBrackets: ['15-17', '18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
     verificationStatus: 'verified_official'
   },
@@ -47,40 +98,64 @@ export const EMERGENCY_CONTACTS: EmergencyContact[] = [
     category: 'crisis_hotline',
     phone: '021-788-42580',
     whatsapp: '0811-8436-633',
-    website: 'https://yayasanpulih.org',
-    availableHours: 'Senin–Jumat (09:00–17:00 WIB)',
+    availableHours: 'Hari dan jam kerja',
     cost: 'tarif_standar',
     description: 'Lembaga nirlaba pemulihan trauma, penanganan kekerasan psikososial, dan konseling.',
     targetAgeBrackets: ['18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
     verificationStatus: 'verified_official'
   },
   {
-    id: 'kpai-teencare',
-    name: 'KPAI & Teencare (Telepon Pelayanan Sosial Anak)',
+    id: 'tepsa-kemensos',
+    name: 'TePSA Kemensos (Telepon Pelayanan Sosial Anak)',
     category: 'teen_protection',
     phone: '1500-771',
-    whatsapp: '0811-177-2273',
-    website: 'https://www.kpai.go.id',
-    availableHours: 'Senin–Minggu (24 Jam)',
+    website: 'https://kemensos.go.id',
+    availableHours: 'Jam layanan: tanyakan saat menelepon',
     cost: 'gratis',
-    description: 'Layanan pendampingan khusus anak dan remaja (usia di bawah 18 tahun) untuk perlindungan dan kesehatan mental anak.',
+    description: 'Layanan telepon khusus anak dan remaja di bawah 18 tahun dari Kementerian Sosial: konseling, pengaduan, tanggap darurat, dan rujukan.',
     targetAgeBrackets: ['15-17'],
     verificationStatus: 'verified_official'
   },
   {
+    id: 'kpai-pengaduan',
+    name: 'KPAI (Komisi Perlindungan Anak Indonesia)',
+    category: 'teen_protection',
+    phone: '021-3190-1556',
+    whatsapp: '0811-177-2273',
+    website: 'https://kpai.go.id',
+    availableHours: 'Jam layanan: tanyakan saat menghubungi',
+    cost: 'tarif_standar',
+    description: 'Saluran pengaduan resmi untuk pelanggaran hak dan perlindungan anak di bawah 18 tahun.',
+    targetAgeBrackets: ['15-17'],
+    verificationStatus: 'todo_human_verification'
+  },
+  {
     id: 'satgas-pasti-ojk',
-    name: 'Satgas PASTI / OJK (Pengaduan Pinjol Ilegal & Teror Finansial)',
+    name: 'Kontak OJK 157 (Pengaduan Pinjol Ilegal & Teror Finansial)',
     category: 'financial_advocacy',
     phone: '157',
     whatsapp: '081-157-157-157',
-    website: 'https://konsumen.ojk.go.id',
-    availableHours: 'Senin–Jumat (08:00–17:00 WIB)',
+    website: 'https://kontak157.ojk.go.id',
+    availableHours: 'Telepon 24 jam setiap hari; WA Senin–Minggu 07.45–16.50 WIB',
     cost: 'gratis',
-    description: 'Saluran resmi pengaduan teror penagihan, pinjaman online ilegal, dan penipuan keuangan yang memicu kecemasan finansial.',
+    description: 'Saluran resmi OJK untuk pengaduan teror penagihan, pinjaman online ilegal, dan penipuan keuangan yang memicu kecemasan finansial.',
     targetAgeBrackets: ['18-29', '30-49', '50+', '18-24', '25-34', '35-54'],
     verificationStatus: 'verified_official'
   }
 ];
+
+/**
+ * Turns a display phone such as "119 ext 8" into a tel: target. The extension
+ * becomes a pause-then-dial (",8") so the dialer reaches the counselor menu
+ * without the caller having to know the extension.
+ */
+export function toTelHref(phone?: string): string {
+  if (!phone) return '';
+  const [base = '', ext] = phone.split(/\s*ext\.?\s*/i);
+  const digits = base.replace(/[^0-9+]/g, '');
+  const extDigits = (ext ?? '').replace(/[^0-9]/g, '');
+  return `tel:${digits}${extDigits ? `,${extDigits}` : ''}`;
+}
 
 /**
  * Whitelist of permitted AI actions.
@@ -107,7 +182,7 @@ export const PRD_AGE_BRACKET_CONFIGS: Record<
     id: '15-17',
     label: '15–17 Tahun',
     subtext: 'Pelajar Remaja (Perlindungan Khusus Anak)',
-    rationale: 'Rentang usia ini mengaktifkan bahasa yang ramah remaja, materi empati sebaya, serta integrasi saluran darurat anak (Teencare & KPAI).',
+    rationale: 'Rentang usia ini mengaktifkan bahasa yang ramah remaja, materi empati sebaya, serta integrasi saluran darurat anak (TePSA Kemensos & KPAI).',
     highProtection: true
   },
   '18-29': {
@@ -585,3 +660,5 @@ export const DOMAIN_MISSION_TEMPLATES: Record<InterventionDomain, DailyMission> 
     completed: false
   }
 };
+
+export * from './helpDestinations.ts';

@@ -1,0 +1,27 @@
+# Build context for apps/web/Dockerfile (run from the repo root).
+# Patterns need the **/ prefix to apply inside workspaces (apps/web, services/*).
+**/node_modules
+**/.next
+**/out
+**/dist
+**/*.tsbuildinfo
+.git
+.gitattributes
+.vercel
+.idea
+.vscode
+**/.DS_Store
+**/*.log
+
+# Never copy secrets into the image; pass them with --env-file at run time.
+# (Without **/ a nested apps/web/.env.local would be baked into the build.)
+**/.env
+**/.env.*
+!.env.example
+
+# Not needed to build or serve the app.
+docs
+tests
+scripts
+supabase
+README.md

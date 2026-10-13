@@ -1,5 +1,4 @@
 import type { NextRequest } from 'next/server';
-import type { InterventionDomain } from '@dengarin/types';
 import { runCrisisGate } from '@/lib/api/crisisGate';
 import { forumRepository } from '@/lib/api/repositories';
 import { jsonError, jsonOk } from '@/lib/api/response';
@@ -7,12 +6,13 @@ import { isRateLimited } from '@/lib/api/rateLimit';
 import { readJsonLimited } from '@/lib/api/requestLimits';
 import { invalidateForumPosts, readThroughForumPosts } from '@/lib/api/forumCache';
 import { withReplyStats } from '@/lib/api/forumReplyStats';
+import { isInterventionDomain, parseForumDomainFilter } from '@/lib/api/forumDomain';
 
 import { moderateForumPost } from '@dengarin/validator';
 
 interface CreateForumPostBody {
   authorPseudonym?: string;
-  domain?: InterventionDomain;
+  domain?: unknown;
   title?: string;
   body?: string;
 }
@@ -20,8 +20,10 @@ interface CreateForumPostBody {
 /** GET /api/forum — publicly readable, approved posts only (optional domain filter). */
 export async function GET(request: NextRequest) {
   try {
-    const domainParam = request.nextUrl.searchParams.get('domain') as InterventionDomain | null;
-    const posts = await readThroughForumPosts(`domain=${domainParam ?? ''}`, async () => withReplyStats(await forumRepository.listApproved(50, domainParam || undefined)));
+    const filter = parseForumDomainFilter(request.nextUrl.searchParams.get('domain'));
+    if (!filter.ok) return jsonError('Topik cerita tidak dikenali.', 400);
+    const domain = filter.domain;
+    const posts = await readThroughForumPosts(`domain=${domain ?? ''}`, async () => withReplyStats(await forumRepository.listApproved(50, domain)));
     return jsonOk({ posts });
   } catch (err) {
     console.error('Failed to list forum posts:', err);
@@ -46,6 +48,9 @@ export async function POST(request: NextRequest) {
       typeof body.body !== 'string' || !body.body.trim() || !body.domain ||
       (body.authorPseudonym !== undefined && typeof body.authorPseudonym !== 'string')) {
     return jsonError('Properti "title", "body", dan "domain" wajib diisi.');
+  }
+  if (!isInterventionDomain(body.domain)) {
+    return jsonError('Topik cerita tidak dikenali.');
   }
   const authorPseudonym = body.authorPseudonym?.trim() || 'Sahabat Anonim';
 

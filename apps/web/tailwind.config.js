@@ -96,9 +96,32 @@ module.exports = {
         '2xl': '8px',
         '3xl': '8px',
       },
+      // PRD-DESIGN.md button press timing; Tailwind v3 has no 120ms step by default.
+      transitionDuration: {
+        120: '120ms',
+        400: '400ms',
+        700: '700ms',
+      },
+      // Spring-like curves: fast start, long settle. Used for presses, reveals and the drawer.
+      transitionTimingFunction: {
+        spring: 'cubic-bezier(0.32, 0.72, 0, 1)',
+        'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+      keyframes: {
+        'reveal-up': {
+          from: { opacity: '0', transform: 'translateY(16px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        // CSS-only entrance for above-the-fold content: runs before hydration, no JS needed.
+        // `backwards` holds the start state during the delay but releases transform afterwards,
+        // so hover/press translates on the same element keep working.
+        'reveal-up': 'reveal-up 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards',
+      },
       fontFamily: {
-        sans: ['"Space Grotesk"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
-        display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-space-grotesk)', '"Space Grotesk"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        display: ['var(--font-space-grotesk)', '"Space Grotesk"', 'system-ui', 'sans-serif'],
       },
     },
   },

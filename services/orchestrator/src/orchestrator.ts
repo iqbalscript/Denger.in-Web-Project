@@ -48,10 +48,58 @@ export interface OrchestratorDependencies {
   debiaserProvider?: LLMProvider;
   /** Set to false to disable second brain debiasing pass. */
   enableDebiaser?: boolean;
+  /** Per-provider ceiling; each call also gets no more than the turn budget left. */
   timeoutMs?: number;
+  /**
+   * Overall wall-clock budget for ONE chat turn (audit M10): provider tiers and
+   * the optional debiaser share it. Defaults to DEFAULT_TURN_BUDGET_MS.
+   */
+  turnBudgetMs?: number;
+  /** Clock injection for tests. */
+  now?: () => number;
+  /** Environment for the `DENGARIN_DEBIASER=off` kill switch (defaults to process.env). */
+  env?: Record<string, string | undefined>;
 }
 
 const DEFAULT_TIMEOUT_MS = 15000;
+/** Overall time budget for one turn (primary + fallback tiers + debiaser). */
+export const DEFAULT_TURN_BUDGET_MS = 18000;
+/** Debiaser never waits longer than this, even with budget to spare. */
+export const DEBIASER_MAX_TIMEOUT_MS = 10000;
+/** Below this much remaining budget the debiaser is skipped, not squeezed. */
+export const DEBIASER_MIN_BUDGET_MS = 3000;
+/** Below this much remaining budget a further provider tier is not attempted. */
+export const PROVIDER_MIN_BUDGET_MS = 2000;
+
+/**
+ * Pure budget rule for the optional Second Brain pass (audit M10).
+ * Returns the timeout to give the debiaser, or null to skip it because the
+ * primary call already used most of the turn budget.
+ */
+export function planDebiasTimeout(
+  remainingMs: number,
+  maxMs: number = DEBIASER_MAX_TIMEOUT_MS,
+  minMs: number = DEBIASER_MIN_BUDGET_MS
+): number | null {
+  if (!Number.isFinite(remainingMs) || remainingMs < minMs) return null;
+  return Math.min(maxMs, Math.floor(remainingMs));
+}
+
+/** Pure budget rule for a provider tier: its timeout, or null to skip it. */
+export function planProviderTimeout(
+  remainingMs: number,
+  maxMs: number = DEFAULT_TIMEOUT_MS,
+  minMs: number = PROVIDER_MIN_BUDGET_MS
+): number | null {
+  if (!Number.isFinite(remainingMs) || remainingMs < minMs) return null;
+  return Math.min(maxMs, Math.floor(remainingMs));
+}
+
+/** `DENGARIN_DEBIASER=off|false|0` disables the second LLM pass (e.g. for demos). */
+export function isDebiaserDisabledByEnv(env: Record<string, string | undefined> = process.env): boolean {
+  const value = env.DENGARIN_DEBIASER?.trim().toLowerCase();
+  return value === 'off' || value === 'false' || value === '0';
+}
 const TIER_LABELS: OrchestratorTier[] = ['primary', 'tertiary'];
 
 function safeDeterministicAction(): ValidatedAIAction {
@@ -75,6 +123,9 @@ export async function runOrchestrator(
   deps: OrchestratorDependencies = {}
 ): Promise<OrchestratorResult> {
   const timeoutMs = deps.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const now = deps.now ?? Date.now;
+  const deadline = now() + (deps.turnBudgetMs ?? DEFAULT_TURN_BUDGET_MS);
+  const remaining = () => deadline - now();
   const warnings: string[] = [];
 
   // 1. PRE-LLM DETERMINISTIC DOMAIN & CODING GATE
@@ -93,7 +144,7 @@ export async function runOrchestrator(
 
   const providers = deps.providers ?? [createDeepseekProvider(), createGeminiProvider()];
   const debiaserProvider = deps.debiaserProvider ?? createOpenrouterProvider();
-  const enableDebiaser = deps.enableDebiaser !== false;
+  const enableDebiaser = deps.enableDebiaser !== false && !isDebiaserDisabledByEnv(deps.env);
 
   const promptContext = { ageBracket: request.ageBracket, domain: request.domain };
   const systemPrompt = buildChatSystemPrompt(promptContext);
@@ -122,12 +173,18 @@ export async function runOrchestrator(
       continue;
     }
 
+    const providerTimeoutMs = planProviderTimeout(remaining(), timeoutMs);
+    if (providerTimeoutMs === null) {
+      warnings.push(`${provider.id} dilewati: anggaran waktu giliran habis`);
+      continue;
+    }
+
     try {
       const response = await provider.generate({
         systemPrompt,
         userPrompt,
         messages: structuredMessages,
-        timeoutMs
+        timeoutMs: providerTimeoutMs
       });
       const parsed = parseJsonSafely(response.rawText);
       const validation = validateAIOutput(parsed);
@@ -137,16 +194,23 @@ export async function runOrchestrator(
         let wasDebiased = false;
 
         // 2. SECOND BRAIN (OpenRouter Nemotron Debiasing & Guardrail Pass)
+        // Budget-aware (audit M10): skipped when the primary call already used
+        // most of the turn budget, so one turn never pays primary + full debiaser.
         if (enableDebiaser && debiaserProvider.isConfigured()) {
-          const debiasResult = await debiasCandidateAction(
-            finalAction,
-            request.message,
-            debiaserProvider,
-            Math.min(timeoutMs, 10000)
-          );
-          finalAction = debiasResult.action;
-          wasDebiased = debiasResult.debiased;
-          warnings.push(...debiasResult.warnings);
+          const debiasTimeoutMs = planDebiasTimeout(remaining(), Math.min(timeoutMs, DEBIASER_MAX_TIMEOUT_MS));
+          if (debiasTimeoutMs === null) {
+            warnings.push(`Second Brain (${debiaserProvider.id}) dilewati: anggaran waktu giliran hampir habis`);
+          } else {
+            const debiasResult = await debiasCandidateAction(
+              finalAction,
+              request.message,
+              debiaserProvider,
+              debiasTimeoutMs
+            );
+            finalAction = debiasResult.action;
+            wasDebiased = debiasResult.debiased;
+            warnings.push(...debiasResult.warnings);
+          }
         }
 
         // A transformed candidate must cross the same final validation boundary
@@ -185,3 +249,5 @@ export async function runOrchestrator(
   };
 }
 
+export * from './carePassportPipeline.ts';
+export * from './openingLinesPipeline.ts';

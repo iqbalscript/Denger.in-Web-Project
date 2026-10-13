@@ -10,7 +10,7 @@ export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
 
 export function Chip({
   children,
-  selected = false,
+  selected,
   variant = 'sand',
   size = 'md',
   icon,
@@ -19,7 +19,7 @@ export function Chip({
   ...props
 }: ChipProps) {
   const sizeClasses = {
-    sm: 'px-2.5 py-1 text-xs gap-1 min-h-[44px] sm:min-h-[34px]',
+    sm: 'px-2.5 py-1 text-[13px] gap-1 min-h-[44px] sm:min-h-[34px]',
     md: 'px-3.5 py-1.5 text-sm gap-1.5 min-h-[44px] sm:min-h-[40px]',
   };
 
@@ -36,15 +36,19 @@ export function Chip({
 
   const selectedClass = 'bg-[#4169FF] text-white border-2 border-[#151515] shadow-[2px_2px_0px_#151515] font-bold';
 
+  const isSelected = selected ?? false;
+
   return (
     <button
       type={type}
+      // Only announce as a toggle when the caller actually drives `selected`.
+      aria-pressed={selected === undefined ? undefined : isSelected}
       className={`inline-flex items-center justify-center rounded-[4px] font-bold transition-all duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] ${
         sizeClasses[size]
-      } ${selected ? selectedClass : `${unselectedVariants[variant]} shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515]` } ${className}`}
+      } ${isSelected ? selectedClass : `${unselectedVariants[variant]} shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515]` } ${className}`}
       {...props}
     >
-      {icon && <span className="shrink-0">{icon}</span>}
+      {icon && <span className="shrink-0" aria-hidden="true">{icon}</span>}
       <span>{children}</span>
     </button>
   );
@@ -64,8 +68,8 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const sizeClasses = {
-    sm: 'px-2 py-0.5 text-[11px]',
-    md: 'px-2.5 py-1 text-xs',
+    sm: 'px-2 py-0.5 text-xs',
+    md: 'px-2.5 py-1 text-[13px]',
   };
 
   const variantClasses = {
@@ -80,7 +84,7 @@ export function Badge({
 
   return (
     <span
-      className={`inline-flex items-center font-bold uppercase tracking-wider rounded-[4px] shadow-[1px_1px_0px_#151515] ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center font-bold uppercase tracking-[0.05em] rounded-[4px] shadow-[1px_1px_0px_#151515] ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
       {...props}
     >
       {children}

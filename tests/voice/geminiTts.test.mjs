@@ -11,7 +11,9 @@ import {
 } from '../../apps/web/src/lib/api/geminiTts.ts';
 import { acquireTtsSlot } from '../../apps/web/src/lib/api/rateLimit.ts';
 
-const routeSource = readFileSync(new URL('../../apps/web/src/app/api/chat/route.ts', import.meta.url), 'utf8');
+// /api/chat logic lives in the pure handler (audit M9); the route wires TTS.
+const routeSource = readFileSync(new URL('../../apps/web/src/lib/api/chatHandler.ts', import.meta.url), 'utf8')
+  + readFileSync(new URL('../../apps/web/src/app/api/chat/route.ts', import.meta.url), 'utf8');
 const roomSource = readFileSync(new URL('../../apps/web/src/app/ruang-ngobrol/page.tsx', import.meta.url), 'utf8');
 function createValidWav() {
   const wav = Buffer.alloc(44);

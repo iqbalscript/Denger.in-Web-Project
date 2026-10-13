@@ -117,20 +117,20 @@ describe('Deterministic Crisis Engine Tests', () => {
   });
 
   describe('Age-Adapted Resource Escalation', () => {
-    it('provides minor/teen hotlines (Teencare/KPAI) for age bracket 15-17', () => {
+    it('provides minor/teen hotlines (TePSA/KPAI) for age bracket 15-17', () => {
       const result = evaluateCrisisInput('aku pengen mati aja rasanya', '15-17');
       assert.equal(result.isCrisis, true);
-      const hasTeenCare = result.emergencyContacts.some(c => c.id === 'teencare-kpai');
-      assert.equal(hasTeenCare, true, 'Minors aged 15-17 must receive Teencare/KPAI contact');
+      const hasTeenCare = result.emergencyContacts.some(c => c.id === 'tepsa-kemensos');
+      assert.equal(hasTeenCare, true, 'Minors aged 15-17 must receive TePSA/KPAI contact');
       assert.ok(result.immediateInterventionCopy.includes('perlindungan remaja'));
     });
 
-    it('provides adult crisis hotlines (Sejiwa / Lisa) for age bracket 18-24', () => {
+    it('provides adult crisis hotlines (Healing119 / LISA) for age bracket 18-24', () => {
       const result = evaluateCrisisInput('aku pengen mati aja rasanya', '18-24');
       assert.equal(result.isCrisis, true);
-      const hasSejiwa = result.emergencyContacts.some(c => c.id === 'sejiwa-119');
-      const hasLisa = result.emergencyContacts.some(c => c.id === 'lisa-crisis');
-      assert.equal(hasSejiwa, true);
+      const hasHealing119 = result.emergencyContacts.some(c => c.id === 'healing119-kemenkes');
+      const hasLisa = result.emergencyContacts.some(c => c.id === 'lisa-helpline');
+      assert.equal(hasHealing119, true);
       assert.equal(hasLisa, true);
     });
   });

@@ -1,8 +1,24 @@
+/**
+ * Chat limits: the SINGLE source of truth for /api/chat input bounds (audit L1).
+ * chatInputWithinLimits (below), screenChatContext (chatHistory.ts) and the chat
+ * page all read these constants; do not redeclare them elsewhere.
+ */
 export const CHAT_MAX_BYTES = 32 * 1024;
 export const CHAT_MAX_MESSAGE = 2000;
 export const CHAT_MAX_HISTORY_COUNT = 12;
 export const CHAT_MAX_HISTORY_ENTRY = 2000;
 export const CHAT_MAX_HISTORY_TOTAL = 12000;
+/** How many prior entries the chat page sends (always <= CHAT_MAX_HISTORY_COUNT). */
+export const CHAT_CLIENT_HISTORY_ENTRIES = 6;
+
+/**
+ * Time budget for one chat turn (audit M10). The orchestrator gives every LLM
+ * call only what is left of this budget and skips the optional debiaser pass
+ * when too little remains, so one turn cannot take primary + debiaser worst case.
+ */
+export const CHAT_TURN_BUDGET_MS = 18_000;
+/** The browser stops waiting after this; it must stay above the server budget. */
+export const CHAT_CLIENT_TIMEOUT_MS = 30_000;
 
 export async function readJsonLimited(request: Request, maxBytes: number): Promise<
   { ok: true; value: unknown } | { ok: false; status: 400 | 413 }

@@ -366,3 +366,113 @@ export interface BadgeDefinition {
   description: string;
 }
 
+
+// ==========================================
+// Care Passport (AMD Track 2) — schema version 1
+// See docs/AMD_TRACK2_DEVELOPMENT_PLAN.md §3 and §5B.
+// ==========================================
+
+/**
+ * Where a Care Passport fact comes from.
+ * - `user_input`: quoted verbatim from the sanitized text the user submitted.
+ * - `user_confirmed`: the user added or corrected it in the review UI. Only the
+ *   client review flow may set this; model output claiming it is downgraded.
+ * - `unknown`: not stated; `value` is null.
+ */
+export type EvidenceSource = 'user_input' | 'user_confirmed' | 'unknown';
+
+/**
+ * F-A "Bukti Bertanggal": where a piece of input text came from.
+ * - `intake`: the story typed on the Care Passport page.
+ * - `journal` / `checkin`: an entry the user explicitly selected from the
+ *   device's local storage. Never read or sent without that selection.
+ * - `clarification`: an answer to one NEEDS_CLARIFICATION question.
+ */
+export type CarePassportSegmentKind = 'intake' | 'journal' | 'checkin' | 'clarification';
+
+export interface CarePassportSegment {
+  /** Client-generated, stable within one request, e.g. `journal:1727150000000`. */
+  id: string;
+  kind: CarePassportSegmentKind;
+  /** Local calendar date `YYYY-MM-DD` of the entry (journal / check-in). */
+  date?: string;
+  /** Segment text. Raw on the request; sanitized once the server has redacted it. */
+  text: string;
+}
+
+/** Points an accepted fact back at the segment its quote was found in. */
+export interface EvidenceRef {
+  segmentId: string;
+  kind: CarePassportSegmentKind;
+  date?: string;
+}
+
+export interface EvidenceField {
+  value: string | null;
+  source: EvidenceSource;
+  /** Exact phrase from the sanitized input backing `value` (required for `user_input`). */
+  sourceQuote?: string;
+  needsReview: boolean;
+  /** Filled by the server after grounding: the single segment containing `sourceQuote`. */
+  sourceRef?: EvidenceRef;
+}
+
+/** Measured completeness of the three core facts; never a model "confidence". */
+export interface CarePassportCompleteness {
+  known: number;
+  total: number;
+  unknownLabels: string[];
+}
+
+export type CarePassportReviewStatus = 'user_pending' | 'user_approved';
+
+export interface CarePassport {
+  version: 1;
+  subject: 'anonymous_adult';
+  concerns: EvidenceField[];
+  dailyImpact: EvidenceField[];
+  duration: EvidenceField;
+  relevantContext: EvidenceField[];
+  questionsForProfessional: string[];
+  /** Plain-language names of the information that is still missing. */
+  unknowns: string[];
+  disclaimer: string;
+  reviewStatus: CarePassportReviewStatus;
+}
+
+export type CarePassportResultState =
+  /** Structured and traceable, waiting for the user to review and approve. */
+  | 'READY_FOR_USER_REVIEW'
+  /** Key facts missing or untraceable; at most one targeted question is asked. */
+  | 'NEEDS_CLARIFICATION'
+  /** Informational suggestion to talk to a professional. Not a triage or diagnosis. */
+  | 'HUMAN_SUPPORT_RECOMMENDED'
+  /** Deterministic crisis indicator or explicit urgent-help request; ordinary AI never runs. */
+  | 'IMMEDIATE_HELP_SCREEN'
+  /** AI inference failed; a labelled rules-based path is returned instead of a summary. */
+  | 'PROVIDER_UNAVAILABLE';
+
+export interface CarePassportProvenance {
+  /** Provider id that produced the draft, e.g. `amd:<model>`; `none` when no AI ran. */
+  providerId: string;
+  /** True only when the accepted draft was generated on AMD infrastructure. */
+  isAmd: boolean;
+  /** True when no AI draft is shown (fallback / crisis path). */
+  isFallback: boolean;
+  latencyMs?: number;
+}
+
+export interface CarePassportResult {
+  state: CarePassportResultState;
+  passport?: CarePassport;
+  /** Present only for NEEDS_CLARIFICATION. */
+  clarificationQuestion?: string;
+  /** Present only for IMMEDIATE_HELP_SCREEN. */
+  emergencyContacts?: EmergencyContact[];
+  provenance: CarePassportProvenance;
+  /** Claims removed during grounding, for audit/eval; never shown as facts. */
+  droppedClaims: number;
+  warnings: string[];
+  /** Present whenever a passport is; counts facts, not confidence. */
+  completeness?: CarePassportCompleteness;
+}

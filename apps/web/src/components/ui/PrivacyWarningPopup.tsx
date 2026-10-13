@@ -1,13 +1,41 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { AlertTriangle, ShieldAlert, X, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { AlertTriangle, ShieldAlert, X, CheckCircle2, Heart } from 'lucide-react';
 
 const STORAGE_KEY = 'dengarin_privacy_warning_dismissed';
 
 export function PrivacyWarningPopup() {
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  // Move focus into the dialog when it opens and give it back when it closes.
+  useEffect(() => {
+    if (!isVisible) return;
+    returnFocusRef.current = document.activeElement as HTMLElement | null;
+    confirmRef.current?.focus();
+    return () => returnFocusRef.current?.focus?.();
+  }, [isVisible]);
+
+  // Keep Tab inside the dialog. Escape is left alone on purpose: it is the
+  // app-wide Quick Exit shortcut (QuickExitButton) and must keep working here.
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Tab' || !dialogRef.current) return;
+    const focusable = dialogRef.current.querySelectorAll<HTMLElement>('button, [href], [tabindex]:not([tabindex="-1"])');
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -36,7 +64,7 @@ export function PrivacyWarningPopup() {
     <>
       {/* Backdrop overlay */}
       <div
-        className={`fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] bg-[#151515]/60 transition-opacity duration-300 ${
           isClosing ? 'opacity-0' : 'opacity-100'
         }`}
         onClick={handleDismiss}
@@ -45,43 +73,46 @@ export function PrivacyWarningPopup() {
 
       {/* Popup modal */}
       <div
+        ref={dialogRef}
+        onKeyDown={handleKeyDown}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="privacy-warning-title"
         aria-describedby="privacy-warning-desc"
-        className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-300 ${
+        className={`fixed inset-0 z-[61] flex items-center justify-center p-4 transition-[opacity,transform] duration-300 ${
           isClosing
             ? 'opacity-0 scale-95'
             : 'opacity-100 scale-100'
         }`}
       >
-        <div className="relative w-full max-w-md bg-white border-2 border-[#151515] rounded-lg shadow-[6px_6px_0px_#151515] overflow-hidden">
+        <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
           {/* Warning accent bar */}
-          <div className="h-2 w-full bg-[#FFD84D]" />
+          <div className="h-2 w-full bg-[#FFD84D]" aria-hidden="true" />
 
           {/* Close button */}
           <button
+            type="button"
             onClick={handleDismiss}
-            className="absolute top-4 right-4 p-1.5 rounded border-2 border-[#151515] bg-white hover:bg-[#FFF8EF] shadow-[2px_2px_0px_#151515] hover:shadow-[1px_1px_0px_#151515] hover:translate-x-[1px] hover:translate-y-[1px] transition-all focus-visible:outline-[#4169FF]"
+            className="absolute top-4 right-4 inline-flex items-center justify-center w-11 h-11 rounded-[4px] border-2 border-[#151515] bg-white hover:bg-[#FFF8EF] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] transition-all duration-120"
             aria-label="Tutup peringatan"
           >
-            <X className="w-4 h-4 text-[#151515]" />
+            <X className="w-4 h-4 text-[#151515]" aria-hidden="true" />
           </button>
 
           <div className="p-6 sm:p-8 space-y-5">
             {/* Icon + Title */}
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 pr-12">
               <div className="shrink-0 w-11 h-11 rounded-[4px] bg-[#FFD84D] border-2 border-[#151515] flex items-center justify-center shadow-[2px_2px_0px_#151515]">
-                <ShieldAlert className="w-5.5 h-5.5 text-[#151515]" />
+                <ShieldAlert className="w-5 h-5 text-[#151515]" aria-hidden="true" />
               </div>
               <div className="space-y-1">
                 <h2
                   id="privacy-warning-title"
-                  className="text-lg sm:text-xl font-extrabold text-[#151515] uppercase tracking-tight leading-tight"
+                  className="text-xl sm:text-2xl font-bold text-[#151515] tracking-[-0.01em] leading-[1.2]"
                 >
-                  ⚠️ Peringatan Privasi
+                  Peringatan privasi
                 </h2>
-                <p className="text-xs font-bold text-[#FF8A3D] uppercase tracking-wider">
+                <p className="text-xs font-bold text-[#A3480B] uppercase tracking-[0.05em]">
                   Demi keamananmu sendiri
                 </p>
               </div>
@@ -93,42 +124,45 @@ export function PrivacyWarningPopup() {
               className="space-y-3 text-sm text-[#151515] leading-relaxed font-medium"
             >
               <p>
-                Dengar.in adalah ruang <strong className="font-extrabold">anonim</strong>. Untuk menjaga keamanan dan kenyamananmu:
+                Dengar.in adalah ruang <strong className="font-bold">anonim</strong>. Untuk menjaga keamanan dan kenyamananmu:
               </p>
 
               {/* Warning list */}
               <div className="space-y-2.5">
-                <div className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px] shadow-[2px_2px_0px_#151515]">
-                  <AlertTriangle className="w-4 h-4 text-[#FF5252] shrink-0 mt-0.5" />
-                  <p className="text-xs leading-relaxed">
-                    <strong className="font-extrabold uppercase">Jangan gunakan nama asli</strong> — baik namamu sendiri, teman, keluarga, guru, dosen, atau siapa pun.
+                <div className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px]">
+                  <AlertTriangle className="w-4 h-4 text-[#D93838] shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-sm leading-relaxed">
+                    <strong className="font-bold">Jangan gunakan nama asli</strong>: baik namamu sendiri, teman, keluarga, guru, dosen, atau siapa pun.
                   </p>
                 </div>
 
-                <div className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px] shadow-[2px_2px_0px_#151515]">
-                  <AlertTriangle className="w-4 h-4 text-[#FF5252] shrink-0 mt-0.5" />
-                  <p className="text-xs leading-relaxed">
-                    <strong className="font-extrabold uppercase">Jangan ceritakan detail berlebihan</strong> — hindari menyebutkan alamat, nama sekolah/kampus/kantor, nomor telepon, atau info pribadi lainnya.
+                <div className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px]">
+                  <AlertTriangle className="w-4 h-4 text-[#D93838] shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-sm leading-relaxed">
+                    <strong className="font-bold">Jangan ceritakan detail berlebihan</strong>: hindari menyebutkan alamat, nama sekolah/kampus/kantor, nomor telepon, atau info pribadi lainnya.
                   </p>
                 </div>
 
-                <div className="flex items-start gap-2.5 p-3 bg-[#E8F5E9] border-2 border-[#151515] rounded-[4px] shadow-[2px_2px_0px_#151515]">
-                  <CheckCircle2 className="w-4 h-4 text-[#4CAF50] shrink-0 mt-0.5" />
-                  <p className="text-xs leading-relaxed">
-                    <strong className="font-extrabold uppercase">Cukup ceritakan perasaanmu</strong> — fokus pada apa yang kamu rasakan, bukan detail spesifik tentang orang atau tempat.
+                <div className="flex items-start gap-2.5 p-3 bg-[#F1FCDD] border-2 border-[#151515] rounded-[4px]">
+                  <CheckCircle2 className="w-4 h-4 text-[#151515] shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-sm leading-relaxed">
+                    <strong className="font-bold">Cukup ceritakan perasaanmu</strong>: fokus pada apa yang kamu rasakan, bukan detail spesifik tentang orang atau tempat.
                   </p>
                 </div>
               </div>
 
-              <p className="text-xs text-[#59544D] italic">
-                Ini demi melindungi identitasmu dan orang-orang di sekitarmu. Cerita tetap bisa disampaikan tanpa harus menyebutkan siapa dan di mana. 💛
+              <p className="text-[13px] text-[#59544D] leading-relaxed">
+                Ini demi melindungi identitasmu dan orang-orang di sekitarmu. Cerita tetap bisa disampaikan tanpa harus menyebutkan siapa dan di mana.{' '}
+                <Heart className="inline w-3.5 h-3.5 text-[#FF8A3D] align-[-2px]" fill="currentColor" aria-hidden="true" />
               </p>
             </div>
 
             {/* Dismiss button */}
             <button
+              ref={confirmRef}
+              type="button"
               onClick={handleDismiss}
-              className="w-full py-3 px-4 bg-[#4169FF] text-white border-2 border-[#151515] rounded-[4px] font-extrabold text-sm uppercase tracking-wider shadow-[3px_3px_0px_#151515] hover:shadow-[4px_4px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] active:shadow-[1px_1px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] transition-all focus-visible:outline-[#4169FF] cursor-pointer"
+              className="w-full min-h-[48px] py-3 px-4 bg-[#4169FF] text-white border-2 border-[#151515] rounded-[4px] font-bold text-sm uppercase tracking-[0.05em] shadow-[3px_3px_0px_#151515] hover:shadow-[4px_4px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] active:shadow-[1px_1px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] transition-all duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2 cursor-pointer"
             >
               Saya Mengerti, Lanjutkan →
             </button>

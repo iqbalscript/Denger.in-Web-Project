@@ -1,0 +1,73 @@
+'use client';
+
+import React from 'react';
+import { ArrowRight, LifeBuoy } from 'lucide-react';
+import type { SupportPathway } from '@/lib/api/crisisGate';
+import { Button } from '@/components/ui';
+
+/** Accept only the server's deterministic pathway shape; anything else is ignored. */
+export function readSupportPathway(value: unknown): SupportPathway | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const candidate = value as Partial<SupportPathway>;
+  if (candidate.kind !== 'human_support' || candidate.severity !== 'high') return undefined;
+  if (!Array.isArray(candidate.contacts) || !Array.isArray(candidate.links)) return undefined;
+  return candidate as SupportPathway;
+}
+
+export interface SupportPathwayCardProps {
+  pathway: SupportPathway;
+  className?: string;
+}
+
+/**
+ * Calm, static card: no animation, no alarm colours (crisis-adjacent content
+ * is never animated). Contacts come from the deterministic crisis engine,
+ * never from model output.
+ */
+export function SupportPathwayCard({ pathway, className = '' }: SupportPathwayCardProps) {
+  return (
+    <section
+      aria-label={pathway.title}
+      className={`p-3 rounded-md bg-white border-2 border-ink shadow-hard-sm text-sm space-y-2.5 ${className}`.trim()}
+    >
+      <div className="flex items-center gap-1.5 font-bold text-sm text-ink leading-snug">
+        <LifeBuoy className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
+        <span>{pathway.title}</span>
+      </div>
+      <p className="text-[#59544D] text-sm leading-relaxed">{pathway.message}</p>
+      {pathway.contacts.length > 0 && (
+        <ul className="space-y-1.5">
+          {pathway.contacts.map((contact) => (
+            <li key={contact.id} className="rounded border border-ink bg-paper px-2.5 py-1.5">
+              <p className="font-semibold text-ink leading-snug">{contact.name}</p>
+              <p className="text-xs text-[#59544D] leading-snug">
+                {contact.phone && (
+                  <a href={`tel:${contact.phone.replace(/\s*ext\s*/i, ',').replace(/[^\d+,]/g, '')}`} className="font-semibold text-ink underline underline-offset-2">
+                    {contact.phone}
+                  </a>
+                )}
+                {contact.phone && ' · '}
+                {contact.availableHours}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap gap-2 pt-0.5">
+        {pathway.links.map((link) => (
+          <Button
+            key={link.href}
+            href={link.href}
+            size="sm"
+            variant={link.href === '/resources' ? 'primary' : 'outline'}
+            className="text-xs min-h-[44px]"
+            iconPosition="end"
+            icon={<ArrowRight className="w-3.5 h-3.5" />}
+          >
+            {link.label}
+          </Button>
+        ))}
+      </div>
+    </section>
+  );
+}

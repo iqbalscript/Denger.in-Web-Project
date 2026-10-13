@@ -10,7 +10,6 @@ import {
   BookOpen,
   HelpCircle,
   Menu,
-  X,
   PhoneCall,
   Users,
   BarChart3,
@@ -18,12 +17,21 @@ import {
   Trash2,
   MessageSquare,
   Footprints,
+  ClipboardList,
+  Mic,
 } from 'lucide-react';
 import { QuickExitButton } from './ui';
 
 export function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const bottomDockLinks = [
+    { href: '/dashboard', label: 'Home', icon: Compass },
+    { href: '/mission', label: 'Misi', icon: CheckCircle2 },
+    { href: '/checkin', label: 'Check-in', icon: Shield },
+    { href: '/journal', label: 'Jurnal', icon: BookOpen },
+  ];
 
   // Center navigation links (pure navigation links, no heavy boxed border by default)
   const centerLinks = [
@@ -32,12 +40,15 @@ export function Navbar() {
     { href: '/checkin', label: 'Check-in', icon: Shield },
     { href: '/journal', label: 'Jurnal', icon: BookOpen },
     { href: '/forum', label: 'Ruang Cerita', icon: Users },
+    // Six links overflow the centre slot at lg (1024px); this one joins the row from xl only.
+    { href: '/care-passport', label: 'Catatan Konsultasi', icon: ClipboardList, desktopClass: 'hidden xl:inline-flex' },
   ];
 
   // All links for mobile drawer
   const mobileNavLinks = [
     ...centerLinks,
     { href: '/chat', label: 'Teman Bicara', icon: MessageSquare },
+    { href: '/ruang-ngobrol', label: 'Ruang Ngobrol (Suara)', icon: Mic },
     { href: '/resources', label: 'Bantuan', icon: HelpCircle },
   ];
 
@@ -76,10 +87,11 @@ export function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-xs xl:text-sm font-bold whitespace-nowrap rounded-[4px] transition-colors duration-120 ${
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`${item.desktopClass ?? 'inline-flex'} items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-xs xl:text-sm font-bold whitespace-nowrap rounded-[4px] transition-colors duration-120 ${
                       isActive
                         ? 'bg-[#B8F34A] text-[#151515] border-2 border-[#151515] shadow-[2px_2px_0px_#151515]'
-                        : 'text-[#151515] hover:text-[#4169FF] hover:bg-[#151515]/5'
+                        : 'border-2 border-transparent text-[#151515] hover:text-[#4169FF] hover:bg-[#151515]/5'
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0 text-current" />
@@ -94,6 +106,7 @@ export function Navbar() {
               {/* Bantuan (Desktop) */}
               <Link
                 href="/resources"
+                aria-current={pathname === '/resources' ? 'page' : undefined}
                 className={`hidden lg:inline-flex items-center justify-center gap-1.5 h-9 px-2.5 xl:px-3 rounded-[4px] text-xs font-bold border-2 border-[#151515] shadow-[2px_2px_0px_#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] whitespace-nowrap ${
                   pathname === '/resources'
                     ? 'bg-[#B8F34A] text-[#151515]'
@@ -123,12 +136,18 @@ export function Navbar() {
               {/* Mobile Menu Toggle */}
               <button
                 type="button"
-                className="lg:hidden inline-flex items-center justify-center h-9 w-9 rounded-[4px] border-2 border-[#151515] bg-white text-[#151515] shadow-[2px_2px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                className="lg:hidden relative inline-flex items-center justify-center h-9 w-9 rounded-[4px] border-2 border-[#151515] bg-white text-[#151515] shadow-[2px_2px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] transition-[transform,box-shadow] duration-200 ease-spring"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-expanded={mobileMenuOpen}
-                aria-label="Buka menu navigasi"
+                aria-controls="menu-seluler"
+                aria-label={mobileMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
               >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {/* Three bars that fold into an X instead of swapping icons */}
+                <span aria-hidden="true" className="relative block w-[18px] h-3.5">
+                  <span className={`absolute left-0 top-0 h-[2px] w-full bg-current transition-transform duration-400 ease-spring ${mobileMenuOpen ? 'translate-y-[6px] rotate-45' : ''}`} />
+                  <span className={`absolute left-0 top-[6px] h-[2px] w-full bg-current transition-[opacity,transform] duration-200 ease-spring ${mobileMenuOpen ? 'opacity-0 scale-x-0' : ''}`} />
+                  <span className={`absolute left-0 top-[12px] h-[2px] w-full bg-current transition-transform duration-400 ease-spring ${mobileMenuOpen ? '-translate-y-[6px] -rotate-45' : ''}`} />
+                </span>
               </button>
             </div>
           </div>
@@ -136,7 +155,7 @@ export function Navbar() {
 
         {/* Mobile dropdown drawer (PRD-DESIGN.md Section 14.2) */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-[#FFF8EF] border-t-2 border-[#151515] px-4 pt-3 pb-5 space-y-3">
+          <div id="menu-seluler" className="lg:hidden bg-[#FFF8EF] border-t-2 border-[#151515] px-4 pt-3 pb-5 space-y-3 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain">
             {/* Pinned Emergency Action at top of mobile sheet */}
             <Link
               href="/crisis"
@@ -148,7 +167,7 @@ export function Navbar() {
             </Link>
 
             <div className="grid grid-cols-2 gap-2">
-              {mobileNavLinks.map((item) => {
+              {mobileNavLinks.map((item, index) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 return (
@@ -156,13 +175,15 @@ export function Navbar() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-2 p-3 rounded-[4px] text-xs font-bold border-2 border-[#151515] transition-all ${
+                    aria-current={isActive ? 'page' : undefined}
+                    style={{ animationDelay: `${60 + index * 40}ms` }}
+                    className={`animate-reveal-up flex items-center gap-2 p-3 min-h-[44px] rounded-[4px] text-sm font-bold border-2 border-[#151515] transition-colors duration-200 ease-spring ${
                       isActive
                         ? 'bg-[#B8F34A] text-[#151515] shadow-[2px_2px_0px_#151515]'
                         : 'bg-white text-[#151515] hover:bg-[#FFF8EF]'
                     }`}
                   >
-                    <Icon className="w-4 h-4 text-[#151515] shrink-0" />
+                    <Icon className="w-4 h-4 text-[#151515] shrink-0" aria-hidden="true" />
                     <span className="whitespace-nowrap">{item.label}</span>
                   </Link>
                 );
@@ -173,11 +194,11 @@ export function Navbar() {
               <QuickExitButton className="w-full h-9 justify-center" />
             </div>
 
-            <div className="border-t-2 border-[#151515]/20 pt-3 flex flex-col gap-2">
+            <div className="animate-reveal-up [animation-delay:360ms] border-t border-[#D8D3C9] pt-3 flex flex-col gap-2">
               <Link
                 href="/perjalanan"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 p-2.5 rounded-[4px] text-xs font-bold bg-white border-2 border-[#151515]"
+                className="flex items-center gap-2 p-2.5 min-h-[44px] rounded-[4px] text-sm font-bold bg-white border-2 border-[#151515]"
               >
                 <Footprints className="w-4 h-4 text-[#4169FF] shrink-0" />
                 <span>Perjalanan Kecil</span>
@@ -185,7 +206,7 @@ export function Navbar() {
               <Link
                 href="/report"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 p-2.5 rounded-[4px] text-xs font-bold bg-white border-2 border-[#151515]"
+                className="flex items-center gap-2 p-2.5 min-h-[44px] rounded-[4px] text-sm font-bold bg-white border-2 border-[#151515]"
               >
                 <BarChart3 className="w-4 h-4 text-[#4169FF] shrink-0" />
                 <span>Refleksi Mingguan</span>
@@ -193,7 +214,7 @@ export function Navbar() {
               <Link
                 href="/recovery"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 p-2.5 rounded-[4px] text-xs font-bold bg-white border-2 border-[#151515]"
+                className="flex items-center gap-2 p-2.5 min-h-[44px] rounded-[4px] text-sm font-bold bg-white border-2 border-[#151515]"
               >
                 <Key className="w-4 h-4 text-[#FF8A3D] shrink-0" />
                 <span>Pulihkan Sesi (Kunci 12 Bagian)</span>
@@ -201,7 +222,7 @@ export function Navbar() {
               <Link
                 href="/recovery"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 p-2.5 rounded-[4px] text-xs font-bold bg-white text-[#FF5252] border-2 border-[#FF5252]"
+                className="flex items-center gap-2 p-2.5 min-h-[44px] rounded-[4px] text-sm font-bold bg-white text-[#151515] border-2 border-[#FF5252]"
               >
                 <Trash2 className="w-4 h-4 text-[#FF5252] shrink-0" />
                 <span>Hapus Data Lokal</span>
@@ -213,38 +234,28 @@ export function Navbar() {
 
       {/* Mobile Bottom Dock (PRD-DESIGN.md section 14.2) */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-[#151515] h-16 flex items-center justify-around px-2" aria-label="Mobile Bottom Navigation">
-        <Link
-          href="/dashboard"
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] ${pathname === '/dashboard' ? 'text-[#4169FF] font-bold' : 'text-[#151515]'}`}
-        >
-          <Compass className="w-5 h-5" />
-          <span className="text-[10px] uppercase font-bold tracking-tight">Home</span>
-        </Link>
-        <Link
-          href="/mission"
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] ${pathname === '/mission' ? 'text-[#4169FF] font-bold' : 'text-[#151515]'}`}
-        >
-          <CheckCircle2 className="w-5 h-5" />
-          <span className="text-[10px] uppercase font-bold tracking-tight">Misi</span>
-        </Link>
-        <Link
-          href="/checkin"
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] ${pathname === '/checkin' ? 'text-[#4169FF] font-bold' : 'text-[#151515]'}`}
-        >
-          <Shield className="w-5 h-5" />
-          <span className="text-[10px] uppercase font-bold tracking-tight">Check-in</span>
-        </Link>
-        <Link
-          href="/journal"
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] ${pathname === '/journal' ? 'text-[#4169FF] font-bold' : 'text-[#151515]'}`}
-        >
-          <BookOpen className="w-5 h-5" />
-          <span className="text-[10px] uppercase font-bold tracking-tight">Jurnal</span>
-        </Link>
+        {bottomDockLinks.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive ? 'page' : undefined}
+              className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] transition-colors duration-120 ${isActive ? 'text-[#4169FF]' : 'text-[#151515] hover:text-[#4169FF]'}`}
+            >
+              {isActive && <span className="absolute -top-[10px] left-2 right-2 h-[3px] bg-[#4169FF]" aria-hidden="true" />}
+              <Icon className="w-5 h-5" />
+              <span className="text-[10px] uppercase font-bold tracking-tight">{item.label}</span>
+            </Link>
+          );
+        })}
         <button
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] text-[#151515]"
+          className={`flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] transition-colors duration-120 ${mobileMenuOpen ? 'text-[#4169FF]' : 'text-[#151515] hover:text-[#4169FF]'}`}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="menu-seluler"
           aria-label="Menu Lengkap"
         >
           <Menu className="w-5 h-5" />

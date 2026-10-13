@@ -27,11 +27,11 @@ export function ChatProgress() {
 
   return (
     <div className="flex items-start gap-3 pl-2" role="status" aria-live="polite">
-      <div className="px-2 py-1 rounded border-2 border-ink bg-cobalt text-white font-black text-[11px] uppercase tracking-wider shadow-hard-sm shrink-0">
+      <div className="px-2 py-1 rounded-[4px] border-2 border-ink bg-cobalt text-white font-bold text-xs uppercase tracking-[0.05em] shadow-hard-sm shrink-0" aria-hidden="true">
         DENGAR
       </div>
       <div className="space-y-1.5">
-        <p className="text-xs text-ink/80 font-bold">{stage.label}</p>
+        <p className="text-sm text-[#4A453E] font-semibold">{stage.label}</p>
         <div className="flex items-center gap-1.5" aria-hidden="true">
           {Array.from({ length: CHAT_PROGRESS_TOTAL_STEPS }, (_, index) => {
             const number = index + 1;
@@ -40,7 +40,7 @@ export function ChatProgress() {
             return (
               <span
                 key={number}
-                className={`h-1.5 w-8 rounded-full border border-ink ${
+                className={`h-1.5 w-8 rounded-[2px] border border-ink transition-colors duration-200 ${
                   done ? 'bg-ink' : active ? 'bg-cobalt animate-pulse motion-reduce:animate-none' : 'bg-paper'
                 }`}
               />

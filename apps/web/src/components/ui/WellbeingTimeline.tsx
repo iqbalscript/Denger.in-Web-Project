@@ -1,7 +1,7 @@
 import React from 'react';
+import { MOOD_ICONS_BY_VALUE } from './MoodIcon';
 import type { WellbeingTimeline as TimelineData } from '@/lib/wellbeingTimeline';
 
-const MOOD_EMOJI: Record<number, string> = { 5: '😊', 4: '🙂', 3: '😐', 2: '😟', 1: '😞' };
 const MOOD_COLOR: Record<number, string> = { 5: '#B8F34A', 4: '#4169FF', 3: '#FFD84D', 2: '#FF8A3D', 1: '#FF5252' };
 
 const WIDTH = 340;
@@ -43,16 +43,16 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
   ];
 
   return (
-    <div className={`bg-white border-2 border-ink rounded-lg p-6 space-y-4 shadow-hard-sm text-left ${className}`}>
-      <div className="border-b-2 border-ink pb-2">
-        <h2 className="text-xs font-black uppercase tracking-wider text-ink">Personal Well-being Timeline</h2>
-        <p className="text-[11px] text-ink/60 font-bold uppercase tracking-wider">{days.length} Hari Terakhir</p>
+    <div className={`bg-white border-2 border-ink rounded-[8px] p-6 space-y-5 shadow-hard-sm text-left ${className}`}>
+      <div className="border-b border-[#D8D3C9] pb-3 space-y-0.5">
+        <h2 className="text-xl font-bold tracking-[-0.01em] leading-[1.25] text-ink">Personal well-being timeline</h2>
+        <p className="text-[13px] text-[#59544D] font-medium tabular-nums">{days.length} hari terakhir</p>
       </div>
 
       <div className="space-y-1">
-        <span className="text-[10px] font-black uppercase tracking-wider text-ink/60">Mood</span>
+        <span className="text-xs font-bold uppercase tracking-[0.05em] text-[#59544D]">Mood</span>
         {points.length === 0 ? (
-          <p className="text-xs text-ink/70 font-medium py-6 text-center">
+          <p className="text-sm text-[#59544D] py-8 text-center max-w-[32ch] mx-auto leading-relaxed">
             Belum ada check-in di {days.length} hari terakhir. Gak apa-apa, mulai dari satu check-in kecil aja.
           </p>
         ) : (
@@ -60,7 +60,15 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
             {[5, 4, 3, 2, 1].map((level) => (
               <g key={level}>
                 <line x1={PAD.left} x2={WIDTH - PAD.right} y1={y(level)} y2={y(level)} stroke="#151515" strokeOpacity="0.08" />
-                <text x={PAD.left - 6} y={y(level) + 4} fontSize="11" textAnchor="end" aria-hidden="true">{MOOD_EMOJI[level]}</text>
+                {React.createElement(MOOD_ICONS_BY_VALUE[level], {
+                  x: PAD.left - 20,
+                  y: y(level) - 7,
+                  width: 14,
+                  height: 14,
+                  strokeWidth: 2,
+                  color: '#151515',
+                  'aria-hidden': true,
+                })}
               </g>
             ))}
             {segments.map(({ from, to, gap }) => (
@@ -77,7 +85,7 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
             ))}
             {days.map((day, index) => (
               <text
-                key={day.date} x={x(index)} y={HEIGHT - 8} fontSize="9" textAnchor="middle" fontWeight="700"
+                key={day.date} x={x(index)} y={HEIGHT - 8} fontSize="10" textAnchor="middle" fontWeight="700" style={{ fontVariantNumeric: 'tabular-nums' }}
                 fill="#151515" fillOpacity={day.active ? 0.9 : 0.35}
               >
                 {day.dayOfMonth}
@@ -89,14 +97,15 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
 
       <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {stats.map((stat) => (
-          <div key={stat.label} className="p-3 rounded border-2 border-ink bg-paper shadow-hard-sm">
-            <dd className="text-2xl font-black text-ink leading-none">{stat.value}</dd>
-            <dt className="text-[10px] font-black uppercase tracking-wider text-ink/60 pt-1">{stat.label}</dt>
+          // dt must precede dd; flex-col-reverse keeps the number visually on top.
+          <div key={stat.label} className="flex flex-col-reverse p-3 rounded-[4px] bg-paper">
+            <dt className="text-xs font-bold uppercase tracking-[0.05em] text-[#59544D] pt-1">{stat.label}</dt>
+            <dd className="text-2xl font-bold text-ink leading-none tabular-nums">{stat.value}</dd>
           </div>
         ))}
       </dl>
 
-      <p className="text-[11px] text-ink/60 font-medium">
+      <p className="text-[13px] text-[#59544D]">
         Hari yang kosong itu normal. Data ini cuma ada di perangkatmu.
       </p>
     </div>

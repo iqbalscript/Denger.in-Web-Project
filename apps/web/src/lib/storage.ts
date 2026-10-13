@@ -82,7 +82,11 @@ export function generateUUID(): string {
 }
 
 /**
- * Retrieve current anonymous session from browser localStorage
+ * Retrieve current anonymous session from browser localStorage.
+ *
+ * Pure read: never writes storage, so it is safe to call during render (L9).
+ * Missing fields such as `anonymousAlias` are backfilled by
+ * `initAnonymousSession()`, which is meant to run from effects/handlers.
  */
 export function getAnonymousSession(): AnonymousUserSession | null {
   if (typeof window === 'undefined') return null;
@@ -90,10 +94,7 @@ export function getAnonymousSession(): AnonymousUserSession | null {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) return null;
     const parsed = JSON.parse(data) as AnonymousUserSession;
-    if (!parsed.anonymousAlias) {
-      parsed.anonymousAlias = generateAnonymousAlias();
-      saveAnonymousSession(parsed);
-    }
+    if (!parsed || typeof parsed !== 'object') return null;
     return parsed;
   } catch {
     return null;
@@ -101,18 +102,16 @@ export function getAnonymousSession(): AnonymousUserSession | null {
 }
 
 /**
- * Initialize or get active anonymous session
+ * Initialize or get the active anonymous session. Never grants consent:
+ * a new session always starts with `consentGiven: false`, and an existing
+ * session keeps whatever consent state it already had (H5). Consent is only
+ * recorded by `grantConsent()`, called from the /consent page.
  */
-export function initAnonymousSession(consentGiven: boolean = false): AnonymousUserSession {
+export function initAnonymousSession(): AnonymousUserSession {
   const existing = getAnonymousSession();
   if (existing) {
     if (!existing.anonymousAlias) {
       existing.anonymousAlias = generateAnonymousAlias();
-      saveAnonymousSession(existing);
-    }
-    if (consentGiven && !existing.consentGiven) {
-      existing.consentGiven = true;
-      existing.consentTimestamp = new Date().toISOString();
       saveAnonymousSession(existing);
     }
     return existing;
@@ -123,13 +122,26 @@ export function initAnonymousSession(consentGiven: boolean = false): AnonymousUs
     anonymousAlias: generateAnonymousAlias(),
     createdAt: new Date().toISOString(),
     recoveryMnemonic: generateRecoveryMnemonic(),
-    consentGiven,
-    consentTimestamp: consentGiven ? new Date().toISOString() : undefined,
+    consentGiven: false,
     currentDay: 1
   };
 
   saveAnonymousSession(newSession);
   return newSession;
+}
+
+/**
+ * Record the user's explicit agreement on /consent. The only helper that may
+ * set `consentGiven: true`.
+ */
+export function grantConsent(): AnonymousUserSession {
+  const session = initAnonymousSession();
+  if (!session.consentGiven) {
+    session.consentGiven = true;
+    session.consentTimestamp = new Date().toISOString();
+    saveAnonymousSession(session);
+  }
+  return session;
 }
 
 /**
@@ -153,7 +165,7 @@ export function updateUserContext(
   primaryDomain?: InterventionDomain,
   topicPillar?: TopicPillarId
 ): AnonymousUserSession | null {
-  const session = getAnonymousSession() || initAnonymousSession(true);
+  const session = getAnonymousSession() || initAnonymousSession();
 
   if (ageBracket) session.ageBracket = ageBracket;
   if (occupation) session.occupation = occupation;
@@ -206,7 +218,7 @@ export function clearAssessmentDraft(): void {
  * Save Assessment Evaluation Result (Triage)
  */
 export function saveAssessmentResult(evaluation: AssessmentEvaluation): void {
-  const session = getAnonymousSession() || initAnonymousSession(true);
+  const session = getAnonymousSession() || initAnonymousSession();
   session.assessmentResult = evaluation;
   session.activePathId = evaluation.recommendedPathId;
   saveAnonymousSession(session);

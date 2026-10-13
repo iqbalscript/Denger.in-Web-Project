@@ -15,7 +15,9 @@ import {
 } from '../../apps/web/src/lib/voiceRoom.ts';
 
 const roomPage = readFileSync(new URL('../../apps/web/src/app/ruang-ngobrol/page.tsx', import.meta.url), 'utf8');
-const chatRoute = readFileSync(new URL('../../apps/web/src/app/api/chat/route.ts', import.meta.url), 'utf8');
+// /api/chat logic lives in the pure handler (audit M9); the route wires TTS. Handler first keeps order checks meaningful.
+const chatRoute = readFileSync(new URL('../../apps/web/src/lib/api/chatHandler.ts', import.meta.url), 'utf8')
+  + readFileSync(new URL('../../apps/web/src/app/api/chat/route.ts', import.meta.url), 'utf8');
 const nextConfig = readFileSync(new URL('../../apps/web/next.config.js', import.meta.url), 'utf8');
 
 describe('Ruang Ngobrol safe turn controller', () => {

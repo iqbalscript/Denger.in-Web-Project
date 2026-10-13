@@ -13,15 +13,17 @@ import {
   BookmarkCheck,
   SkipForward,
 } from 'lucide-react';
-import { evaluateCrisisInput } from '@dengarin/crisis-engine';
 import { ADAPTIVE_ASSESSMENT_QUESTIONS, evaluateSeverityLevel } from '@dengarin/config';
 import {
-  getAnonymousSession,
   saveAssessmentResult,
   saveAssessmentDraft,
   getAssessmentDraft,
   clearAssessmentDraft,
 } from '@/lib/storage';
+import { useConsentGuard } from '@/lib/useConsentGuard';
+import { useCrisisGuard } from '@/lib/useCrisisGuard';
+import { InlineCrisisCard, CrisisBlockedNote } from '@/components/InlineCrisisCard';
+import { ConsentPending } from '@/components/ConsentPending';
 import type {
   AdaptiveAssessmentQuestion,
   AssessmentDraft,
@@ -32,7 +34,7 @@ import { PageContainer, ContentColumn, Button, ProgressBar, Textarea, Badge } fr
 
 export default function AssessmentPage() {
   const router = useRouter();
-  const session = getAnonymousSession();
+  const { ready, session } = useConsentGuard();
 
   // Determine user's topic
   const topicPillar = session?.topicPillar || 'general';
@@ -65,6 +67,7 @@ export default function AssessmentPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasDraftNotice, setHasDraftNotice] = useState(false);
   const [showPauseModal, setShowPauseModal] = useState(false);
+  const crisis = useCrisisGuard(ageBracket);
 
   const totalQuestions = questionSequenceIds.length;
   const isReviewPhase = currentStepIndex >= totalQuestions;
@@ -127,11 +130,9 @@ export default function AssessmentPage() {
     const text = e.target.value;
     setFreeTextNote(text);
 
-    // Live safety crisis evaluation on free-text (ZERO AI, 100% deterministic)
-    const safetyCheck = evaluateCrisisInput(text, ageBracket);
-    if (safetyCheck.isCrisis) {
-      router.push('/crisis');
-    }
+    // Live safety crisis evaluation on free-text (ZERO AI, 100% deterministic).
+    // Shows the inline crisis card; never navigates or clears the text (M6).
+    crisis.checkText(text);
   };
 
   const handleNext = () => {
@@ -147,16 +148,9 @@ export default function AssessmentPage() {
   };
 
   const handleFinalSubmit = () => {
+    // 1. Deterministic safety verification on free text: keep it, block submit.
+    if (!crisis.allowSubmit(freeTextNote)) return;
     setIsSubmitting(true);
-
-    // 1. Deterministic safety verification on free text
-    if (freeTextNote.trim()) {
-      const finalCheck = evaluateCrisisInput(freeTextNote, ageBracket);
-      if (finalCheck.isCrisis) {
-        router.push('/crisis');
-        return;
-      }
-    }
 
     // 2. Compute non-diagnostic triage score
     const totalScore = Object.values(answers).reduce((acc, val) => acc + val, 0);
@@ -197,31 +191,33 @@ export default function AssessmentPage() {
     }, 400);
   };
 
+  if (!ready) return <ConsentPending />;
+
   return (
-    <PageContainer size="narrow">
+    <PageContainer size="narrow" className="sm:py-16">
       <ContentColumn size="md" className={`space-y-8 text-left ${isSenior ? 'accessibility-large-text' : ''}`}>
         {/* Draft Resume Notice Banner */}
         {hasDraftNotice && (
-          <div className="p-4 rounded-md bg-yellow/20 border-2 border-ink text-ink shadow-hard-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <BookmarkCheck className="w-5 h-5 text-ink shrink-0" />
-              <div className="text-xs">
-                <span className="font-black uppercase tracking-wider block text-ink">DRAF ASESMEN DITEMUKAN</span>
-                <span className="text-ink/80 font-medium">Kamu punya jawaban yang tersimpan dari sebelumnya. Mau lanjut dari sana?</span>
+          <div role="status" className="animate-reveal-up p-4 rounded-md bg-[#FFF1C2] border-2 border-ink text-ink flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <BookmarkCheck className="w-5 h-5 text-ink shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="text-sm space-y-0.5">
+                <span className="font-bold block text-ink text-[15px]">Draf asesmen ditemukan</span>
+                <span className="text-[#4A453E]">Kamu punya jawaban yang tersimpan dari sebelumnya. Mau lanjut dari sana?</span>
               </div>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleResumeDraft}
-                className="flex-1 sm:flex-initial px-3 py-1.5 rounded bg-cobalt text-white font-bold text-xs border-2 border-ink shadow-hard-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+                className="flex-1 sm:flex-initial min-h-[44px] px-4 py-2 rounded-[4px] bg-cobalt text-white font-bold text-sm border-2 border-ink shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring"
               >
                 Lanjutkan Draf
               </button>
               <button
                 type="button"
                 onClick={handleDiscardDraft}
-                className="px-3 py-1.5 rounded bg-white border-2 border-ink text-ink font-bold text-xs shadow-hard-sm hover:bg-paper transition-all"
+                className="min-h-[44px] px-4 py-2 rounded-[4px] bg-white border-2 border-ink text-ink font-bold text-sm shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring"
               >
                 Mulai Baru
               </button>
@@ -231,24 +227,24 @@ export default function AssessmentPage() {
 
         {/* Top Header: Progress & Pause Control */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-ink">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.05em] text-ink">
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-cobalt" />
-              CEK KONDISI (BUKAN DIAGNOSIS)
+              <Sparkles className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" />
+              Cek kondisi (bukan diagnosis)
             </span>
             <div className="flex items-center gap-3">
-              <span className="bg-yellow px-2 py-0.5 border border-ink rounded">
+              <span className="bg-yellow px-2 py-0.5 border border-ink rounded-[4px] tabular-nums" aria-live="polite">
                 {isReviewPhase
-                  ? 'CATATAN OPSIONAL'
-                  : `PERTANYAAN ${currentStepIndex + 1} DARI ${totalQuestions}`}
+                  ? 'Catatan opsional'
+                  : `Pertanyaan ${currentStepIndex + 1} dari ${totalQuestions}`}
               </span>
               <button
                 type="button"
                 onClick={handleSaveAndPause}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded border-2 border-ink bg-white hover:bg-paper text-ink font-bold text-[11px] shadow-hard-sm transition-all"
+                className="inline-flex items-center gap-1.5 min-h-[36px] px-3 py-1 rounded-[4px] border-2 border-ink bg-white text-ink font-bold text-xs normal-case tracking-normal shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring"
                 title="Simpan draf dan jeda asesmen"
               >
-                <Pause className="w-3 h-3 text-cobalt" />
+                <Pause className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" />
                 <span>Jeda &amp; Lanjut Nanti</span>
               </button>
             </div>
@@ -256,52 +252,58 @@ export default function AssessmentPage() {
           <ProgressBar
             value={Math.min(currentStepIndex + (isReviewPhase ? 1 : 0), totalQuestions + 1)}
             max={totalQuestions + 1}
+            label={isReviewPhase ? 'Catatan opsional' : `Pertanyaan ${currentStepIndex + 1} dari ${totalQuestions}`}
+            className="[&>div:first-child]:sr-only"
           />
         </div>
 
         {/* ACTIVE QUESTION (ONE QUESTION PER SCREEN) */}
+        {/* Keyed by question id so each new question enters once */}
         {!isReviewPhase && currentQ && (
-          <div className="space-y-6">
-            <div className="space-y-3">
+          <div key={currentQ.id} className="space-y-6">
+            <div className="space-y-3 animate-reveal-up">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-ink bg-yellow px-3 py-1 rounded border-2 border-ink shadow-hard-sm">
-                  PERTANYAAN #{currentStepIndex + 1}
+                <span className="text-xs font-bold uppercase tracking-[0.05em] text-cobalt tabular-nums">
+                  Pertanyaan #{currentStepIndex + 1}
                 </span>
                 {currentQ.sensitive && (
-                  <span className="text-xs font-black uppercase tracking-wider text-white bg-coral px-2.5 py-1 rounded border-2 border-ink shadow-hard-sm">
-                    SENSITIF • BOLEH DILEWATI
+                  <span className="text-[11px] font-bold uppercase tracking-[0.05em] text-ink bg-[#FFEBEB] px-2 py-0.5 rounded-[4px] border border-coral">
+                    Sensitif • Boleh dilewati
                   </span>
                 )}
               </div>
 
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-ink tracking-tight leading-snug">
+              <h1 id="teks-pertanyaan" className="text-2xl sm:text-3xl lg:text-[2.25rem] font-bold text-ink tracking-[-0.02em] leading-[1.2]">
                 {currentQ.text}
-              </h2>
+              </h1>
 
               {currentQ.subtext && (
-                <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
+                <p className="text-base text-[#4A453E] leading-relaxed">
                   {currentQ.subtext}
                 </p>
               )}
             </div>
 
             {/* Answer Options as Tactile Large Cards */}
-            <div className="grid grid-cols-1 gap-3 pt-2">
-              {currentQ.options.map((opt) => {
+            <div className="grid grid-cols-1 gap-3 pt-2" role="radiogroup" aria-labelledby="teks-pertanyaan">
+              {currentQ.options.map((opt, index) => {
                 const isSelected = currentAnswer === opt.score;
                 return (
+                  <div key={opt.id} className="animate-reveal-up" style={{ animationDelay: `${100 + index * 40}ms` }}>
                   <button
-                    key={opt.id}
                     type="button"
+                    role="radio"
+                    aria-checked={isSelected}
                     onClick={() => handleSelectOption(currentQ.id, opt.score)}
-                    className={`p-4 sm:p-5 rounded-md text-left border-2 border-ink transition-all cursor-pointer focus-visible:outline-ink min-h-[60px] flex items-center justify-between gap-3 ${isSelected
-                        ? 'bg-cobalt text-white shadow-hard font-bold translate-x-[1px] translate-y-[1px]'
-                        : 'bg-white hover:bg-paper text-ink font-medium shadow-hard-sm'
+                    className={`w-full p-4 sm:p-5 rounded-md text-left border-2 border-ink transition-[transform,box-shadow,background-color,color] duration-200 ease-spring cursor-pointer focus-visible:outline-ink min-h-[60px] flex items-center justify-between gap-3 ${isSelected
+                        ? 'bg-cobalt text-white shadow-hard -translate-x-[1px] -translate-y-[1px]'
+                        : 'bg-white hover:bg-paper text-ink shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-0 active:translate-y-0 active:shadow-none'
                       }`}
                   >
-                    <span className="text-sm sm:text-base leading-snug font-medium">{opt.label}</span>
-                    {isSelected && <CheckCircle2 className="w-5 h-5 text-white shrink-0" />}
+                    <span className={`text-base leading-snug ${isSelected ? 'font-semibold' : 'font-medium'}`}>{opt.label}</span>
+                    {isSelected && <CheckCircle2 className="w-5 h-5 text-white shrink-0" aria-hidden="true" />}
                   </button>
+                  </div>
                 );
               })}
             </div>
@@ -312,9 +314,9 @@ export default function AssessmentPage() {
                 <button
                   type="button"
                   onClick={() => handleSkipQuestion(currentQ.id)}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-ink/70 hover:text-ink hover:underline py-1 px-2"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#59544D] hover:text-ink underline decoration-[#D8D3C9] decoration-2 underline-offset-4 hover:decoration-ink transition-colors duration-120 min-h-[44px] py-2 px-2 text-left"
                 >
-                  <SkipForward className="w-3.5 h-3.5 text-cobalt" />
+                  <SkipForward className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
                   <span>Lewati pertanyaan ini. Tidak apa-apa, kamu tidak harus menjawabnya</span>
                 </button>
               </div>
@@ -325,38 +327,48 @@ export default function AssessmentPage() {
         {/* OPTIONAL NOTES & REVIEW PHASE */}
         {isReviewPhase && (
           <div className="space-y-6">
-            <div className="space-y-2">
+            <div className="space-y-2 animate-reveal-up">
               <Badge variant="calm" size="md">
                 Langkah Terakhir
               </Badge>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-ink tracking-tight uppercase">
-                ADA KELUH KESAH LAIN YANG INGIN DITULISKAN?
-              </h2>
-              <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
+              <h1 className="text-2xl sm:text-3xl lg:text-[2.25rem] font-bold text-ink tracking-[-0.02em] leading-[1.2]">
+                Ada keluh kesah lain yang ingin dituliskan?
+              </h1>
+              <p className="text-base text-[#4A453E] leading-relaxed">
                 Kalau ada hal lain yang ingin kamu ceritakan, tulis saja di sini. Boleh dikosongkan,
                 dan tulisanmu hanya tersimpan di peramban perangkatmu.
               </p>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 animate-reveal-up [animation-delay:100ms]">
               <Textarea
                 value={freeTextNote}
                 onChange={handleFreeTextChange}
                 rows={4}
+                aria-label="Catatan opsional"
                 placeholder="Contoh: 'Tugas menumpuk dan takut mengecewakan keluarga', 'Cemas memikirkan tagihan bulan depan'..."
               />
-              <div className="p-3 rounded-md bg-yellow/20 border-2 border-ink shadow-hard-sm flex items-center gap-2 text-xs text-ink font-medium">
-                <AlertTriangle className="w-4 h-4 text-ink shrink-0" />
+              <div className="p-3 sm:p-4 rounded-md bg-[#FFF1C2] border-l-4 border-yellow flex items-start gap-2.5 text-sm text-[#4A453E]">
+                <AlertTriangle className="w-4 h-4 text-ink shrink-0 mt-0.5" aria-hidden="true" />
                 <span>
                   Tulisanmu diperiksa oleh pemeriksa krisis berbasis aturan tetap, 100% tanpa AI, demi keselamatanmu.
                 </span>
               </div>
             </div>
+
+            {crisis.cardVisible && (
+              <InlineCrisisCard
+                contacts={crisis.contacts}
+                onAcknowledge={crisis.acknowledge}
+                blockedNote="Tulisanmu tetap ada di sini dan asesmen belum kami selesaikan."
+              />
+            )}
+            {crisis.isCrisis && <CrisisBlockedNote id="asesmen-krisis-catatan" />}
           </div>
         )}
 
         {/* Bottom Navigation */}
-        <div className="pt-4 flex items-center justify-between gap-4 border-t-2 border-ink">
+        <div className="pt-5 flex items-center justify-between gap-4 border-t border-[#D8D3C9]">
           {currentStepIndex > 0 ? (
             <Button
               variant="outline"
@@ -376,8 +388,8 @@ export default function AssessmentPage() {
               size="lg"
               disabled={currentAnswer === undefined}
               onClick={handleNext}
+              iconPosition="end"
               icon={<ArrowRight className="w-4 h-4" />}
-              className="flex-row-reverse"
             >
               PERTANYAAN BERIKUTNYA
             </Button>
@@ -385,11 +397,12 @@ export default function AssessmentPage() {
             <Button
               variant="primary"
               size="lg"
-              disabled={isSubmitting}
+              disabled={isSubmitting || crisis.isCrisis}
+              aria-describedby={crisis.isCrisis ? 'asesmen-krisis-catatan' : undefined}
               isLoading={isSubmitting}
               onClick={handleFinalSubmit}
+              iconPosition="end"
               icon={<ArrowRight className="w-4 h-4" />}
-              className="flex-row-reverse"
             >
               {isSubmitting ? 'MENYUSUN REKOMENDASI...' : 'SELESAIKAN & LIHAT REKOMENDASI'}
             </Button>
@@ -397,23 +410,28 @@ export default function AssessmentPage() {
         </div>
 
         {/* Non-Diagnostic Disclaimer */}
-        <div className="pt-2 text-center text-xs text-ink/70 flex items-center justify-center gap-1.5 font-medium">
-          <ShieldCheck className="w-4 h-4 text-cobalt shrink-0" />
+        <div className="pt-2 text-center text-sm text-[#59544D] flex items-center justify-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
           <span>Hasil ini hanya untuk mengarahkan ke dukungan yang cocok, bukan label medis atau diagnosis.</span>
         </div>
 
         {/* Pause & Resume Modal */}
         {showPauseModal && (
-          <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-none flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full space-y-5 shadow-hard-lg border-2 border-ink text-left">
-              <div className="w-10 h-10 rounded-md bg-yellow text-ink border-2 border-ink shadow-hard-sm flex items-center justify-center font-black">
+          <div className="fixed inset-0 z-50 bg-ink/50 flex items-center justify-center p-4">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="judul-draf-tersimpan"
+              className="animate-reveal-up bg-white rounded-lg p-6 sm:p-8 max-w-md w-full space-y-5 shadow-hard-lg border-2 border-ink text-left"
+            >
+              <div className="w-10 h-10 rounded-md bg-yellow text-ink border-2 border-ink flex items-center justify-center" aria-hidden="true">
                 <BookmarkCheck className="w-5 h-5" />
               </div>
               <div className="space-y-1.5">
-                <h3 className="font-black text-lg text-ink uppercase tracking-wider">
-                  DRAF BERHASIL DISIMPAN
-                </h3>
-                <p className="text-xs sm:text-sm text-ink/80 leading-relaxed font-medium">
+                <h2 id="judul-draf-tersimpan" className="font-bold text-xl text-ink tracking-[-0.01em] leading-[1.25]">
+                  Draf berhasil disimpan
+                </h2>
+                <p className="text-[15px] text-[#4A453E] leading-relaxed">
                   Jawabanmu telah tersimpan aman di peramban ini. Kamu dapat menutup halaman ini atau kembali ke
                   dashboard, lalu melanjutkan kapan saja saat kamu siap.
                 </p>

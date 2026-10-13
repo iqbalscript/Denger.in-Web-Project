@@ -21,6 +21,7 @@ import {
   clearAnonymousSession,
   initAnonymousSession,
   generateRecoveryMnemonic,
+  generateUUID,
   getDailyCheckins,
 } from '@/lib/storage';
 import {
@@ -33,7 +34,9 @@ import {
   normalizeMnemonic
 } from '@/lib/crypto/e2ee';
 import type { AnonymousUserSession, DailyCheckin, JournalEntry, GamificationStateV1 } from '@dengarin/types';
-import { PageContainer, ContentColumn, Button, Badge, Textarea } from '@/components/ui';
+import { PageContainer, ContentColumn, Button, Badge, Textarea, Reveal } from '@/components/ui';
+import { useConsentGuard } from '@/lib/useConsentGuard';
+import { ConsentPending } from '@/components/ConsentPending';
 
 interface DecryptedBackupPayload {
   session: AnonymousUserSession;
@@ -44,6 +47,7 @@ interface DecryptedBackupPayload {
 }
 
 export default function RecoveryPage() {
+  const { ready } = useConsentGuard();
   const [session, setSession] = useState<AnonymousUserSession | null>(null);
   const [copied, setCopied] = useState(false);
   const [restoreInput, setRestoreInput] = useState('');
@@ -56,11 +60,9 @@ export default function RecoveryPage() {
   const [backupNotice, setBackupNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    let s = getAnonymousSession();
-    if (!s) {
-      s = initAnonymousSession(true);
-    }
-    setSession(s);
+    // Consent is checked by useConsentGuard; never grant it here (H5).
+    if (!ready) return;
+    setSession(initAnonymousSession());
 
     try {
       const storedLastBackup = localStorage.getItem('dengarin_last_backup');
@@ -70,7 +72,7 @@ export default function RecoveryPage() {
     } catch {
       // ignore
     }
-  }, []);
+  }, [ready]);
 
   const words = session?.recoveryMnemonic ? session.recoveryMnemonic.split(' ') : [];
 
@@ -202,7 +204,15 @@ export default function RecoveryPage() {
 
           // Restore to localStorage
           if (payload.session) {
-            const restored = { ...payload.session, recoveryMnemonic: clean };
+            // Consent belongs to this device: keep the current record, never
+            // import a `consentGiven: true` from the backup (H5).
+            const current = getAnonymousSession();
+            const restored: AnonymousUserSession = {
+              ...payload.session,
+              recoveryMnemonic: clean,
+              consentGiven: current?.consentGiven === true,
+              consentTimestamp: current?.consentGiven === true ? current.consentTimestamp : undefined,
+            };
             saveAnonymousSession(restored);
             setSession(restored);
           }
@@ -228,11 +238,16 @@ export default function RecoveryPage() {
       }
 
       // If no cloud backup was found, restore session locally
+      const current = getAnonymousSession();
       const restoredSession: AnonymousUserSession = {
-        userId: `restored-${Date.now().toString(36)}`,
+        // UUID v4 per the AnonymousUserSession contract (L5).
+        userId: generateUUID(),
+        anonymousAlias: current?.anonymousAlias,
         createdAt: new Date().toISOString(),
         recoveryMnemonic: clean,
-        consentGiven: true,
+        consentGiven: current?.consentGiven === true,
+        consentTimestamp: current?.consentGiven === true ? current.consentTimestamp : undefined,
+        currentDay: 1,
       };
       saveAnonymousSession(restoredSession);
       setSession(restoredSession);
@@ -271,6 +286,8 @@ export default function RecoveryPage() {
     }
   };
 
+  if (!ready) return <ConsentPending />;
+
   return (
     <PageContainer size="narrow">
       <ContentColumn size="md" className="space-y-8 text-left">
@@ -281,72 +298,73 @@ export default function RecoveryPage() {
             size="sm"
             icon={<ArrowLeft className="w-3.5 h-3.5" />}
           >
-            Kembali ke Dashboard
+            Kembali ke dashboard
           </Button>
         </div>
 
         {/* Heading */}
-        <div className="space-y-3">
+        <div className="animate-reveal-up space-y-3">
           <Badge variant="cobalt" size="md">
-            <Key className="w-3.5 h-3.5 mr-1" />
+            <Key className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
             Cadangan & Pemulihan Anonim
           </Badge>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#151515] tracking-tight">
-            Kunci Akses Sesi Pribadimu
+          <h1 className="text-[2.25rem] sm:text-5xl font-bold text-[#151515] tracking-[-0.03em] leading-[1.05]">
+            Kunci akses sesi pribadimu
           </h1>
-          <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed max-w-xl font-medium">
+          <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed max-w-xl">
             Dengar.in tidak menyimpan email atau nomor telepon. Simpan 12 bagian kunci ini untuk mencadangkan dan memulihkan seluruh progresmu secara mandiri.
           </p>
         </div>
 
         {/* 1. PRIMARY: 12-Word Recovery Code */}
-        <div className="p-6 sm:p-8 space-y-6 bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515]">
-          <div className="flex items-center justify-between border-b-2 border-[#151515] pb-3">
-            <span className="text-xs font-black text-[#151515] uppercase tracking-wider">
-              12 Bagian Kunci Rahasia
-            </span>
-            <span className="text-xs text-[#59544D] font-bold flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-[#4169FF]" /> Kunci Enkripsi Sisi Klien
+        <div className="animate-reveal-up [animation-delay:100ms] p-6 sm:p-8 space-y-6 bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
+            <h2 className="text-xl font-bold text-[#151515] tracking-[-0.01em]">
+              12 bagian kunci rahasia
+            </h2>
+            <span className="text-xs text-[#59544D] font-semibold flex items-center gap-1">
+              <Lock className="w-3.5 h-3.5 text-[#4169FF]" aria-hidden="true" /> Kunci enkripsi sisi klien
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 rounded-[4px] bg-[#FFF8EF] border-2 border-[#151515]">
+          <ol className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 sm:p-4 rounded-[4px] bg-[#FFF8EF]" aria-label="12 bagian kunci pemulihan">
             {words.map((w: string, idx: number) => (
-              <div
+              <li
                 key={idx}
-                className="bg-white p-2.5 rounded-[4px] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] flex items-center gap-2 font-mono text-xs sm:text-sm"
+                style={{ animationDelay: `${180 + idx * 30}ms` }}
+                className="animate-reveal-up bg-white px-3 py-2.5 rounded-[4px] border border-[#D8D3C9] flex items-baseline gap-2 font-mono text-sm sm:text-base"
               >
-                <span className="text-[10px] text-[#8A857D] font-bold font-sans">{idx + 1}.</span>
-                <span className="font-bold text-[#151515]">{w}</span>
-              </div>
+                <span className="w-5 shrink-0 text-right text-xs text-[#8A857D] font-semibold tabular-nums">{idx + 1}</span>
+                <span className="font-bold text-[#151515] tracking-[0.02em] break-all">{w}</span>
+              </li>
             ))}
-          </div>
+          </ol>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
             <Button
               variant="primary"
               size="md"
               onClick={handleCopy}
-              icon={copied ? <Check className="w-4 h-4 text-[#B8F34A]" /> : <Copy className="w-4 h-4" />}
+              icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             >
-              {copied ? 'Tersalin ke Clipboard!' : 'Salin 12 Bagian'}
+              {copied ? 'Tersalin ke clipboard' : 'Salin 12 bagian'}
             </Button>
 
-            <span className="text-xs text-[#59544D] font-bold italic">
-              * Jangan bagikan kata-kata ini kepada siapa pun.
+            <span className="text-sm text-[#59544D] font-medium" role="status">
+              {copied ? 'Kunci sudah disalin. ' : ''}Jangan bagikan kata-kata ini kepada siapa pun.
             </span>
           </div>
         </div>
 
         {/* 2. E2EE CLOUD BACKUP SECTION */}
-        <div className="p-6 sm:p-7 space-y-5 bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515]">
+        <Reveal as="section" aria-label="Cadangan cloud terenkripsi" className="p-6 sm:p-7 space-y-5 bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
-              <h3 className="text-sm sm:text-base font-extrabold text-[#151515] flex items-center gap-2">
-                <CloudUpload className="w-4 h-4 text-[#4169FF]" />
-                <span>Cadangkan ke Cloud (Terenkripsi, Hanya Kamu yang Bisa Buka)</span>
-              </h3>
-              <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed max-w-lg font-medium">
+              <h2 className="text-xl font-bold text-[#151515] tracking-[-0.01em] leading-[1.25] flex items-start gap-2">
+                <CloudUpload className="w-5 h-5 text-[#4169FF] shrink-0 mt-0.5" aria-hidden="true" />
+                <span>Cadangkan ke cloud (terenkripsi, hanya kamu yang bisa buka)</span>
+              </h2>
+              <p className="text-[15px] text-[#59544D] leading-relaxed max-w-lg">
                 Data check-in dan jurnalmu dienkripsi menggunakan AES-GCM 256-bit langsung di peramban sebelum dikirim. Server tidak pernah memiliki kunci dekripsi.
               </p>
             </div>
@@ -355,43 +373,44 @@ export default function RecoveryPage() {
               variant="secondary"
               size="sm"
               onClick={handleCloudBackup}
-              disabled={isBackingUp}
+              isLoading={isBackingUp}
               icon={<CloudUpload className="w-3.5 h-3.5" />}
               className="shrink-0"
             >
-              {isBackingUp ? 'Mengamankan...' : 'Cadangkan Sekarang'}
+              {isBackingUp ? 'Mengamankan...' : 'Cadangkan sekarang'}
             </Button>
           </div>
 
           {backupNotice && (
             <div
-              className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-xs font-bold flex items-start gap-2.5 ${
+              role={backupNotice.type === 'error' ? 'alert' : 'status'}
+              className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-sm font-semibold flex items-start gap-2.5 ${
                 backupNotice.type === 'success'
                   ? 'bg-[#B8F34A] text-[#151515] shadow-[2px_2px_0px_#151515]'
                   : 'bg-[#FF5252] text-white shadow-[2px_2px_0px_#151515]'
               }`}
             >
-              <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+              <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
               <span className="leading-relaxed">{backupNotice.message}</span>
             </div>
           )}
 
           {lastBackupTime && (
-            <div className="text-xs text-[#59544D] font-bold pt-2 border-t-2 border-[#151515]/10 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#4169FF]" />
-              <span>Terakhir dicadangkan: {new Date(lastBackupTime).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+            <div className="text-sm text-[#59544D] font-medium pt-3 border-t border-[#D8D3C9] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#4169FF]" aria-hidden="true" />
+              <span className="tabular-nums">Terakhir dicadangkan: {new Date(lastBackupTime).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
             </div>
           )}
-        </div>
+        </Reveal>
 
         {/* 3. RESTORE SESSION SECTION */}
-        <div className="p-6 sm:p-7 space-y-4 bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515]">
+        <Reveal as="section" aria-label="Pulihkan sesi" className="p-6 sm:p-7 space-y-4 bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
           <div className="space-y-1">
-            <h3 className="text-base font-extrabold text-[#151515] flex items-center gap-2">
-              <CloudDownload className="w-4 h-4 text-[#4169FF]" />
-              <span>Pulihkan Sesi di Perangkat Baru</span>
-            </h3>
-            <p className="text-xs sm:text-sm text-[#59544D] leading-relaxed font-medium">
+            <h2 className="text-xl font-bold text-[#151515] tracking-[-0.01em] leading-[1.25] flex items-start gap-2">
+              <CloudDownload className="w-5 h-5 text-[#4169FF] shrink-0 mt-0.5" aria-hidden="true" />
+              <span>Pulihkan sesi di perangkat baru</span>
+            </h2>
+            <p id="petunjuk-pulihkan" className="text-[15px] text-[#59544D] leading-relaxed">
               Masukkan 12 bagian kunci (atau 12 kata lama) untuk membuka cadangan cloud.
             </p>
           </div>
@@ -402,13 +421,19 @@ export default function RecoveryPage() {
               onChange={(e) => setRestoreInput(e.target.value)}
               rows={2}
               placeholder="Ketik 12 bagian kunci dipisahkan spasi"
-              className="font-mono text-xs sm:text-sm"
+              aria-label="12 bagian kunci pemulihan"
+              aria-describedby="petunjuk-pulihkan"
+              autoComplete="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              className="font-mono text-base tracking-[0.02em]"
               required
             />
 
             {restoreStatus && (
               <div
-                className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-xs font-bold flex items-start gap-2.5 ${
+                role={restoreStatus.type === 'error' ? 'alert' : 'status'}
+                className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-sm font-semibold flex items-start gap-2.5 ${
                   restoreStatus.type === 'success'
                     ? 'bg-[#B8F34A] text-[#151515] shadow-[2px_2px_0px_#151515]'
                     : restoreStatus.type === 'warning'
@@ -417,9 +442,9 @@ export default function RecoveryPage() {
                 }`}
               >
                 {restoreStatus.type === 'success' ? (
-                  <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                  <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
                 ) : (
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
                 )}
                 <span className="leading-relaxed">{restoreStatus.message}</span>
               </div>
@@ -433,20 +458,20 @@ export default function RecoveryPage() {
                 disabled={isRestoring || !restoreInput.trim()}
                 icon={<RefreshCw className={`w-3.5 h-3.5 ${isRestoring ? 'animate-spin' : ''}`} />}
               >
-                {isRestoring ? 'Membuka cadangan & memulihkan...' : 'Buka Cadangan & Pulihkan Sesi'}
+                {isRestoring ? 'Membuka cadangan & memulihkan...' : 'Buka cadangan & pulihkan sesi'}
               </Button>
             </div>
           </form>
-        </div>
+        </Reveal>
 
         {/* 4. DANGER ZONE: Wipe Data */}
-        <div className="p-5 sm:p-6 rounded-[6px] bg-white border-2 border-[#FF5252] shadow-[4px_4px_0px_#FF5252] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-0.5">
-            <h4 className="text-xs sm:text-sm font-extrabold text-[#FF5252] flex items-center gap-1.5">
-              <Trash2 className="w-4 h-4 text-[#FF5252]" />
-              <span>Zona Bahaya: Bersihkan Data Lokal</span>
-            </h4>
-            <p className="text-xs text-[#59544D] leading-relaxed font-medium">
+        <Reveal as="section" aria-label="Zona bahaya" className="p-5 sm:p-6 rounded-[8px] bg-white border-2 border-[#FF5252] shadow-[4px_4px_0px_#FF5252] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <h2 className="text-lg font-bold text-[#151515] leading-[1.25] flex items-center gap-1.5">
+              <Trash2 className="w-4 h-4 text-[#FF5252]" aria-hidden="true" />
+              <span>Zona bahaya: bersihkan data lokal</span>
+            </h2>
+            <p className="text-[15px] text-[#59544D] leading-relaxed">
               Menghapus seluruh data anonim yang tersimpan lokal di browser ini, termasuk jurnal, riwayat, refleksi misi, dan metadata cadangan. Cadangan cloud dan kunci yang pernah disalin ke clipboard tidak dihapus.
             </p>
           </div>
@@ -456,9 +481,9 @@ export default function RecoveryPage() {
             onClick={handleWipe}
             className="shrink-0"
           >
-            Hapus Permanen
+            Hapus permanen
           </Button>
-        </div>
+        </Reveal>
       </ContentColumn>
     </PageContainer>
   );

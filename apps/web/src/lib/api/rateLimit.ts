@@ -37,7 +37,7 @@ export function createRateLimiter(windowMs = WINDOW_MS, maxEntries = 32, now = D
   };
 }
 
-export type PublicRoute = 'chat' | 'room-tts' | 'admin-login' | 'forum-write' | 'forum-support' | 'forum-reply-create' | 'forum-reply-list' | 'forum-reply-report' | 'weekly-report' | 'sync-read' | 'sync-write';
+export type PublicRoute = 'chat' | 'room-tts' | 'admin-login' | 'forum-write' | 'forum-support' | 'forum-reply-create' | 'forum-reply-list' | 'forum-reply-report' | 'weekly-report' | 'sync-read' | 'sync-write' | 'care-passport' | 'care-passport-preview' | 'care-passport-opening';
 
 /**
  * Dua lapis kuota per rute, per menit:
@@ -65,7 +65,13 @@ export const RATE_QUOTAS: Readonly<Record<PublicRoute, Quota>> = {
   'forum-reply-report': { limit: 30, ceiling: 300 },
   'weekly-report': { limit: 120, ceiling: 1200 },
   'sync-read': { limit: 120, ceiling: 1200 },
-  'sync-write': { limit: 60, ceiling: 600 }
+  'sync-write': { limit: 60, ceiling: 600 },
+  // Care Passport (AMD Track 2): one AI call per generate; the preview step is
+  // deterministic (PII detection only) so it gets a looser quota of its own.
+  'care-passport': { limit: 10, ceiling: 100 },
+  'care-passport-preview': { limit: 60, ceiling: 600 },
+  // Opening lines (F-B): one AI call per destination pick on an approved passport.
+  'care-passport-opening': { limit: 10, ceiling: 100 }
 };
 
 // ─── Identitas klien ────────────────────────────────────────────────

@@ -66,9 +66,10 @@ export function CelebrationToast({ celebration, onDismiss }: CelebrationToastPro
     <div
       role="status"
       aria-live="polite"
+      aria-atomic="true"
       className={`fixed bottom-24 lg:bottom-6 right-4 z-50 max-w-xs
-        bg-[#B8F34A] border-2 border-[#151515] rounded shadow-[2px_2px_0px_#151515]
-        p-3 space-y-0.5
+        bg-[#B8F34A] border-2 border-[#151515] rounded-[6px] shadow-[3px_3px_0px_#151515]
+        px-4 py-3 space-y-1
         transition-all duration-200
         motion-reduce:transition-none
         ${exiting ? 'opacity-0 translate-y-2 motion-reduce:translate-y-0' : 'opacity-100 translate-y-0'}
@@ -77,15 +78,15 @@ export function CelebrationToast({ celebration, onDismiss }: CelebrationToastPro
       {lines.map((line, i) => (
         <p
           key={i}
-          className={`text-[#151515] font-black uppercase tracking-wider leading-tight ${
-            i === 0 ? 'text-sm' : 'text-[10px]'
+          className={`text-[#151515] font-bold uppercase tracking-[0.05em] leading-tight ${
+            i === 0 ? 'text-base tabular-nums' : 'text-xs'
           }`}
         >
           {line}
         </p>
       ))}
-      <p className="text-[10px] text-[#151515]/70 font-bold uppercase tracking-wider">
-        KECIL, TAPI KEHITUNG.
+      <p className="text-[13px] text-[#151515] font-medium pt-0.5">
+        Kecil, tapi kehitung.
       </p>
     </div>
   );

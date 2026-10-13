@@ -28,9 +28,9 @@ export function ProgressBar({
   return (
     <div className={`w-full space-y-1.5 ${className}`}>
       {(label || stepIndicator) && (
-        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#151515]">
+        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.05em] text-[#151515]">
           {label && <span>{label}</span>}
-          {stepIndicator && <span className="text-[#4169FF] font-bold">{stepIndicator}</span>}
+          {stepIndicator && <span className="text-[#4169FF] font-bold tabular-nums">{stepIndicator}</span>}
         </div>
       )}
       <div
@@ -40,10 +40,11 @@ export function ProgressBar({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={label || 'Kemajuan proses'}
+        aria-valuetext={stepIndicator}
       >
         <div
-          className={`h-full transition-all duration-300 ease-out ${variantColors[variant]}`}
-          style={{ width: `${percentage}%` }}
+          className={`h-full origin-left transition-transform duration-300 ease-out ${variantColors[variant]}`}
+          style={{ transform: `scaleX(${percentage / 100})` }}
         />
       </div>
     </div>
