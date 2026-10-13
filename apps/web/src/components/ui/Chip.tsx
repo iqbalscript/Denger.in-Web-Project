@@ -25,7 +25,7 @@ export function Chip({
 
   const unselectedVariants = {
     calm: 'bg-white text-[#151515] border-2 border-[#151515] hover:bg-[#3357EE]/10',
-    sand: 'bg-white text-[#151515] border-2 border-[#151515] hover:bg-[#FFF8EF]',
+    sand: 'bg-white text-[#151515] border-2 border-[#151515] hover:bg-[#FAFAFA]',
     warm: 'bg-white text-[#151515] border-2 border-[#151515] hover:bg-[#FF8A3D]/10',
     crisis: 'bg-white text-[#151515] border-2 border-[#151515] hover:bg-[#D32F2F]/10',
     outline: 'bg-transparent text-[#151515] border-2 border-[#151515] hover:bg-white',

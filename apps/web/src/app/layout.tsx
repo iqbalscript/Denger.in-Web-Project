@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Space_Grotesk } from 'next/font/google';
+import { Schibsted_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -8,12 +8,14 @@ import { ACCESSIBILITY_INIT_SCRIPT } from '@/components/ui/AccessibilityMenu';
 import { LANGUAGE_INIT_SCRIPT } from '@/i18n/language';
 import { SkipLink } from '@/components/SkipLink';
 
-// Self-hosted at build time by next/font, so it satisfies the `font-src 'self'` CSP.
-const spaceGrotesk = Space_Grotesk({
+// Judul: Schibsted Grotesk (Bakken & Bæck), di-host sendiri oleh next/font saat build
+// sehingga memenuhi CSP `font-src 'self'`. Teks biasa memakai font sistem perangkat:
+// paling jelas dan paling ringan untuk ponsel murah.
+const displayFont = Schibsted_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['600', '700', '800'],
   display: 'swap',
-  variable: '--font-space-grotesk',
+  variable: '--font-display',
 });
 
 export const metadata: Metadata = {
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#FFF8EF',
+  themeColor: '#FAFAFA',
 };
 
 export default function RootLayout({
@@ -50,12 +52,12 @@ export default function RootLayout({
     // lang="id" adalah nilai server (halaman tetap statis dan bisa di-cache).
     // Bila cookie dengarin-lang=en, LANGUAGE_INIT_SCRIPT mengganti atributnya
     // sebelum render pertama, dan store i18n menjaganya saat bahasa diganti.
-    <html lang="id" className={spaceGrotesk.variable} suppressHydrationWarning>
+    <html lang="id" className={displayFont.variable} suppressHydrationWarning>
       <head>
         {/* Terapkan pilihan bahasa dan Akses cepat sebelum halaman tampil (tanpa kedipan). */}
         <script dangerouslySetInnerHTML={{ __html: LANGUAGE_INIT_SCRIPT + ACCESSIBILITY_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-[100dvh] flex flex-col bg-[#FFF8EF] text-[#151515] font-sans selection:bg-[#B8F34A] selection:text-[#151515]">
+      <body className="min-h-[100dvh] flex flex-col bg-[#FAFAFA] text-[#151515] font-sans selection:bg-[#B8F34A] selection:text-[#151515]">
         <SkipLink />
         <Navbar />
         <main id="konten-utama" tabIndex={-1} className="flex-1 pb-24 lg:pb-0 focus:outline-none">

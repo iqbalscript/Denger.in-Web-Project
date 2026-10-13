@@ -5,10 +5,8 @@ import {
   ShieldCheck,
   ArrowRight,
   Sparkles,
-  Coins,
   Lock,
   PhoneCall,
-  HeartHandshake,
   CheckCircle2,
 } from 'lucide-react';
 import { PageContainer, Button, PrivacyWarningPopup, Reveal, MoodIcon } from '@/components/ui';
@@ -21,11 +19,11 @@ import { useLanguage, useText } from '@/i18n';
 import { topicPillarText } from '@/i18n/config';
 import { landingText } from '@/i18n/pages/landing';
 
-// Bento cells get distinct flat surfaces from the landing palette (cream + cobalt + lime, PRD §5.2).
+// Satu warna penanda per pilar (lime, cobalt, oranye) di baris daftar pilar.
 const PILLAR_SURFACES = [
-  { tile: 'bg-[#B8F34A]', icon: 'bg-white', tagline: 'text-[#151515]', body: 'text-[#2E2B26]', rule: 'border-[#8FBF2F]' },
-  { tile: 'bg-white', icon: 'bg-[#B8F34A]', tagline: 'text-[#2B51E6]', body: 'text-[#59544D]', rule: 'border-[#D8D3C9]' },
-  { tile: 'bg-[#E6ECFF]', icon: 'bg-white', tagline: 'text-[#2B51E6]', body: 'text-[#4A453E]', rule: 'border-[#BAC9FE]' },
+  { marker: 'bg-[#B8F34A]' },
+  { marker: 'bg-[#3357EE]' },
+  { marker: 'bg-[#FF8A3D]' },
 ];
 
 export default function LandingPage() {
@@ -130,10 +128,10 @@ export default function LandingPage() {
             </div>
 
             {/* Kolom kanan: check-in suasana hati yang benar-benar berfungsi (bukan
-                tiruan tampilan). Nampan lime mengikat visual ini ke tombol utama. */}
+                tiruan tampilan). Satu kartu saja, tanpa nampan di sekelilingnya. */}
             <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-reveal-up [animation-delay:240ms]">
-              <div className="bezel bg-[#B8F34A] w-full max-w-xl lg:max-w-none shadow-[6px_6px_0px_#151515]">
-              <div className="bezel-core p-4 sm:p-5 bg-white space-y-3 text-left" role="group" aria-labelledby="label-mood-cepat">
+              <div className="bezel w-full max-w-xl lg:max-w-none">
+              <div className="bezel-core p-4 sm:p-5 bg-white border-t-[6px] border-t-[#B8F34A] space-y-3 text-left" role="group" aria-labelledby="label-mood-cepat">
                 <span id="label-mood-cepat" className="text-base font-bold text-[#151515] flex items-start gap-1.5">
                   <Sparkles className="w-4 h-4 mt-1 text-[#3357EE] shrink-0" aria-hidden="true" />
                   {t.moodQuestion}
@@ -163,7 +161,7 @@ export default function LandingPage() {
                         }}
                         className={`${span} py-2.5 px-1.5 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[76px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${isSelected
                             ? 'shadow-[2px_2px_0px_#151515] -translate-x-[1px] -translate-y-[1px]'
-                            : 'hover:bg-[#FFF8EF] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515] active:translate-x-0 active:translate-y-0 active:shadow-none'
+                            : 'hover:bg-[#FAFAFA] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515] active:translate-x-0 active:translate-y-0 active:shadow-none'
                           }`}
                       >
                         <MoodIcon mood={m.id} className="w-7 h-7 text-[#151515]" />
@@ -195,57 +193,38 @@ export default function LandingPage() {
             </p>
           </Reveal>
 
-          {/* Asymmetric bento: the first pillar leads, the other two stack beside it */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 lg:grid-rows-2 gap-6">
+          {/* Daftar baris, bukan kartu berikon: tiap pilar satu baris dengan judul di
+              kiri dan penjelasan di kanan, dipisah garis tinta. */}
+          <ol className="border-b-2 border-[#151515]">
             {topicPillarsList.map((pillar, index) => {
-              const Icon = pillar.id === 'finance' ? Coins : pillar.id === 'trauma' ? HeartHandshake : ShieldCheck;
-              const isLead = index === 0;
               const surface = PILLAR_SURFACES[index % PILLAR_SURFACES.length];
               const text = topicPillarText(pillar.id, lang);
               return (
                 <Reveal
+                  as="li"
                   key={pillar.id}
                   delay={index * 80}
-                  className={`text-left flex flex-col justify-between border-2 border-[#151515] rounded-[8px] ${surface.tile} ${
-                    isLead
-                      ? 'md:col-span-2 lg:col-span-7 lg:row-span-2 p-7 sm:p-10 gap-8 shadow-[4px_4px_0px_#151515]'
-                      : 'lg:col-span-5 p-6 sm:p-7 gap-5 shadow-[3px_3px_0px_#151515]'
-                  }`}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-3 border-t-2 border-[#151515] py-8 sm:py-10 text-left"
                 >
-                  <div className={isLead ? 'space-y-5' : 'space-y-3'}>
-                    <div
-                      className={`rounded-[4px] text-[#151515] border-2 border-[#151515] flex items-center justify-center shadow-[2px_2px_0px_#151515] ${surface.icon} ${
-                        isLead ? 'w-14 h-14' : 'w-10 h-10'
-                      }`}
-                    >
-                      <Icon className={isLead ? 'w-7 h-7' : 'w-5 h-5'} aria-hidden="true" />
-                    </div>
+                  <div className="lg:col-span-5 flex gap-4">
+                    <span className={`shrink-0 w-1.5 self-stretch rounded-full ${surface.marker}`} aria-hidden="true" />
                     <div className="space-y-1.5">
-                      <h3
-                        className={`font-bold text-[#151515] ${
-                          isLead
-                            ? 'text-2xl sm:text-[2rem] tracking-[-0.02em] leading-[1.15]'
-                            : 'text-xl tracking-[-0.01em] leading-[1.25]'
-                        }`}
-                      >
+                      <h3 className="font-bold text-2xl sm:text-[1.75rem] text-[#151515] tracking-[-0.02em] leading-[1.15]">
                         {text.label}
                       </h3>
-                      <p className={`text-base font-semibold leading-snug ${surface.tagline}`}>
-                        {text.tagline}
-                      </p>
+                      <p className="text-base font-semibold leading-snug text-[#2B51E6]">{text.tagline}</p>
                     </div>
-                    <p className={`leading-relaxed ${surface.body} ${isLead ? 'text-base sm:text-lg max-w-[32rem]' : 'text-base'}`}>
-                      {text.description}
-                    </p>
                   </div>
-
-                  <div className={`pt-4 border-t flex items-center justify-between text-sm font-semibold text-[#151515] ${surface.rule}`}>
-                    <span>{pillar.isSensitive ? t.pillarSkippable : t.pillarMission}</span>
+                  <div className="lg:col-span-7 space-y-3 lg:pl-0 pl-[1.375rem]">
+                    <p className="text-base sm:text-lg leading-relaxed text-[#4A453E] max-w-[60ch]">{text.description}</p>
+                    <p className="text-sm font-semibold text-[#151515]">
+                      {pillar.isSensitive ? t.pillarSkippable : t.pillarMission}
+                    </p>
                   </div>
                 </Reveal>
               );
             })}
-          </div>
+          </ol>
         </PageContainer>
       </section>
 

@@ -199,7 +199,7 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
                     aria-pressed={active}
                     onClick={() => update({ ...settings, textScale: scale.value })}
                     className={`flex items-center justify-between gap-2 min-h-[44px] px-3 rounded-[4px] border-2 border-[#151515] font-bold transition-colors duration-200 ${
-                      active ? 'bg-[#3357EE] text-white' : 'bg-white text-[#151515] hover:bg-[#FFF8EF]'
+                      active ? 'bg-[#3357EE] text-white' : 'bg-white text-[#151515] hover:bg-[#FAFAFA]'
                     } ${focusRing}`}
                   >
                     <span className="text-sm">{t.sizes[scale.key]}</span>
@@ -247,7 +247,7 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
             type="button"
             onClick={() => update(DEFAULTS)}
             disabled={!isCustomised}
-            className={`w-full inline-flex items-center justify-center gap-2 min-h-[44px] rounded-[4px] text-sm font-bold border-2 border-[#151515] bg-white text-[#151515] hover:bg-[#FFF8EF] disabled:border-[#D8D3C9] disabled:text-[#7A756D] disabled:cursor-not-allowed ${focusRing}`}
+            className={`w-full inline-flex items-center justify-center gap-2 min-h-[44px] rounded-[4px] text-sm font-bold border-2 border-[#151515] bg-white text-[#151515] hover:bg-[#FAFAFA] disabled:border-[#D8D3C9] disabled:text-[#7A756D] disabled:cursor-not-allowed ${focusRing}`}
           >
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
             {t.reset}

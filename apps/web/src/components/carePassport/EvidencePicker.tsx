@@ -63,7 +63,7 @@ export function EvidencePicker({ entries, selectedIds, loaded, onToggle, canSele
                 <label
                   htmlFor={inputId}
                   className={`flex items-start gap-3 min-h-[48px] px-3 py-2.5 rounded-[4px] border-2 border-[#151515] cursor-pointer transition-[background-color,box-shadow] duration-150 ${
-                    checked ? 'bg-[#E6ECFF] shadow-[2px_2px_0px_#151515]' : 'bg-white hover:bg-[#FFF8EF]'
+                    checked ? 'bg-[#E6ECFF] shadow-[2px_2px_0px_#151515]' : 'bg-white hover:bg-[#FAFAFA]'
                   } ${blocked || disabled ? 'opacity-60 cursor-not-allowed' : ''} has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-[#3357EE] has-[:focus-visible]:ring-offset-2`}
                 >
                   <input

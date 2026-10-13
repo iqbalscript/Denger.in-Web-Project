@@ -423,7 +423,7 @@ export default function ChatPage() {
 
       case 'open_journal_prompt':
         return (
-          <div className="mt-2.5 p-3 rounded-md bg-[#FFF8EF] border-2 border-ink shadow-hard-sm text-base space-y-2">
+          <div className="mt-2.5 p-3 rounded-md bg-[#FAFAFA] border-2 border-ink shadow-hard-sm text-base space-y-2">
             <div className="flex items-center gap-1.5 font-bold text-base text-ink leading-snug">
               <BookOpen className="w-4 h-4 text-ink shrink-0" aria-hidden="true" />
               <span>{t.actionJournal}</span>

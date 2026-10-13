@@ -18,8 +18,8 @@ export function SoftCard({
 }: SoftCardProps) {
   const variantClasses = {
     white: 'bg-white border-2 border-[#151515] text-[#151515]',
-    sand: 'bg-[#FFF8EF] border-2 border-[#151515] text-[#151515]',
-    tinted: 'bg-[#FFF8EF] border-2 border-[#151515] text-[#151515]',
+    sand: 'bg-[#FAFAFA] border-2 border-[#151515] text-[#151515]',
+    tinted: 'bg-[#FAFAFA] border-2 border-[#151515] text-[#151515]',
     crisis: 'bg-[#FFEBEB] border-2 border-[#151515] text-[#151515]',
   };
 

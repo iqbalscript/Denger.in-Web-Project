@@ -349,7 +349,7 @@ export function OpeningLines({ passport, aiConsent: initialConsent = false, onLi
       {destination && status === 'loading' && <LinesSkeleton />}
 
       {destination && status === 'error' && (
-        <div role="alert" className="rounded-[4px] border-2 border-[#151515] bg-[#FFF8EF] p-4 space-y-3">
+        <div role="alert" className="rounded-[4px] border-2 border-[#151515] bg-[#FAFAFA] p-4 space-y-3">
           <p className="text-base leading-relaxed text-[#151515]">{error}</p>
           <Button variant="secondary" size="sm" icon={<RotateCcw className="w-4 h-4" />} onClick={() => setAttempt((a) => a + 1)}>
             {t.retry}

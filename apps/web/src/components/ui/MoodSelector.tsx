@@ -65,7 +65,7 @@ export function MoodSelector({
             className={`flex flex-col items-center justify-center p-2.5 sm:p-3.5 rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring min-h-[76px] sm:min-h-[88px] text-center focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${
               isSelected
                 ? 'shadow-[3px_3px_0px_#151515] -translate-x-[1px] -translate-y-[1px]'
-                : 'shadow-[2px_2px_0px_#151515] hover:bg-[#FFF8EF] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515]'
+                : 'shadow-[2px_2px_0px_#151515] hover:bg-[#FAFAFA] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515]'
             }`}
           >
             {Icon ? (

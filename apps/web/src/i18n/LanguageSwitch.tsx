@@ -35,7 +35,7 @@ export function LanguageSwitch({ className = '', idPrefix = 'bahasa' }: { classN
               aria-pressed={active}
               onClick={() => setLang(option)}
               className={`min-h-[44px] px-3 rounded-[4px] border-2 border-[#151515] text-sm font-bold transition-colors duration-200 ${
-                active ? 'bg-[#3357EE] text-white' : 'bg-white text-[#151515] hover:bg-[#FFF8EF]'
+                active ? 'bg-[#3357EE] text-white' : 'bg-white text-[#151515] hover:bg-[#FAFAFA]'
               } ${focusRing}`}
             >
               {LANGUAGE_NAMES[option]}
@@ -64,7 +64,7 @@ export function LanguageQuickButton({ className = '' }: { className?: string }) 
       onClick={() => setLang(other)}
       aria-label={`${t.language.change}: ${LANGUAGE_NAMES[lang]}`}
       title={`${t.language.current}: ${LANGUAGE_NAMES[lang]}`}
-      className={`inline-flex items-center justify-center gap-1 min-h-[44px] min-w-[44px] px-2 rounded-[4px] text-sm font-bold uppercase tracking-[0.04em] bg-white text-[#151515] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] hover:bg-[#FFF8EF] transition-[transform,box-shadow,background-color] duration-200 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] ${focusRing} ${className}`}
+      className={`inline-flex items-center justify-center gap-1 min-h-[44px] min-w-[44px] px-2 rounded-[4px] text-sm font-bold uppercase tracking-[0.04em] bg-white text-[#151515] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] hover:bg-[#FAFAFA] transition-[transform,box-shadow,background-color] duration-200 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] ${focusRing} ${className}`}
     >
       <span aria-hidden="true">{lang}</span>
     </button>

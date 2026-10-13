@@ -4,7 +4,7 @@
 
 :root {
   /* PRD-DESIGN.md Design Tokens */
-  --bg-paper: #FFF8EF;
+  --bg-paper: #FAFAFA;
   --surface-white: #FFFFFF;
   --ink-main: #151515;
   /* Cobalt sedikit lebih gelap dari #4169FF agar teks putih di atasnya dan
@@ -21,7 +21,7 @@
   --border-subtle: #D8D3C9;
 
   /* Semantic mappings */
-  --background: #FFF8EF;
+  --background: #FAFAFA;
   --text-primary: #151515;
   --text-secondary: #59544D;
   --text-muted: #6B665E;
@@ -40,7 +40,7 @@ html {
 body {
   color: var(--text-primary);
   background-color: var(--background);
-  font-family: var(--font-space-grotesk), 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -51,6 +51,8 @@ body {
 
 /* Keep headlines from leaving a single orphaned word on the last line */
 h1, h2, h3 {
+  /* Satu wajah display untuk judul; teks lain memakai font sistem. */
+  font-family: var(--font-display), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
@@ -185,7 +187,7 @@ svg.lucide[stroke-width='2'][width='14'] {
   }
 
   .brutal-card-tinted {
-    background-color: #FFF8EF;
+    background-color: #FAFAFA;
     border: 2px solid #151515;
     box-shadow: 3px 3px 0px #151515;
     border-radius: 6px;
@@ -202,34 +204,28 @@ svg.lucide[stroke-width='2'][width='14'] {
   }
 
   .soft-surface-tinted {
-    background-color: #FFF8EF;
+    background-color: #FAFAFA;
     border: 2px solid #151515;
     box-shadow: 3px 3px 0px #151515;
     border-radius: 6px;
   }
 
   /*
-   * Bezel ganda (nampan + inti): wadah utama tidak diletakkan telanjang di atas
-   * kertas, melainkan duduk di nampan bergaris tinta dengan celah 4px, seperti
-   * cetakan berbingkai. Radius konsentris: 12px luar - 2px garis - 4px celah = 6px dalam.
-   * Bayangan keras hanya dipikul nampan supaya inti tidak "mengambang" dua kali.
+   * Satu lapis elevasi saja: `.bezel` dulu nampan bergaris di sekeliling kartu
+   * (kartu di dalam kartu). Sekarang pembungkus polos; garis, sudut, dan
+   * bayangan keras hanya ada di `.bezel-core`.
    */
   .bezel {
-    padding: 4px;
-    border: 2px solid #151515;
-    border-radius: 12px;
-    background-color: #FFFFFF;
-    box-shadow: 4px 4px 0px #151515;
-  }
-
-  .bezel-paper {
-    background-color: #FFF8EF;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .bezel > .bezel-core {
     border: 2px solid #151515;
-    border-radius: 6px;
-    box-shadow: none;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0px #151515;
   }
 
   /* Garis rambut tinta tembus pandang: pengganti border abu 1px pada wadah

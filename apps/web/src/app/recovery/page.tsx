@@ -330,7 +330,7 @@ export default function RecoveryPage() {
             </span>
           </div>
 
-          <ol className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 sm:p-4 rounded-[4px] bg-[#FFF8EF]" aria-label={t.keyListAria}>
+          <ol className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 sm:p-4 rounded-[4px] bg-[#FAFAFA]" aria-label={t.keyListAria}>
             {words.map((w: string, idx: number) => (
               <li
                 key={idx}

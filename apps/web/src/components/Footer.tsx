@@ -38,7 +38,7 @@ export function Footer() {
   ];
 
   return (
-    <footer className="bg-[#FFF8EF] border-t-2 border-[#151515] mt-20 text-[#151515] text-base">
+    <footer className="bg-[#FAFAFA] border-t-2 border-[#151515] mt-20 text-[#151515] text-base">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-16 md:pt-20 md:pb-24">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 mb-12 md:mb-16">
           {/* Col 1: Identity */}

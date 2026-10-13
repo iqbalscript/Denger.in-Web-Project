@@ -51,7 +51,7 @@ export function ConsentStep({ onAccept, onDecline }: ConsentStepProps) {
           className={`flex items-start gap-3.5 text-left w-full rounded-[6px] p-4 border-2 border-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring ${
             checked
               ? 'bg-[#E6ECFF] shadow-[2px_2px_0px_#151515]'
-              : 'bg-[#FFF8EF] hover:bg-[#F7F0E6] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515] active:translate-x-0 active:translate-y-0 active:shadow-none'
+              : 'bg-[#FAFAFA] hover:bg-[#F7F0E6] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515] active:translate-x-0 active:translate-y-0 active:shadow-none'
           } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3357EE]`}
         >
           {checked ? (

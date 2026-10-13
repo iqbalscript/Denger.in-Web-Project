@@ -43,7 +43,7 @@ export function ResultSkeleton() {
         </div>
         <div className="lg:col-span-4 space-y-6">
           <CardSkeleton rows={3} />
-          <div className="rounded-[8px] border-2 border-[#151515] bg-[#FFF8EF] p-5 shadow-[2px_2px_0px_#151515] space-y-2">
+          <div className="rounded-[8px] border-2 border-[#151515] bg-[#FAFAFA] p-5 shadow-[2px_2px_0px_#151515] space-y-2">
             <Block w="w-1/2" h="h-4" />
             <Block w="w-full" h="h-3" />
             <Block w="w-5/6" h="h-3" />
