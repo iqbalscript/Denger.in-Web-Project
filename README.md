@@ -94,7 +94,7 @@ Dengar.in existed before the hackathon (anonymous chat, check-in, journal, forum
 - Safety: high-distress support pathway, English crisis detection, expanded crisis phrase coverage with regression tests.
 - Accessibility and inclusion: WCAG AA contrast, 44 px touch targets, the "Akses cepat" quick-access panel (text size, contrast, link underline, reading spacing, stop animations), layouts that adapt to larger text.
 - Language: Indonesian / English UI, English chat replies, English voice.
-- Copy: plain everyday Indonesian ("Bahasa Lazim"), documented in [`AGENTS.md`](AGENTS.md).
+- Copy: plain everyday Indonesian ("Bahasa Lazim").
 
 Scope decisions for the hackathon (adults 18+ for CareBridge, synthetic demo data only) are recorded with sources in [`docs/AMD_01_SCOPE_DAN_SYARAT.md`](docs/AMD_01_SCOPE_DAN_SYARAT.md). The wider product keeps its existing age scope and policies.
 
@@ -178,7 +178,6 @@ Denger.in-Web-Project/
 │   └── auth/                    # scrypt hashing + HMAC-SHA256 admin sessions
 ├── tests/                       # node:test suites (crisis, carebridge, voice, security, ...)
 ├── docs/                        # Specs, AMD setup, safety policy, demo script
-├── AGENTS.md                    # Writing rules (Bahasa Lazim) and project dictionary
 └── scripts/                     # Operational scripts
 ```
 
@@ -300,7 +299,6 @@ Next.js route handlers in `apps/web/src/app/api/`. Full contracts: [`docs/API_SP
 - [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) and [`docs/SUBMISSION_COPY.md`](docs/SUBMISSION_COPY.md): demo and lablab.ai submission copy
 - [`docs/SAFETY.md`](docs/SAFETY.md), [`docs/AI_POLICY.md`](docs/AI_POLICY.md), [`docs/API_SPEC.md`](docs/API_SPEC.md)
 - [`docs/RUANG_NGOBROL.md`](docs/RUANG_NGOBROL.md) and [`docs/VOICE_ACCESSIBILITY.md`](docs/VOICE_ACCESSIBILITY.md): voice room
-- [`AGENTS.md`](AGENTS.md): writing rules (Bahasa Lazim) and project dictionary
 
 ## Team
 

@@ -36,3 +36,6 @@ Thumbs.db
 *.swo
 .env*
 .vercel/
+
+# Catatan agen lokal (tidak di-push)
+AGENTS.md
