@@ -54,7 +54,7 @@ const BASED_ON_LABELS: Record<string, string> = {
 };
 
 const LINE_INPUT =
-  'w-full px-3.5 py-3 bg-white border-2 border-[#151515] rounded-[4px] text-base leading-[1.5] font-medium text-[#151515] shadow-[2px_2px_0px_#151515] focus:outline-none focus:shadow-[3px_3px_0px_#4169FF] resize-y min-h-[72px]';
+  'w-full px-3.5 py-3 bg-white border-2 border-[#151515] rounded-[4px] text-base leading-[1.5] font-medium text-[#151515] shadow-[2px_2px_0px_#151515] focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] resize-y min-h-[72px]';
 
 function basedOnLabel(ids: string[]): string {
   const labels = [...new Set(ids.map((id) => BASED_ON_LABELS[id.split(':')[0]]).filter(Boolean))];
@@ -111,7 +111,7 @@ function LinesSkeleton() {
           <div className="h-4 w-1/3 bg-[#E7E1D6] rounded-[3px] animate-pulse" aria-hidden="true" />
         </div>
       ))}
-      <p className="text-[15px] font-bold text-[#151515]">Menyusun kalimat dari poin yang kamu setujui. Sebentar saja.</p>
+      <p className="text-base font-bold text-[#151515]">Menyusun kalimat dari poin yang kamu setujui. Sebentar saja.</p>
     </div>
   );
 }
@@ -122,7 +122,7 @@ function ImmediateHelpBlock({ result }: { result: OpeningLinesResult }) {
     <SectionCard as="aside" tone="crisis" elevation="medium" className="space-y-4" aria-label="Bantuan segera">
       <div className="space-y-1">
         <h3 className="text-xl font-bold text-[#151515] leading-[1.25]">Sebelum menyusun kalimat, ada yang lebih penting.</h3>
-        <p className="text-[15px] leading-relaxed text-[#151515]">
+        <p className="text-base leading-relaxed text-[#151515]">
           Dari catatan yang kamu setujui, sepertinya kamu sedang berat sekali. Kalimat pembuka tidak disusun dulu. Ada orang yang bisa diajak bicara sekarang.
         </p>
       </div>
@@ -130,13 +130,13 @@ function ImmediateHelpBlock({ result }: { result: OpeningLinesResult }) {
         {(result.emergencyContacts ?? []).slice(0, 3).map((c) => (
           <li key={c.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-[4px] border-2 border-[#151515] bg-white px-3.5 py-3">
             <div className="min-w-0">
-              <p className="font-bold text-[15px] text-[#151515]">{c.name}</p>
+              <p className="font-bold text-base text-[#151515]">{c.name}</p>
               <p className={`text-sm ${MUTED}`}>{c.availableHours}</p>
             </div>
             {c.phone && (
               <a
                 href={`tel:${c.phone.replace(/\s*ext\.?\s*/i, ',').replace(/[^\d+,]/g, '')}`}
-                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-4 rounded-[4px] border-2 border-[#151515] bg-[#FF5252] text-white font-bold text-sm shadow-[3px_3px_0px_#151515] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2"
+                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-4 rounded-[4px] border-2 border-[#151515] bg-[#D32F2F] text-white font-bold text-sm shadow-[3px_3px_0px_#151515] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
               >
                 <PhoneCall className="w-4 h-4" aria-hidden="true" />
                 {c.phone}
@@ -145,7 +145,7 @@ function ImmediateHelpBlock({ result }: { result: OpeningLinesResult }) {
           </li>
         ))}
       </ul>
-      <Link href="/crisis" className="inline-flex items-center font-bold text-[15px] text-[#151515] underline underline-offset-4 decoration-2">
+      <Link href="/crisis" className="inline-flex items-center min-h-[44px] font-bold text-base text-[#151515] underline underline-offset-4 decoration-2 rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE]">
         Buka halaman bantuan
       </Link>
     </SectionCard>
@@ -167,8 +167,8 @@ function Checklist({ destination }: { destination: HelpDestination }) {
       </div>
       <ul className="space-y-2.5">
         {destination.checklist.map((item, i) => (
-          <li key={i} className="flex items-start gap-3 text-[15px] leading-relaxed text-[#151515]">
-            <span className="mt-[7px] w-2.5 h-2.5 shrink-0 rounded-[2px] border-2 border-[#151515] bg-[#4169FF]" aria-hidden="true" />
+          <li key={i} className="flex items-start gap-3 text-base leading-relaxed text-[#151515]">
+            <span className="mt-[7px] w-2.5 h-2.5 shrink-0 rounded-[2px] border-2 border-[#151515] bg-[#3357EE]" aria-hidden="true" />
             <span>
               {item.text}
               {item.sourceIds.length > 0 && (
@@ -185,9 +185,9 @@ function Checklist({ destination }: { destination: HelpDestination }) {
           </li>
         ))}
       </ul>
-      <p className={`text-[15px] leading-relaxed ${MUTED}`}>{destination.caveat}</p>
+      <p className={`text-base leading-relaxed ${MUTED}`}>{destination.caveat}</p>
       <div className="space-y-1.5 border-t-2 border-[#D8D3C9] pt-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.05em] text-[#151515]">Sumber</p>
+        <p className="text-sm font-bold text-[#151515]">Sumber</p>
         <ol className="space-y-1">
           {destination.sources.map((s, i) => (
             <li key={s.id} className={`text-sm leading-relaxed ${MUTED}`}>
@@ -196,7 +196,7 @@ function Checklist({ destination }: { destination: HelpDestination }) {
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#4169FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] rounded-[2px]"
+                className="inline-flex items-center gap-1 min-h-[44px] font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#3357EE] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] rounded-[2px]"
               >
                 {s.label}
                 <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
@@ -316,7 +316,7 @@ export function OpeningLines({ passport, aiConsent: initialConsent = false, onLi
         <h2 id="opening-lines-title" className="text-xl sm:text-2xl font-bold text-[#151515] leading-[1.25]">
           Mau mulai bilang apa, ke siapa?
         </h2>
-        <p className={`text-[15px] sm:text-base leading-relaxed ${MUTED}`}>
+        <p className={`text-base sm:text-base leading-relaxed ${MUTED}`}>
           Pilih tujuannya. Kamu dapat dua sampai tiga kalimat untuk diucapkan atau ditunjukkan, hanya dari poin yang sudah kamu setujui. Ubah sesukamu.
         </p>
       </div>
@@ -334,27 +334,27 @@ export function OpeningLines({ passport, aiConsent: initialConsent = false, onLi
           type="checkbox"
           checked={aiConsent}
           onChange={(e) => setAiConsent(e.target.checked)}
-          className="mt-1 w-5 h-5 shrink-0 accent-[#4169FF] border-2 border-[#151515] rounded-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2"
+          className="mt-0.5 w-6 h-6 shrink-0 accent-[#3357EE] border-2 border-[#151515] rounded-[3px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
         />
-        <span className="text-[15px] leading-relaxed text-[#151515]">
+        <span className="text-base leading-relaxed text-[#151515]">
           Pakai bantuan AI (diproses di AMD) untuk menyusun kalimatnya. Hanya poin yang kamu setujui yang dikirim; tidak disimpan di server.
           Tanpa centang, kamu tetap dapat versi pola tetap tanpa AI.
         </span>
       </label>
 
       {destination && (
-        <p className={`text-[15px] leading-relaxed ${MUTED}`}>{destination.description}</p>
+        <p className={`text-base leading-relaxed ${MUTED}`}>{destination.description}</p>
       )}
 
       {!destination && (
-        <p className={`text-[15px] ${MUTED}`}>Belum ada tujuan dipilih.</p>
+        <p className={`text-base ${MUTED}`}>Belum ada tujuan dipilih.</p>
       )}
 
       {destination && status === 'loading' && <LinesSkeleton />}
 
       {destination && status === 'error' && (
         <div role="alert" className="rounded-[4px] border-2 border-[#151515] bg-[#FFF8EF] p-4 space-y-3">
-          <p className="text-[15px] leading-relaxed text-[#151515]">{error}</p>
+          <p className="text-base leading-relaxed text-[#151515]">{error}</p>
           <Button variant="secondary" size="sm" icon={<RotateCcw className="w-4 h-4" />} onClick={() => setAttempt((a) => a + 1)}>
             Coba lagi
           </Button>
@@ -372,7 +372,7 @@ export function OpeningLines({ passport, aiConsent: initialConsent = false, onLi
               <span className={`text-sm ${MUTED}`}>{(result.provenance.latencyMs / 1000).toFixed(1).replace('.', ',')} detik</span>
             )}
           </div>
-          {note && <p className={`text-[15px] leading-relaxed ${MUTED}`}>{note}</p>}
+          {note && <p className={`text-base leading-relaxed ${MUTED}`}>{note}</p>}
 
           <ol className="space-y-3">
             {edited.map((text, i) => {
@@ -381,14 +381,14 @@ export function OpeningLines({ passport, aiConsent: initialConsent = false, onLi
               return (
                 <li key={i} className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <label htmlFor={`opening-line-${i}`} className="text-[11px] font-bold uppercase tracking-[0.05em] text-[#151515]">
+                    <label htmlFor={`opening-line-${i}`} className="text-base font-bold text-[#151515]">
                       Kalimat {i + 1}
                     </label>
                     <button
                       type="button"
                       onClick={() => copyLine(i)}
                       aria-label={`Salin kalimat ${i + 1}`}
-                      className="inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-[36px] px-3 rounded-[4px] border-2 border-[#151515] bg-white text-sm font-bold text-[#151515] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2"
+                      className="inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-[4px] border-2 border-[#151515] bg-white text-sm font-bold text-[#151515] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
                     >
                       {copied === i ? <Check className="w-4 h-4" aria-hidden="true" /> : <Copy className="w-4 h-4" aria-hidden="true" />}
                       {copied === i ? 'Tersalin' : 'Salin'}

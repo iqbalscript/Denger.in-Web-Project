@@ -51,14 +51,14 @@ export function ConsentStep({ onAccept, onDecline }: ConsentStepProps) {
             className="animate-reveal-up flex items-start gap-4 border-t-2 border-[#151515] pt-4"
           >
             <span
-              className="w-9 h-9 rounded-[4px] border-2 border-[#151515] bg-[#4169FF] text-white font-bold text-sm flex items-center justify-center shrink-0 tabular-nums"
+              className="w-9 h-9 rounded-[4px] border-2 border-[#151515] bg-[#3357EE] text-white font-bold text-sm flex items-center justify-center shrink-0 tabular-nums"
               aria-hidden="true"
             >
               {String(index + 1).padStart(2, '0')}
             </span>
             <div className="space-y-1">
               <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">{point.title}</h2>
-              <p className={`text-[15px] leading-relaxed ${MUTED}`}>{point.body}</p>
+              <p className={`text-base leading-relaxed ${MUTED}`}>{point.body}</p>
             </div>
           </li>
         ))}
@@ -74,14 +74,14 @@ export function ConsentStep({ onAccept, onDecline }: ConsentStepProps) {
             checked
               ? 'bg-[#E6ECFF] shadow-[2px_2px_0px_#151515]'
               : 'bg-[#FFF8EF] hover:bg-[#F7F0E6] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515] active:translate-x-0 active:translate-y-0 active:shadow-none'
-          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF]`}
+          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3357EE]`}
         >
           {checked ? (
-            <CheckSquare className="w-5 h-5 text-[#4169FF] shrink-0 mt-0.5" aria-hidden="true" />
+            <CheckSquare className="w-5 h-5 text-[#3357EE] shrink-0 mt-0.5" aria-hidden="true" />
           ) : (
-            <Square className="w-5 h-5 text-[#7A756D] shrink-0 mt-0.5" aria-hidden="true" />
+            <Square className="w-5 h-5 text-[#6B665E] shrink-0 mt-0.5" aria-hidden="true" />
           )}
-          <span className="text-[15px] text-[#151515] leading-snug font-medium">
+          <span className="text-base text-[#151515] leading-snug font-medium">
             Saya berusia 18 tahun ke atas dan setuju cerita saya, setelah data pribadi disamarkan, diproses oleh AI untuk menyusun draf catatan yang akan saya tinjau sendiri.
           </span>
         </button>

@@ -72,15 +72,15 @@ export default function PerjalananPage() {
             href="/dashboard"
             variant="outline"
             size="sm"
-            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+            icon={<ArrowLeft className="w-4 h-4" />}
           >
-            Kembali ke dashboard
+            Kembali ke beranda
           </Button>
 
           <div className="space-y-4 animate-reveal-up [animation-delay:80ms]">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-cobalt text-white border-2 border-ink text-xs font-bold uppercase tracking-wider shadow-hard-sm">
-              <Footprints className="w-3.5 h-3.5" aria-hidden="true" />
-              PERJALANAN KECIL
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-cobalt text-white border-2 border-ink text-sm font-bold shadow-hard-sm">
+              <Footprints className="w-4 h-4" aria-hidden="true" />
+              Perjalanan kecil
             </div>
             <h1 className="text-[2.25rem] sm:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
               Setiap langkah berarti
@@ -97,10 +97,10 @@ export default function PerjalananPage() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="space-y-0.5">
               <span className="text-[2.5rem] sm:text-5xl font-bold text-ink tracking-[-0.03em] leading-none tabular-nums">{gamState.totalLangkah}</span>
-              <p className="text-xs text-[#59544D] font-bold uppercase tracking-wider pt-1">Total Langkah</p>
+              <p className="text-sm text-[#59544D] font-bold pt-1">Total Langkah</p>
             </div>
             <div className="text-right space-y-0.5">
-              <span className="text-xs font-bold text-white uppercase tracking-wider bg-cobalt px-2.5 py-1 rounded border-2 border-ink inline-block">
+              <span className="text-sm font-bold text-white bg-cobalt px-2.5 py-1 rounded border-2 border-ink inline-block">
                 Level {gamState.currentLevel}: {levelInfo.name}
               </span>
             </div>
@@ -120,13 +120,13 @@ export default function PerjalananPage() {
                   aria-label={`Progress ke level berikutnya`}
                 />
               </div>
-              <div className="flex justify-between text-xs text-[#59544D] font-semibold tabular-nums">
-                <span>{LEVEL_THRESHOLDS[gamState.currentLevel].threshold}</span>
-                <span>{levelInfo.nextThreshold} → {LEVEL_THRESHOLDS[gamState.currentLevel + 1]?.name}</span>
+              <div className="flex justify-between gap-2 text-sm text-[#59544D] font-semibold tabular-nums">
+                <span>Mulai {LEVEL_THRESHOLDS[gamState.currentLevel].threshold}</span>
+                <span>{levelInfo.nextThreshold} Langkah untuk level {LEVEL_THRESHOLDS[gamState.currentLevel + 1]?.name}</span>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-cobalt font-bold">
+            <p className="text-base text-[#2B51E6] font-bold">
               <Sparkles className="inline w-4 h-4 mr-1 align-[-2px]" aria-hidden="true" />Level tertinggi tercapai
             </p>
           )}
@@ -139,11 +139,11 @@ export default function PerjalananPage() {
                 className={`p-2.5 rounded text-center ${
                   i <= gamState.currentLevel
                     ? 'bg-lime text-ink border-2 border-ink'
-                    : 'bg-paper text-[#7A756D] border border-[#D8D3C9]'
+                    : 'bg-paper text-[#6B665E] border border-[#D8D3C9]'
                 }`}
               >
-                <span className="text-xs font-bold block">{lvl.name}</span>
-                <span className="text-[11px] font-medium tabular-nums">{lvl.threshold} Langkah</span>
+                <span className="text-sm font-bold block">{lvl.name}</span>
+                <span className="text-sm font-medium tabular-nums">{lvl.threshold} Langkah</span>
               </li>
             ))}
           </ol>
@@ -157,17 +157,17 @@ export default function PerjalananPage() {
               <Calendar className="w-4 h-4 text-cobalt" aria-hidden="true" />
               Hari aktif (7 hari terakhir)
             </h2>
-            <span className="text-sm font-bold text-cobalt tabular-nums">{activeCount}/7 aktif</span>
+            <span className="text-base font-bold text-[#2B51E6] tabular-nums">{activeCount} dari 7 hari aktif</span>
           </div>
 
           <div className="grid grid-cols-7 gap-2">
             {ritme.map((day) => (
               <div key={day.date} className="flex flex-col items-center gap-1">
                 <div
-                  className={`w-full h-10 rounded flex items-center justify-center text-xs font-bold ${
+                  className={`w-full h-11 rounded flex items-center justify-center text-base font-bold ${
                     day.active
                       ? 'bg-lime text-ink border-2 border-ink'
-                      : 'bg-paper text-[#9E988D] border border-[#D8D3C9]'
+                      : 'bg-paper text-[#6B665E] border border-[#D8D3C9]'
                   }`}
                   title={`${day.dayLabel} ${day.date}${day.active ? ' (aktif)' : ''}`}
                   role="img"
@@ -175,7 +175,7 @@ export default function PerjalananPage() {
                 >
                   <span aria-hidden="true">{day.active ? '●' : '○'}</span>
                 </div>
-                <span className="text-[11px] font-semibold text-[#59544D]" aria-hidden="true">{day.dayLabel}</span>
+                <span className="text-sm font-semibold text-[#59544D]" aria-hidden="true">{day.dayLabel}</span>
               </div>
             ))}
           </div>
@@ -187,35 +187,35 @@ export default function PerjalananPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
             <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <Target className="w-4 h-4 text-cobalt" aria-hidden="true" />
-              Quest minggu ini
+              Target minggu ini
             </h2>
-            <span className="text-xs font-bold bg-yellow px-2 py-0.5 rounded border border-ink uppercase tracking-wider tabular-nums">
-              +{WEEKLY_QUEST_REWARD} LANGKAH
+            <span className="text-sm font-bold bg-yellow px-2 py-0.5 rounded border border-ink tabular-nums">
+              +{WEEKLY_QUEST_REWARD} Langkah
             </span>
           </div>
 
           {gamState.completedQuestWeekIds.includes(gamState.activeQuestWeekId) ? (
             <div className="bg-lime border-2 border-ink rounded p-4 text-center shadow-hard-sm">
               <p className="text-base font-bold text-ink">
-                <Check className="inline w-5 h-5 mr-1 align-[-4px]" strokeWidth={3} aria-hidden="true" />Quest minggu ini selesai. Kamu hebat.
+                <Check className="inline w-5 h-5 mr-1 align-[-4px]" strokeWidth={3} aria-hidden="true" />Target minggu ini selesai. Kamu hebat.
               </p>
             </div>
           ) : (
             <div className="space-y-2">
               <QuestRow
-                label="CHECK-IN"
+                label="Check-in"
                 current={gamState.questProgress.checkinDays}
                 target={WEEKLY_QUEST_REQUIREMENTS.checkinDays}
                 suffix="hari"
               />
               <QuestRow
-                label="MISI"
+                label="Misi"
                 current={gamState.questProgress.missionsCompleted}
                 target={WEEKLY_QUEST_REQUIREMENTS.missionsCompleted}
                 suffix="selesai"
               />
               <QuestRow
-                label="JURNAL"
+                label="Jurnal"
                 current={gamState.questProgress.journalEntries}
                 target={WEEKLY_QUEST_REQUIREMENTS.journalEntries}
                 suffix="ditulis"
@@ -224,8 +224,8 @@ export default function PerjalananPage() {
           )}
 
           {gamState.completedQuestWeekIds.length > 0 && (
-            <p className="text-sm text-[#59544D] font-medium pt-3 border-t border-[#D8D3C9] tabular-nums">
-              Total quest selesai: {gamState.completedQuestWeekIds.length} minggu
+            <p className="text-base text-[#59544D] font-medium pt-3 border-t border-[#D8D3C9] tabular-nums">
+              Target mingguan yang sudah selesai: {gamState.completedQuestWeekIds.length} minggu
             </p>
           )}
         </Reveal>
@@ -244,9 +244,9 @@ export default function PerjalananPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
             <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <Award className="w-4 h-4 text-cobalt" aria-hidden="true" />
-              Badge kamu
+              Lencana kamu
             </h2>
-            <span className="text-sm font-bold text-[#59544D] tabular-nums">
+            <span className="text-base font-bold text-[#59544D] tabular-nums">
               {gamState.unlockedBadgeIds.length}/{BADGE_DEFINITIONS.length}
             </span>
           </div>
@@ -263,25 +263,25 @@ export default function PerjalananPage() {
                   className={`p-3 rounded text-center space-y-1.5 ${
                     unlocked
                       ? 'bg-yellow text-ink border-2 border-ink shadow-hard-sm'
-                      : 'bg-paper text-[#7A756D] border border-[#D8D3C9]'
+                      : 'bg-paper text-[#6B665E] border border-[#D8D3C9]'
                   }`}
                 >
                   <div className="flex items-center justify-center">
                     {unlocked ? (
                       <Star className="w-5 h-5 text-ink fill-ink" aria-hidden="true" />
                     ) : (
-                      <Lock className="w-5 h-5 text-[#9E988D]" aria-hidden="true" />
+                      <Lock className="w-5 h-5 text-[#6B665E]" aria-hidden="true" />
                     )}
                   </div>
-                  <p className="text-sm font-bold leading-tight">
+                  <p className="text-base font-bold leading-tight">
                     {badge.name}
                   </p>
-                  <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border inline-block ${
-                    unlocked ? 'bg-lime text-ink border-ink' : 'bg-white text-[#7A756D] border-[#D8D3C9]'
+                  <span className={`text-sm font-bold px-1.5 py-0.5 rounded border inline-block ${
+                    unlocked ? 'bg-lime text-ink border-ink' : 'bg-white text-[#6B665E] border-[#D8D3C9]'
                   }`} aria-hidden="true">
                     {unlocked ? 'Terbuka' : 'Terkunci'}
                   </span>
-                  <p className="text-xs leading-snug" aria-hidden="true">
+                  <p className="text-sm leading-snug" aria-hidden="true">
                     {badge.description}
                   </p>
                 </Reveal>
@@ -296,14 +296,14 @@ export default function PerjalananPage() {
             <Trophy className="w-4 h-4 text-cobalt" aria-hidden="true" />
             Cara mengumpulkan Langkah
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-[15px] text-ink tabular-nums">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-base text-ink tabular-nums">
             {[
               { Icon: Sun, label: 'Check-in harian', amount: LANGKAH_AMOUNTS.daily_checkin },
               { Icon: Zap, label: 'Misi selesai', amount: LANGKAH_AMOUNTS.mission_complete },
               { Icon: PenLine, label: 'Jurnal', amount: LANGKAH_AMOUNTS.journal_entry },
               { Icon: MessageCircle, label: 'Refleksi misi', amount: LANGKAH_AMOUNTS.mission_reflection },
               { Icon: ClipboardList, label: 'Refleksi mingguan', amount: LANGKAH_AMOUNTS.weekly_reflection },
-              { Icon: Trophy, label: 'Quest mingguan', amount: WEEKLY_QUEST_REWARD },
+              { Icon: Trophy, label: 'Target mingguan', amount: WEEKLY_QUEST_REWARD },
             ].map(({ Icon, label, amount }) => (
               <span key={label} className="flex items-center gap-2">
                 <Icon className="w-4 h-4 shrink-0 text-cobalt" aria-hidden="true" />
@@ -322,7 +322,7 @@ export default function PerjalananPage() {
             iconPosition="end"
             icon={<ArrowRight className="w-4 h-4" />}
           >
-            KEMBALI KE HARI INI
+            Kembali ke beranda
           </Button>
         </div>
       </div>
@@ -339,15 +339,15 @@ function QuestRow({ label, current, target, suffix }: {
   const done = current >= target;
   return (
     <div className={`flex items-center justify-between px-3 py-2.5 rounded ${done ? 'bg-lime border-2 border-ink' : 'bg-paper border border-[#D8D3C9]'}`}>
-      <span className="text-xs font-bold text-ink uppercase tracking-wider">
+      <span className="text-base font-bold text-ink">
         {done ? (
-          <Check className="inline w-3.5 h-3.5 mr-1 align-[-2px]" strokeWidth={3} aria-hidden="true" />
+          <Check className="inline w-4 h-4 mr-1 align-[-2px]" strokeWidth={3} aria-hidden="true" />
         ) : (
-          <Circle className="inline w-3.5 h-3.5 mr-1 align-[-2px]" aria-hidden="true" />
+          <Circle className="inline w-4 h-4 mr-1 align-[-2px]" aria-hidden="true" />
         )}
         {label}
       </span>
-      <span className="text-sm font-semibold text-ink tabular-nums">
+      <span className="text-base font-semibold text-ink tabular-nums">
         {current}/{target} {suffix}
       </span>
     </div>

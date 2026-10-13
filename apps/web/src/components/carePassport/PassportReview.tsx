@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Check, Pencil, Trash2, Plus, Undo2, HeartHandshake, X } from 'lucide-react';
+import { Check, Pencil, Trash2, Plus, Undo2, HeartHandshake, X, RotateCcw } from 'lucide-react';
 import type { CarePassport, CarePassportResult, EvidenceField } from '@dengarin/types';
 import { computeCompleteness } from '@dengarin/validator';
 import { Button } from '@/components/ui';
@@ -37,7 +37,7 @@ function countNeedsReview(p: CarePassport): number {
 }
 
 const INLINE_INPUT =
-  'w-full px-3 py-2.5 bg-white border-2 border-[#151515] rounded-[4px] text-base leading-[1.5] font-medium text-[#151515] shadow-[2px_2px_0px_#151515] focus:outline-none focus:shadow-[3px_3px_0px_#4169FF]';
+  'w-full px-3 py-2.5 bg-white border-2 border-[#151515] rounded-[4px] text-base leading-[1.5] font-medium text-[#151515] shadow-[2px_2px_0px_#151515] focus:outline-none focus:shadow-[3px_3px_0px_#3357EE]';
 
 /**
  * READY_FOR_USER_REVIEW and HUMAN_SUPPORT_RECOMMENDED. The passport is the
@@ -48,6 +48,8 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
   const [draft, setDraft] = useState<CarePassport>(initial);
   const approved = draft.reviewStatus === 'user_approved';
   const [openingLines, setOpeningLines] = useState<OpeningLinesSelection | null>(null);
+  // "Mulai dari awal" menghapus seluruh draf, jadi minta konfirmasi di tempat.
+  const [confirmRestart, setConfirmRestart] = useState(false);
   const pending = useMemo(() => countNeedsReview(draft), [draft]);
   const humanSupport = result.state === 'HUMAN_SUPPORT_RECOMMENDED';
   const completeness = useMemo(() => computeCompleteness(draft), [draft]);
@@ -103,12 +105,12 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
       {humanSupport && (
         <SectionCard as="aside" tone="cobalt" elevation="medium" className="space-y-2" aria-label="Saran berbicara dengan profesional">
           <div className="flex items-center gap-2">
-            <HeartHandshake className="w-5 h-5 text-[#4169FF]" aria-hidden="true" />
+            <HeartHandshake className="w-5 h-5 text-[#3357EE]" aria-hidden="true" />
             <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">Sepertinya ini layak dibicarakan dengan seseorang yang terlatih.</h2>
           </div>
-          <p className={`text-[15px] leading-relaxed ${MUTED}`}>
+          <p className={`text-base leading-relaxed ${MUTED}`}>
             Ini bukan penilaian dan bukan diagnosis, hanya saran. Catatan di bawah tetap milikmu dan bisa kamu bawa saat bertemu profesional.{' '}
-            <Link href="/resources" className="font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#4169FF]">
+            <Link href="/resources" className="font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#3357EE]">
               Lihat pilihan layanan dan bantuan
             </Link>
             .
@@ -130,7 +132,7 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
         <p className="text-base font-bold text-[#151515]">
           Kelengkapan: {completeness.known} dari {completeness.total} hal{completeness.total > 3 ? '' : ' utama'} diketahui.
         </p>
-        <p className={`text-[15px] leading-relaxed ${MUTED}`}>
+        <p className={`text-base leading-relaxed ${MUTED}`}>
           {datedSources > 0
             ? `${datedSources} entri bertanggal dari perangkatmu ikut menjadi bukti. Setiap poin di bawah menyebut sumbernya.`
             : 'Ini hitungan, bukan skor. Yang belum diketahui ditulis apa adanya; kamu bisa menambahkannya sendiri.'}
@@ -152,20 +154,21 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
           <SectionCard as="div" tone="paper" elevation="low" className="space-y-3">
             <h2 className="text-base font-bold text-[#151515]">Belum diketahui</h2>
             {draft.unknowns.length === 0 ? (
-              <p className={`text-[15px] leading-relaxed ${MUTED}`}>Tidak ada yang tertinggal. Kalau ada yang ingin ditambah, pakai tombol tambah di tiap bagian.</p>
+              <p className={`text-base leading-relaxed ${MUTED}`}>Tidak ada yang tertinggal. Kalau ada yang ingin ditambah, pakai tombol tambah di tiap bagian.</p>
             ) : (
               <ul className="space-y-2">
                 {draft.unknowns.map((u) => (
-                  <li key={u} className="flex items-start justify-between gap-2 text-[15px] leading-relaxed text-[#151515]">
+                  <li key={u} className="flex items-start justify-between gap-2 text-base leading-relaxed text-[#151515]">
                     <span>{u}</span>
                     {!approved && (
                       <button
                         type="button"
                         onClick={() => dismissUnknown(u)}
-                        className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-[4px] border-2 border-[#151515] bg-white hover:bg-[#FFF8EF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF]"
+                        className="shrink-0 inline-flex items-center gap-1 min-h-[44px] px-2.5 rounded-[4px] border-2 border-[#151515] bg-white text-sm font-bold hover:bg-[#FFF8EF] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
                         aria-label={`Abaikan: ${u}`}
                       >
-                        <X className="w-3.5 h-3.5" aria-hidden="true" />
+                        <X className="w-4 h-4" aria-hidden="true" />
+                        <span>Abaikan</span>
                       </button>
                     )}
                   </li>
@@ -179,7 +182,7 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
 
           <SectionCard as="div" elevation="low" className="space-y-2">
             <h2 className="text-base font-bold text-[#151515]">Catatan penting</h2>
-            <p className={`text-[15px] leading-relaxed ${MUTED}`}>{draft.disclaimer}</p>
+            <p className={`text-base leading-relaxed ${MUTED}`}>{draft.disclaimer}</p>
           </SectionCard>
 
           {approved ? (
@@ -198,7 +201,7 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
           ) : (
             <SectionCard as="div" elevation="high" className="space-y-3">
               <h2 className="text-base font-bold text-[#151515]">Setujui catatan</h2>
-              <p className={`text-[15px] leading-relaxed ${MUTED}`}>
+              <p className={`text-base leading-relaxed ${MUTED}`}>
                 {pending > 0
                   ? `Masih ada ${pending} poin bertanda "perlu dicek". Tandai benar, ubah, atau hapus dulu.`
                   : 'Semua poin sudah kamu periksa. Setelah disetujui, catatan bisa diunduh ke perangkatmu.'}
@@ -209,9 +212,24 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
             </SectionCard>
           )}
 
-          <button type="button" onClick={onRestart} className={`text-sm font-bold underline underline-offset-4 decoration-2 hover:text-[#4169FF] ${MUTED}`}>
-            Mulai dari awal dan hapus catatan ini
-          </button>
+          {confirmRestart ? (
+            <div role="group" aria-label="Konfirmasi mulai dari awal" className="p-4 rounded-[6px] bg-[#FFEBEB] border-2 border-[#151515] space-y-3">
+              <p className="text-base font-bold text-[#151515] leading-snug">Hapus catatan ini dan mulai dari awal?</p>
+              <p className={`text-base leading-relaxed ${MUTED}`}>Draf yang belum kamu unduh akan hilang.</p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button variant="crisis" size="sm" onClick={onRestart} icon={<RotateCcw className="w-4 h-4" />}>
+                  Ya, mulai dari awal
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setConfirmRestart(false)}>
+                  Batal
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setConfirmRestart(true)} className={`inline-flex items-center min-h-[44px] text-base font-bold underline underline-offset-4 decoration-2 hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] ${MUTED}`}>
+              Mulai dari awal dan hapus catatan ini
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -279,8 +297,8 @@ function EvidenceItem({
       )}
 
       {field.sourceQuote && field.source === 'user_input' && (
-        <blockquote className={`text-[15px] leading-relaxed border-l-2 border-[#4169FF] pl-3 ${MUTED}`}>
-          <span className="block text-[11px] font-bold uppercase tracking-[0.05em] text-[#4169FF]">
+        <blockquote className={`text-base leading-relaxed border-l-2 border-[#3357EE] pl-3 ${MUTED}`}>
+          <span className="block text-sm font-bold text-[#2B51E6]">
             {field.sourceRef && field.sourceRef.kind !== 'intake' ? `Dari ${sourceLabel(field.sourceRef)}` : 'Dari ceritamu'}
           </span>
           &ldquo;{field.sourceQuote}&rdquo;
@@ -327,7 +345,7 @@ function AddRow({ label, onAdd }: { label: string; onAdd: (value: string) => voi
   };
   return (
     <div className="space-y-2">
-      <label htmlFor={inputId} className="block text-[13px] font-bold uppercase tracking-[0.05em] text-[#151515]">
+      <label htmlFor={inputId} className="block text-base font-bold text-[#151515]">
         {label}
       </label>
       <textarea id={inputId} value={value} onChange={(e) => setValue(e.target.value)} rows={2} className={INLINE_INPUT} autoFocus />
@@ -364,7 +382,7 @@ function ListCard({
     <SectionCard className="space-y-4">
       <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">{title}</h2>
       {items.length === 0 ? (
-        <p className={`text-[15px] leading-relaxed ${MUTED}`}>Belum ada. Tidak masalah kalau memang tidak ada yang ingin ditulis.</p>
+        <p className={`text-base leading-relaxed ${MUTED}`}>Belum ada. Tidak masalah kalau memang tidak ada yang ingin ditulis.</p>
       ) : (
         <ul className="space-y-4">
           {items.map((field, i) => (
@@ -405,7 +423,7 @@ function DurationCard({
           <EvidenceItem field={field} locked={locked} onConfirm={confirm} onEdit={edit} onRemove={remove} />
         </ul>
       ) : (
-        <p className={`text-[15px] leading-relaxed ${MUTED}`}>Belum disebutkan di ceritamu.</p>
+        <p className={`text-base leading-relaxed ${MUTED}`}>Belum disebutkan di ceritamu.</p>
       )}
       {!locked && !field.value && <AddRow label="Sejak kapan" onAdd={edit} />}
     </SectionCard>
@@ -430,7 +448,7 @@ function QuestionsCard({ questions, locked, onChange }: { questions: string[]; l
         <p className={`text-sm leading-relaxed ${MUTED}`}>Usulan pertanyaan. Ganti dengan kata-katamu sendiri kalau perlu.</p>
       </div>
       {questions.length === 0 ? (
-        <p className={`text-[15px] leading-relaxed ${MUTED}`}>Belum ada pertanyaan.</p>
+        <p className={`text-base leading-relaxed ${MUTED}`}>Belum ada pertanyaan.</p>
       ) : (
         <ol className="space-y-3 list-decimal pl-5">
           {questions.map((q, i) => (

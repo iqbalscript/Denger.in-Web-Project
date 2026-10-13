@@ -4,7 +4,7 @@ import React from 'react';
 export function ConsentPending() {
   return (
     <div role="status" aria-live="polite" className="min-h-[40vh] flex items-center justify-center px-4">
-      <p className="text-sm text-[#59544D] font-medium">Menyiapkan ruangmu...</p>
+      <p className="text-base text-[#59544D] font-medium">Menyiapkan ruangmu...</p>
     </div>
   );
 }

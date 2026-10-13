@@ -61,7 +61,7 @@ export function IntakeStep({ text, onChange, onSubmit, onBack, busy, error, evid
           }}
         >
           <div className="space-y-4">
-            <label htmlFor="cerita" className="block text-[13px] font-bold uppercase tracking-[0.05em] text-[#151515]">
+            <label htmlFor="cerita" className="block text-base font-bold text-[#151515]">
               Ceritamu
             </label>
             <textarea
@@ -73,12 +73,12 @@ export function IntakeStep({ text, onChange, onSubmit, onBack, busy, error, evid
               placeholder="Misalnya: Beberapa minggu ini aku susah tidur dan gampang panik kalau mikirin kerjaan. Aku belum tahu harus mulai cerita dari mana kalau ketemu psikolog."
               aria-describedby="cerita-bantuan"
               aria-invalid={tooLong || undefined}
-              className={`w-full min-h-[240px] px-4 py-3.5 bg-white border-2 rounded-[6px] text-base leading-[1.6] font-medium text-[#151515] placeholder:text-[#8A857D] resize-y focus:outline-none focus:shadow-[3px_3px_0px_#4169FF] disabled:bg-[#D8D3C9]/40 disabled:cursor-wait ${
+              className={`w-full min-h-[240px] px-4 py-3.5 bg-white border-2 rounded-[6px] text-base leading-[1.6] font-medium text-[#151515] placeholder:text-[#6B665E] resize-y focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] disabled:bg-[#D8D3C9]/40 disabled:cursor-wait ${
                 tooLong ? 'border-[#FF5252] shadow-[2px_2px_0px_#FF5252]' : 'border-[#151515] shadow-[2px_2px_0px_#151515]'
               }`}
             />
             <div id="cerita-bantuan" className="flex flex-wrap items-center justify-between gap-2 text-sm">
-              <span className={tooLong ? 'text-[#D93838] font-bold' : MUTED}>
+              <span className={tooLong ? 'text-[#B3261E] font-bold' : MUTED}>
                 {tooLong ? `Kelebihan ${Math.abs(remaining)} karakter.` : `${remaining} karakter tersisa.`}
               </span>
               <span className={MUTED}>
@@ -98,12 +98,12 @@ export function IntakeStep({ text, onChange, onSubmit, onBack, busy, error, evid
           />
 
           {evidence.budget.overflow && (
-            <p role="alert" className="text-sm font-bold text-[#D93838] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2">
+            <p role="alert" className="text-sm font-bold text-[#B3261E] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2">
               Cerita dan entri yang dipilih melebihi batas {evidence.budget.max} karakter. Kurangi entri atau ringkas ceritanya.
             </p>
           )}
           {error && (
-            <p role="alert" className="text-sm font-bold text-[#D93838] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2">
+            <p role="alert" className="text-sm font-bold text-[#B3261E] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2">
               {error}
             </p>
           )}
@@ -134,8 +134,8 @@ export function IntakeStep({ text, onChange, onSubmit, onBack, busy, error, evid
             <h2 className="text-base font-bold text-[#151515]">Kalau bingung mulai dari mana</h2>
             <ul className="space-y-2">
               {PROMPTS.map((prompt) => (
-                <li key={prompt} className={`flex gap-2 text-[15px] leading-relaxed ${MUTED}`}>
-                  <span className="w-1.5 h-1.5 mt-2.5 bg-[#4169FF] shrink-0" aria-hidden="true" />
+                <li key={prompt} className={`flex gap-2 text-base leading-relaxed ${MUTED}`}>
+                  <span className="w-1.5 h-1.5 mt-2.5 bg-[#3357EE] shrink-0" aria-hidden="true" />
                   <span>{prompt}</span>
                 </li>
               ))}

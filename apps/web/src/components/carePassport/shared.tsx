@@ -49,9 +49,9 @@ export function UrgentHelpLink({ className = '' }: { className?: string }) {
   return (
     <Link
       href="/crisis"
-      className={`inline-flex items-center gap-2 min-h-[44px] px-3.5 py-2 rounded-[4px] border-2 border-[#151515] bg-white text-[#151515] font-bold text-sm shadow-[2px_2px_0px_#151515] hover:bg-[#FFEBEB] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] ${className}`}
+      className={`inline-flex items-center gap-2 min-h-[48px] px-4 py-2 rounded-[4px] border-2 border-[#151515] bg-white text-[#151515] font-bold text-base shadow-[2px_2px_0px_#151515] hover:bg-[#FFEBEB] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${className}`}
     >
-      <PhoneCall className="w-4 h-4 text-[#FF5252] shrink-0" aria-hidden="true" />
+      <PhoneCall className="w-5 h-5 text-[#B3261E] shrink-0" aria-hidden="true" />
       <span>Butuh bantuan sekarang?</span>
     </Link>
   );
@@ -91,7 +91,7 @@ export function SectionCard({
   );
 }
 
-/** Small uppercase label chip (PRD-DESIGN §7.4: uppercase only for micro-copy). */
+/** Small label chip (PRD-DESIGN §7.4). Sentence case and >= 13.8px so it stays readable. */
 export function Tag({
   children,
   tone = 'paper',
@@ -104,14 +104,14 @@ export function Tag({
   const tones = {
     paper: 'bg-[#FFF8EF] text-[#151515]',
     white: 'bg-white text-[#151515]',
-    cobalt: 'bg-[#4169FF] text-white',
+    cobalt: 'bg-[#3357EE] text-white',
     lime: 'bg-[#B8F34A] text-[#151515]',
     yellow: 'bg-[#FFD84D] text-[#151515]',
-    crisis: 'bg-[#FF5252] text-white',
+    crisis: 'bg-[#D32F2F] text-white',
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] border-2 border-[#151515] text-[11px] font-bold uppercase tracking-[0.05em] shadow-[1px_1px_0px_#151515] ${tones[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] border-2 border-[#151515] text-xs font-bold shadow-[1px_1px_0px_#151515] ${tones[tone]} ${className}`}
     >
       {children}
     </span>
@@ -174,7 +174,7 @@ export function StepHeading({
   return (
     <div className={`space-y-3 ${animate ? 'animate-reveal-up' : ''}`}>
       <Tag tone="cobalt">{step}</Tag>
-      <h1 className="text-[2rem] sm:text-[2.75rem] font-bold text-[#151515] tracking-[-0.03em] leading-[1.05]">{title}</h1>
+      <h1 className="text-[1.75rem] sm:text-[2.75rem] font-bold text-[#151515] tracking-[-0.03em] leading-[1.1]">{title}</h1>
       <p className={`text-base sm:text-lg leading-[1.5] max-w-[38rem] ${MUTED}`}>{lede}</p>
     </div>
   );

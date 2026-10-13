@@ -36,13 +36,13 @@ import { Button, ContentColumn, PageContainer } from '@/components/ui';
 type TimeoutHandle = ReturnType<typeof setTimeout>;
 
 const STATE_LABELS: Record<VoiceRoomState, string> = {
-  IDLE: 'SIAP NGOBROL',
-  LISTENING: 'MENDENGARKAN...',
-  PROCESSING: 'LAGI MIKIR...',
-  SPEAKING: 'DENGAR.IN LAGI NGOMONG...',
-  ERROR: 'ADA KENDALA',
-  CRISIS: 'BANTUAN DARURAT',
-  ENDED: 'SELESAI',
+  IDLE: 'Siap ngobrol',
+  LISTENING: 'Sedang mendengarkan...',
+  PROCESSING: 'Sedang berpikir...',
+  SPEAKING: 'Dengar.in sedang bicara...',
+  ERROR: 'Ada kendala',
+  CRISIS: 'Bantuan darurat',
+  ENDED: 'Selesai',
 };
 
 const MAX_ROOM_AUDIO_BYTES = 1_500_000;
@@ -84,7 +84,7 @@ export default function RuangNgobrolPage() {
   const { ready, session } = useConsentGuard();
   const [roomState, setRoomState] = useState<VoiceRoomState>('IDLE');
   const [captions, setCaptions] = useState<VoiceRoomCaption[]>([]);
-  const [statusMessage, setStatusMessage] = useState('Tekan MULAI NGOBROL saat kamu siap.');
+  const [statusMessage, setStatusMessage] = useState('Tekan tombol "Mulai ngobrol" saat kamu siap.');
   const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(false);
   const [speechSynthesisSupported, setSpeechSynthesisSupported] = useState(false);
   const [showPrivacyDisclosure, setShowPrivacyDisclosure] = useState(false);
@@ -201,7 +201,7 @@ export default function RuangNgobrolPage() {
     if (typeof window === 'undefined' || generation !== generationRef.current || !sessionActiveRef.current) return;
     if (!isSpeechSynthesisSupported(window)) {
       setMuted(true);
-      setStatusMessage('Respons aman sudah tampil sebagai teks. Tekan LANJUT DENGERIN untuk melanjutkan tanpa suara.');
+      setStatusMessage('Balasan sudah tampil sebagai teks. Tekan "Lanjut mendengarkan" untuk melanjutkan tanpa suara.');
       transitionTo('IDLE');
       return;
     }
@@ -485,7 +485,7 @@ export default function RuangNgobrolPage() {
     setMuted(true);
     stopRecognition(true);
     if (stateRef.current === 'LISTENING') transitionTo('IDLE');
-    setStatusMessage('Pendengaran dijeda. Tekan LANJUT DENGERIN saat kamu siap.');
+    setStatusMessage('Mikrofon dijeda. Tekan "Lanjut mendengarkan" saat kamu siap.');
   }, [setMuted, stopRecognition, transitionTo]);
 
   const handleResume = useCallback(() => {
@@ -531,29 +531,29 @@ export default function RuangNgobrolPage() {
       <PageContainer size="narrow">
         <ContentColumn size="sm" className="space-y-6">
           <header className="animate-reveal-up space-y-3">
-            <Link href="/dashboard" className="inline-flex min-h-[44px] items-center text-sm font-bold underline underline-offset-4 decoration-2 transition-colors duration-200 ease-spring hover:text-[#4169FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2">
-              ← Kembali
+            <Link href="/dashboard" className="inline-flex min-h-[44px] items-center text-base font-bold underline underline-offset-4 decoration-2 transition-colors duration-200 ease-spring hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2">
+              ← Kembali ke beranda
             </Link>
-            <p className="text-xs font-bold uppercase tracking-[0.05em] text-[#4169FF]">Ruang Ngobrol</p>
+            <p className="text-sm font-bold text-[#2B51E6]">Ruang Ngobrol (pakai suara)</p>
             <h1 className="text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] sm:text-4xl">Gak perlu nyusun kata-kata dengan sempurna.</h1>
             <p className="text-lg leading-[1.5] text-[#4A453E]">Cerita aja pelan-pelan. Kamu tetap memegang kendali untuk mulai, jeda, atau selesai.</p>
           </header>
 
           <section className="animate-reveal-up [animation-delay:100ms] rounded-[8px] border-2 border-[#151515] bg-white p-5 shadow-[4px_4px_0px_#151515] sm:p-7" aria-labelledby="room-state">
-            <p id="room-state" className="inline-block rounded-[4px] bg-[#4169FF] px-2.5 py-1 text-xs font-bold uppercase tracking-[0.05em] text-white" aria-live="polite">{STATE_LABELS[roomState]}</p>
+            <p id="room-state" className="inline-block rounded-[4px] bg-[#3357EE] px-2.5 py-1 text-sm font-bold text-white" aria-live="polite">Status: {STATE_LABELS[roomState]}</p>
             <p className="mt-4 text-base leading-relaxed" aria-live="polite">{statusMessage}</p>
 
             {!speechRecognitionSupported && (
-              <p className="mt-4 border-l-4 border-[#FFD84D] bg-[#FFF8EF] p-3 text-[15px] leading-relaxed" role="status">
+              <p className="mt-4 border-l-4 border-[#FFD84D] bg-[#FFF8EF] p-3 text-base leading-relaxed" role="status">
                 Pengenalan suara belum tersedia di browser ini. Chat teks tetap bisa digunakan.
               </p>
             )}
 
             {showPrivacyDisclosure && (
               <div className="animate-reveal-up mt-5 rounded-[6px] border-2 border-[#151515] bg-[#FFF8EF] p-4" role="region" aria-label="Privasi fitur suara">
-                <p className="text-[15px] leading-relaxed">{VOICE_ROOM_PRIVACY_DISCLOSURE}</p>
+                <p className="text-base leading-relaxed">{VOICE_ROOM_PRIVACY_DISCLOSURE}</p>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <Button variant="secondary" onClick={() => setShowPrivacyDisclosure(false)}>BATAL</Button>
+                  <Button variant="secondary" onClick={() => setShowPrivacyDisclosure(false)}>Batal</Button>
                   <Button
                     variant="lime"
                     onClick={() => {
@@ -563,7 +563,7 @@ export default function RuangNgobrolPage() {
                     }}
                     icon={<Mic size={18} aria-hidden="true" />}
                   >
-                    LANJUTKAN
+                    Setuju, lanjutkan
                   </Button>
                 </div>
               </div>
@@ -577,35 +577,34 @@ export default function RuangNgobrolPage() {
                   onClick={handleStart}
                   disabled={!speechRecognitionSupported}
                   icon={<Mic size={20} aria-hidden="true" />}
-                  aria-label="Mulai ngobrol dengan suara"
                 >
-                  MULAI NGOBROL
+                  Mulai ngobrol
                 </Button>
               )}
               {showMute && (
-                <Button variant="secondary" onClick={handleMute} icon={<Volume2 size={18} aria-hidden="true" />} aria-label="Jeda pendengaran mikrofon">
-                  MUTE
+                <Button variant="secondary" onClick={handleMute} icon={<Volume2 size={18} aria-hidden="true" />}>
+                  Jeda mikrofon
                 </Button>
               )}
               {showResume && (
-                <Button variant="secondary" onClick={handleResume} icon={<Mic size={18} aria-hidden="true" />} aria-label="Lanjut dengarkan suara">
-                  LANJUT DENGERIN
+                <Button variant="secondary" onClick={handleResume} icon={<Mic size={18} aria-hidden="true" />}>
+                  Lanjut mendengarkan
                 </Button>
               )}
               {roomState === 'ERROR' && (
-                <Button variant="secondary" onClick={handleRetry} icon={<RotateCcw size={18} aria-hidden="true" />} aria-label="Coba lagi">
-                  COBA LAGI
+                <Button variant="secondary" onClick={handleRetry} icon={<RotateCcw size={18} aria-hidden="true" />}>
+                  Coba lagi
                 </Button>
               )}
               {isActive && (
-                <Button variant="outline" onClick={() => endRoom()} icon={<Square size={17} aria-hidden="true" />} aria-label="Selesai ruang ngobrol">
-                  SELESAI
+                <Button variant="outline" onClick={() => endRoom()} icon={<Square size={17} aria-hidden="true" />}>
+                  Selesai
                 </Button>
               )}
             </div>
 
             {!speechSynthesisSupported && speechRecognitionSupported && (
-              <p className="mt-4 text-sm leading-relaxed text-[#59544D]">Browser ini akan menampilkan respons sebagai teks; suara balasan tidak tersedia.</p>
+              <p className="mt-4 text-base leading-relaxed text-[#59544D]">Peramban ini akan menampilkan balasan sebagai teks; suara balasan tidak tersedia.</p>
             )}
           </section>
 
@@ -619,14 +618,14 @@ export default function RuangNgobrolPage() {
                 <button
                   type="button"
                   onClick={clearCaptions}
-                  className="min-h-[44px] text-sm font-bold underline underline-offset-4 decoration-2 transition-colors duration-200 ease-spring hover:text-[#4169FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2"
+                  className="min-h-[44px] text-base font-bold underline underline-offset-4 decoration-2 transition-colors duration-200 ease-spring hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
                 >
-                  Hapus tampilan percakapan
+                  Bersihkan tampilan
                 </button>
               </div>
               {captions.map((caption) => (
                 <article key={caption.id} className={`animate-reveal-up ${caption.sender === 'user' ? 'border-l-4 border-[#D8D3C9] py-1 pl-4' : 'rounded-[6px] border-2 border-[#151515] bg-white p-4 shadow-[2px_2px_0px_#151515]'}`}>
-                  <p className={`text-xs font-bold uppercase tracking-[0.05em] ${caption.sender === 'user' ? 'text-[#59544D]' : 'text-[#4169FF]'}`}>{caption.sender === 'user' ? 'KAMU' : 'DENGAR.IN'}</p>
+                  <p className={`text-sm font-bold ${caption.sender === 'user' ? 'text-[#59544D]' : 'text-[#2B51E6]'}`}>{caption.sender === 'user' ? 'Kamu' : 'Dengar.in'}</p>
                   <p className="mt-2 whitespace-pre-wrap text-base leading-[1.6]">{caption.text}</p>
                 </article>
               ))}
@@ -634,11 +633,11 @@ export default function RuangNgobrolPage() {
           )}
 
           <section className="animate-reveal-up [animation-delay:200ms] border-t border-[#D8D3C9] pt-5">
-            <Link href="/chat" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-bold underline underline-offset-4 decoration-2 transition-colors duration-200 ease-spring hover:text-[#4169FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2">
+            <Link href="/chat" className="inline-flex min-h-[44px] items-center gap-2 text-base font-bold underline underline-offset-4 decoration-2 transition-colors duration-200 ease-spring hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2">
               <MessageSquare size={18} aria-hidden="true" />
               Lebih nyaman ngetik? Buka chat teks.
             </Link>
-            <p className="mt-3 text-sm leading-relaxed text-[#59544D]">Ruang ini berhenti otomatis setelah 10 menit. Tidak ada poin, Langkah, atau pencapaian dari percakapan suara.</p>
+            <p className="mt-3 text-base leading-relaxed text-[#59544D]">Ruang ini berhenti otomatis setelah 10 menit. Tidak ada poin, Langkah, atau pencapaian dari percakapan suara.</p>
           </section>
         </ContentColumn>
       </PageContainer>

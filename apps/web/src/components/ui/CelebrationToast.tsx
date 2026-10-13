@@ -44,22 +44,22 @@ export function CelebrationToast({ celebration, onDismiss }: CelebrationToastPro
   if (!visible || !celebration) return null;
 
   const lines: string[] = [];
-  lines.push(`+${celebration.langkahAwarded} LANGKAH`);
+  lines.push(`+${celebration.langkahAwarded} Langkah`);
 
   if (celebration.levelUp !== undefined) {
     const levelName = LEVEL_THRESHOLDS[celebration.levelUp]?.name ?? '';
-    lines.push(`NAIK LEVEL: ${levelName.toUpperCase()}`);
+    lines.push(`Naik level: ${levelName}`);
   }
 
   if (celebration.newBadges && celebration.newBadges.length > 0) {
     const badgeNames = celebration.newBadges
       .map(id => BADGE_DEFINITIONS.find(b => b.id === id)?.name ?? id)
       .join(', ');
-    lines.push(`BADGE BARU: ${badgeNames.toUpperCase()}`);
+    lines.push(`Lencana baru: ${badgeNames}`);
   }
 
   if (celebration.questCompleted) {
-    lines.push('QUEST MINGGU INI SELESAI!');
+    lines.push('Target minggu ini selesai.');
   }
 
   return (
@@ -78,15 +78,15 @@ export function CelebrationToast({ celebration, onDismiss }: CelebrationToastPro
       {lines.map((line, i) => (
         <p
           key={i}
-          className={`text-[#151515] font-bold uppercase tracking-[0.05em] leading-tight ${
-            i === 0 ? 'text-base tabular-nums' : 'text-xs'
+          className={`text-[#151515] font-bold leading-tight ${
+            i === 0 ? 'text-lg tabular-nums' : 'text-sm'
           }`}
         >
           {line}
         </p>
       ))}
-      <p className="text-[13px] text-[#151515] font-medium pt-0.5">
-        Kecil, tapi kehitung.
+      <p className="text-sm text-[#151515] font-medium pt-0.5">
+        Kecil, tapi tetap dihitung.
       </p>
     </div>
   );

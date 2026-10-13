@@ -41,7 +41,7 @@ function linesToFields(text: string): EvidenceField[] {
 }
 
 const INPUT_CLASS =
-  'w-full px-4 py-3 bg-white border-2 border-[#151515] rounded-[6px] text-base leading-[1.6] font-medium text-[#151515] placeholder:text-[#8A857D] shadow-[2px_2px_0px_#151515] resize-y focus:outline-none focus:shadow-[3px_3px_0px_#4169FF]';
+  'w-full px-4 py-3 bg-white border-2 border-[#151515] rounded-[6px] text-base leading-[1.6] font-medium text-[#151515] placeholder:text-[#6B665E] shadow-[2px_2px_0px_#151515] resize-y focus:outline-none focus:shadow-[3px_3px_0px_#3357EE]';
 
 /**
  * Rules-only path for PROVIDER_UNAVAILABLE and declined AI consent. The user
@@ -103,7 +103,7 @@ export function ManualNote({ reason, provenance, warnings, onRetry, onBack, busy
         )}
       </div>
       {error && (
-        <p role="alert" className="text-sm font-bold text-[#D93838] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2 max-w-[44rem]">
+        <p role="alert" className="text-sm font-bold text-[#B3261E] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2 max-w-[44rem]">
           {error}
         </p>
       )}
@@ -126,14 +126,14 @@ export function ManualNote({ reason, provenance, warnings, onRetry, onBack, busy
             onClick={() => setReviewed((v) => !v)}
             className={`flex items-start gap-3.5 text-left w-full rounded-[6px] p-4 border-2 border-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring disabled:opacity-60 disabled:cursor-not-allowed ${
               reviewed ? 'bg-[#E6ECFF] shadow-[2px_2px_0px_#151515]' : 'bg-white hover:bg-[#FFF8EF]'
-            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF]`}
+            } focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE]`}
           >
             {reviewed ? (
-              <CheckSquare className="w-5 h-5 text-[#4169FF] shrink-0 mt-0.5" aria-hidden="true" />
+              <CheckSquare className="w-5 h-5 text-[#3357EE] shrink-0 mt-0.5" aria-hidden="true" />
             ) : (
-              <Square className="w-5 h-5 text-[#7A756D] shrink-0 mt-0.5" aria-hidden="true" />
+              <Square className="w-5 h-5 text-[#6B665E] shrink-0 mt-0.5" aria-hidden="true" />
             )}
-            <span className="text-[15px] text-[#151515] leading-snug font-medium">
+            <span className="text-base text-[#151515] leading-snug font-medium">
               Saya sudah membaca ulang catatan ini dan isinya benar menurut saya.
             </span>
           </button>
@@ -144,7 +144,7 @@ export function ManualNote({ reason, provenance, warnings, onRetry, onBack, busy
         <aside className="lg:col-span-4 space-y-4 animate-reveal-up [animation-delay:200ms]">
           <SectionCard as="div" tone="paper" elevation="low" className="space-y-2">
             <h2 className="text-base font-bold text-[#151515]">Catatan penting</h2>
-            <p className={`text-[15px] leading-relaxed ${MUTED}`}>{CARE_PASSPORT_DISCLAIMER}</p>
+            <p className={`text-base leading-relaxed ${MUTED}`}>{CARE_PASSPORT_DISCLAIMER}</p>
           </SectionCard>
           <Button variant="outline" size="md" onClick={onBack} icon={<ArrowLeft className="w-4 h-4" />} fullWidth>
             Kembali ke awal
@@ -172,7 +172,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-[13px] font-bold uppercase tracking-[0.05em] text-[#151515]">
+      <label htmlFor={id} className="block text-base font-bold text-[#151515]">
         {label}
       </label>
       <textarea id={id} value={value} onChange={(e) => onChange(e.target.value)} rows={rows} aria-describedby={`${id}-help`} className={INPUT_CLASS} />

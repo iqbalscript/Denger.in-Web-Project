@@ -31,12 +31,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseClasses =
-      'group inline-flex items-center justify-center font-bold rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color,color] duration-200 ease-spring select-none disabled:transform-none disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2';
+      'group inline-flex items-center justify-center text-center font-bold leading-tight rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color,color] duration-200 ease-spring select-none disabled:transform-none disabled:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2';
 
+    // Semua ukuran memenuhi area sentuh 44px; label tidak pernah lebih kecil dari ~16px.
     const sizeClasses = {
-      sm: 'px-3 py-1.5 text-xs min-h-[44px] sm:min-h-[40px] gap-1.5',
-      md: 'px-4 py-2 text-sm min-h-[44px] gap-2',
-      lg: 'px-6 py-3 text-base min-h-[48px] gap-2.5',
+      sm: 'px-3.5 py-2 text-sm min-h-[44px] gap-2',
+      md: 'px-5 py-2.5 text-base min-h-[48px] gap-2',
+      lg: 'px-6 py-3 text-lg min-h-[52px] gap-2.5',
     };
 
     const variantClasses = {
@@ -45,7 +46,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       secondary:
         'bg-[#FFFFFF] text-[#151515] shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
       cobalt:
-        'bg-[#4169FF] text-white shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
+        'bg-[#3357EE] text-white shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
       lime:
         'bg-[#B8F34A] text-[#151515] shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
       'calm-subtle':
@@ -55,7 +56,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ghost:
         'border-transparent shadow-none hover:bg-[#151515]/5 active:bg-[#151515]/10 text-[#151515]',
       crisis:
-        'bg-[#FF5252] text-white shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
+        'bg-[#D32F2F] text-white hover:bg-[#B3261E] shadow-[3px_3px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#151515]',
     };
 
     // PRD-DESIGN.md §12.2 disabled look; a loading button keeps its colour and just waits.

@@ -40,17 +40,17 @@ export function EvidencePicker({ entries, selectedIds, loaded, onToggle, canSele
             Privat
           </Tag>
         </div>
-        <p id={helpId} className={`text-[15px] leading-relaxed ${MUTED}`}>
+        <p id={helpId} className={`text-base leading-relaxed ${MUTED}`}>
           Jurnal dan check-in 30 hari terakhir tersimpan di perangkat ini saja. Centang yang mau kamu bawa; setiap fakta di catatan nanti akan ditautkan ke tanggalnya. Yang tidak dicentang tidak pernah dikirim.
         </p>
       </div>
 
       {!loaded ? (
-        <p className={`text-[15px] ${MUTED}`} aria-live="polite">
+        <p className={`text-base ${MUTED}`} aria-live="polite">
           Membaca jurnal dan check-in di perangkat ini…
         </p>
       ) : entries.length === 0 ? (
-        <p className={`text-[15px] leading-relaxed ${MUTED}`}>
+        <p className={`text-base leading-relaxed ${MUTED}`}>
           Belum ada jurnal atau check-in dalam 30 hari terakhir di perangkat ini. Tidak apa-apa, ceritamu saja sudah cukup.
         </p>
       ) : (
@@ -65,7 +65,7 @@ export function EvidencePicker({ entries, selectedIds, loaded, onToggle, canSele
                   htmlFor={inputId}
                   className={`flex items-start gap-3 min-h-[48px] px-3 py-2.5 rounded-[4px] border-2 border-[#151515] cursor-pointer transition-[background-color,box-shadow] duration-150 ${
                     checked ? 'bg-[#E6ECFF] shadow-[2px_2px_0px_#151515]' : 'bg-white hover:bg-[#FFF8EF]'
-                  } ${blocked || disabled ? 'opacity-60 cursor-not-allowed' : ''} has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#4169FF]`}
+                  } ${blocked || disabled ? 'opacity-60 cursor-not-allowed' : ''} has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-[#3357EE] has-[:focus-visible]:ring-offset-2`}
                 >
                   <input
                     id={inputId}
@@ -74,7 +74,7 @@ export function EvidencePicker({ entries, selectedIds, loaded, onToggle, canSele
                     disabled={disabled || blocked}
                     onChange={() => onToggle(entry)}
                     aria-describedby={blocked ? `${inputId}-blocked` : undefined}
-                    className="mt-1 w-5 h-5 shrink-0 accent-[#4169FF] focus-visible:outline-none"
+                    className="mt-0.5 w-6 h-6 shrink-0 accent-[#3357EE] focus-visible:outline-none"
                   />
                   <span className="min-w-0 flex-1 space-y-1">
                     <span className="flex flex-wrap items-center gap-1.5">
@@ -87,9 +87,9 @@ export function EvidencePicker({ entries, selectedIds, loaded, onToggle, canSele
                         </Tag>
                       )}
                     </span>
-                    <span className={`block text-[15px] leading-relaxed break-words ${MUTED}`}>{entry.preview}</span>
+                    <span className={`block text-base leading-relaxed break-words ${MUTED}`}>{entry.preview}</span>
                     {blocked && (
-                      <span id={`${inputId}-blocked`} className="block text-sm font-bold text-[#D93838]">
+                      <span id={`${inputId}-blocked`} className="block text-sm font-bold text-[#B3261E]">
                         Tidak muat: batas {budget.max} karakter atau {budget.maxCount - 1} entri sudah tercapai.
                       </span>
                     )}

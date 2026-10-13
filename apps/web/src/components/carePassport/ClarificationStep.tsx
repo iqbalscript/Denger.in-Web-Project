@@ -53,8 +53,8 @@ export function ClarificationStep({ question, provenance, remainingChars, round,
       >
         <SectionCard as="div" tone="cobalt" elevation="high" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.05em] text-[#151515]">
-              <MessageCircleQuestion className="w-4 h-4 text-[#4169FF]" aria-hidden="true" />
+            <span className="inline-flex items-center gap-1.5 text-base font-bold text-[#151515]">
+              <MessageCircleQuestion className="w-4 h-4 text-[#3357EE]" aria-hidden="true" />
               Pertanyaan
             </span>
             <span className="flex items-center gap-2">
@@ -66,7 +66,7 @@ export function ClarificationStep({ question, provenance, remainingChars, round,
         </SectionCard>
 
         <div className="space-y-1.5">
-          <label htmlFor="jawaban" className="block text-[13px] font-bold uppercase tracking-[0.05em] text-[#151515]">
+          <label htmlFor="jawaban" className="block text-base font-bold text-[#151515]">
             Jawabanmu
           </label>
           <textarea
@@ -77,17 +77,17 @@ export function ClarificationStep({ question, provenance, remainingChars, round,
             rows={5}
             aria-invalid={tooLong || undefined}
             aria-describedby="jawaban-sisa"
-            className={`w-full min-h-[140px] px-4 py-3.5 bg-white border-2 rounded-[6px] text-base leading-[1.6] font-medium text-[#151515] resize-y focus:outline-none focus:shadow-[3px_3px_0px_#4169FF] disabled:bg-[#D8D3C9]/40 disabled:cursor-wait ${
+            className={`w-full min-h-[140px] px-4 py-3.5 bg-white border-2 rounded-[6px] text-base leading-[1.6] font-medium text-[#151515] resize-y focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] disabled:bg-[#D8D3C9]/40 disabled:cursor-wait ${
               tooLong ? 'border-[#FF5252] shadow-[2px_2px_0px_#FF5252]' : 'border-[#151515] shadow-[2px_2px_0px_#151515]'
             }`}
           />
-          <p id="jawaban-sisa" className={`text-sm ${tooLong ? 'text-[#D93838] font-bold' : MUTED}`}>
+          <p id="jawaban-sisa" className={`text-sm ${tooLong ? 'text-[#B3261E] font-bold' : MUTED}`}>
             {tooLong ? `Kelebihan ${answer.length - room} karakter.` : `${room - answer.length} karakter tersisa.`}
           </p>
         </div>
 
         {error && (
-          <p role="alert" className="text-sm font-bold text-[#D93838] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2">
+          <p role="alert" className="text-sm font-bold text-[#B3261E] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2">
             {error}
           </p>
         )}

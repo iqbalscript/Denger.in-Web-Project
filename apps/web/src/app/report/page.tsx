@@ -41,7 +41,7 @@ const MOOD_META: Record<MoodScore, { label: string; icon: React.ReactNode; color
   baik: { label: 'Baik', icon: <Smile className="w-4 h-4 text-white" aria-hidden="true" />, color: 'bg-cobalt text-white border-2 border-ink shadow-hard-sm', score: 4 },
   netral: { label: 'Netral', icon: <Meh className="w-4 h-4 text-ink" aria-hidden="true" />, color: 'bg-yellow text-ink border-2 border-ink shadow-hard-sm', score: 3 },
   berat: { label: 'Cukup Berat', icon: <Frown className="w-4 h-4 text-ink" aria-hidden="true" />, color: 'bg-tangerine text-ink border-2 border-ink shadow-hard-sm', score: 2 },
-  kewalahan: { label: 'Kewalahan', icon: <Frown className="w-4 h-4 text-white" aria-hidden="true" />, color: 'bg-coral text-white border-2 border-ink shadow-hard-sm', score: 1 }
+  kewalahan: { label: 'Kewalahan', icon: <Frown className="w-4 h-4 text-white" aria-hidden="true" />, color: 'bg-[#D32F2F] text-white border-2 border-ink shadow-hard-sm', score: 1 }
 };
 
 interface DaySlot {
@@ -198,18 +198,19 @@ Catatan: ${summary.encouragementNote}
             href="/dashboard"
             variant="outline"
             size="sm"
-            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+            icon={<ArrowLeft className="w-4 h-4" />}
           >
-            Kembali ke dashboard
+            Kembali ke beranda
           </Button>
 
           <Button
             variant="primary"
             size="sm"
-            icon={copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             onClick={handleCopySummary}
+            disabled={!summary}
           >
-            {copied ? 'TERSALIN' : 'SALIN LAPORAN'}
+            {copied ? 'Tersalin' : 'Salin laporan'}
           </Button>
         </div>
 
@@ -217,7 +218,7 @@ Catatan: ${summary.encouragementNote}
         <div className="space-y-4 max-w-2xl animate-reveal-up [animation-delay:80ms]">
           <Badge variant="calm" size="md">
             <BarChart3 className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
-            Laporan Kemajuan Mingguan (Follow-Up)
+            Laporan mingguan
           </Badge>
           <h1 className="text-[2.25rem] sm:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
             Rangkuman &amp; refleksi <span className="tabular-nums">7</span> hari
@@ -231,33 +232,33 @@ Catatan: ${summary.encouragementNote}
         {/* 2. Primary Progress Visualization Cards */}
         <div className="lg:col-span-4 lg:order-2 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4 animate-reveal-up [animation-delay:240ms]">
           <div className="bg-white border border-[#D8D3C9] rounded-lg p-5 space-y-3 text-left">
-            <div className="flex items-center justify-between text-xs text-[#59544D] font-bold uppercase tracking-[0.05em]">
-              <span>Keteraturan Check-in</span>
-              <Calendar className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" />
+            <div className="flex items-center justify-between text-sm text-[#59544D] font-bold">
+              <span>Keteraturan check-in</span>
+              <Calendar className="w-4 h-4 text-cobalt" aria-hidden="true" />
             </div>
-            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">{activeDaysCount} / 7 Hari</p>
-            <ProgressBar value={consistencyPercent} max={100} />
-            <span className="text-xs text-cobalt font-semibold block tabular-nums">{consistencyPercent}% hari aktif</span>
+            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">{activeDaysCount} dari 7 hari</p>
+            <ProgressBar value={consistencyPercent} max={100} label="Keteraturan check-in" className="[&>div:first-child]:sr-only" />
+            <span className="text-sm text-[#2B51E6] font-semibold block tabular-nums">{consistencyPercent}% hari aktif</span>
           </div>
 
           <div className="bg-white border border-[#D8D3C9] rounded-lg p-5 space-y-3 text-left">
-            <div className="flex items-center justify-between text-xs text-[#59544D] font-bold uppercase tracking-[0.05em]">
-              <span>Misi Harian</span>
-              <Target className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" />
+            <div className="flex items-center justify-between text-sm text-[#59544D] font-bold">
+              <span>Misi harian</span>
+              <Target className="w-4 h-4 text-cobalt" aria-hidden="true" />
             </div>
             <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">Hari ke-{currentDay}</p>
-            <ProgressBar value={Math.min(100, Math.round((currentDay / 14) * 100))} max={100} />
-            <span className="text-xs text-cobalt font-semibold block tabular-nums">dari 14 hari rencana</span>
+            <ProgressBar value={Math.min(100, Math.round((currentDay / 14) * 100))} max={100} label="Kemajuan misi 14 hari" className="[&>div:first-child]:sr-only" />
+            <span className="text-sm text-[#2B51E6] font-semibold block tabular-nums">dari 14 hari rencana</span>
           </div>
 
           <div className="bg-white border border-[#D8D3C9] rounded-lg p-5 space-y-3 text-left">
-            <div className="flex items-center justify-between text-xs text-[#59544D] font-bold uppercase tracking-[0.05em]">
-              <span>Refleksi Jurnal</span>
-              <BookOpen className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" />
+            <div className="flex items-center justify-between text-sm text-[#59544D] font-bold">
+              <span>Catatan jurnal</span>
+              <BookOpen className="w-4 h-4 text-cobalt" aria-hidden="true" />
             </div>
-            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">{journalCount} Catatan</p>
-            <ProgressBar value={Math.min(100, journalCount * 25)} max={100} />
-            <span className="text-xs text-cobalt font-semibold block tabular-nums">Tersimpan lokal di peramban</span>
+            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">{journalCount} catatan</p>
+            <ProgressBar value={Math.min(100, journalCount * 25)} max={100} label="Jumlah catatan jurnal" className="[&>div:first-child]:sr-only" />
+            <span className="text-sm text-[#2B51E6] font-semibold block tabular-nums">Tersimpan di perangkat ini</span>
           </div>
         </div>
 
@@ -268,7 +269,7 @@ Catatan: ${summary.encouragementNote}
               <TrendingUp className="w-4 h-4 text-cobalt" aria-hidden="true" />
               <span>Tren suasana hati 7 hari terakhir</span>
             </h2>
-            <span className="text-xs text-[#59544D] font-bold uppercase tracking-wider">Check-in harian</span>
+            <span className="text-sm text-[#59544D] font-bold">Dari check-in harian</span>
           </div>
 
           <div className="grid grid-cols-7 gap-2 pt-2">
@@ -279,7 +280,11 @@ Catatan: ${summary.encouragementNote}
 
               return (
                 <div key={idx} className="flex flex-col items-center gap-2">
-                  <div className="h-36 sm:h-44 w-full bg-paper rounded-md flex flex-col justify-end p-1.5 border border-[#D8D3C9] relative group">
+                  <div
+                    className="h-36 sm:h-44 w-full bg-paper rounded-md flex flex-col justify-end p-1.5 border border-[#D8D3C9] relative group"
+                    role="img"
+                    aria-label={checkin ? `${slot.dayLabel}: ${meta?.label}, energi ${checkin.energyLevel} dari 10` : `${slot.dayLabel}: belum ada check-in`}
+                  >
                     {checkin ? (
                       <div
                         style={{ height: `${heightPercent}%` }}
@@ -289,11 +294,11 @@ Catatan: ${summary.encouragementNote}
                         {meta?.icon}
                       </div>
                     ) : (
-                      <div className="h-4 w-full rounded border border-dashed border-[#C5BFB4]" aria-label={`${slot.dayLabel}: belum ada check-in`} />
+                      <div className="h-4 w-full rounded border border-dashed border-[#C5BFB4]" aria-hidden="true" />
                     )}
                   </div>
 
-                  <span className="text-[11px] sm:text-xs text-ink font-semibold">
+                  <span className="text-sm text-ink font-semibold" aria-hidden="true">
                     {slot.dayLabel.split(' ')[0]}
                   </span>
                 </div>
@@ -301,15 +306,15 @@ Catatan: ${summary.encouragementNote}
             })}
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-3 border-t border-[#D8D3C9] text-xs text-[#59544D] font-semibold">
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-3 border-t border-[#D8D3C9] text-sm text-[#59544D] font-semibold">
             <span className="flex items-center gap-1.5">
-              <Smile className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" /> Positif / tenang
+              <Smile className="w-4 h-4 text-cobalt" aria-hidden="true" /> Batang tinggi = tenang
             </span>
             <span className="flex items-center gap-1.5">
-              <Meh className="w-3.5 h-3.5 text-ink" aria-hidden="true" /> Netral
+              <Meh className="w-4 h-4 text-ink" aria-hidden="true" /> Sedang = biasa saja
             </span>
             <span className="flex items-center gap-1.5">
-              <Frown className="w-3.5 h-3.5 text-coral" aria-hidden="true" /> Butuh perhatian
+              <Frown className="w-4 h-4 text-[#B3261E]" aria-hidden="true" /> Pendek = butuh perhatian
             </span>
           </div>
         </div>
@@ -331,8 +336,8 @@ Catatan: ${summary.encouragementNote}
                   className="px-3 py-1.5 rounded bg-paper border border-[#D8D3C9] text-sm font-semibold text-ink flex items-center gap-2"
                 >
                   <span>{tag}</span>
-                  <span className="text-xs bg-yellow border border-ink px-1.5 py-0.5 rounded font-bold tabular-nums">
-                    {count}x
+                  <span className="text-sm bg-yellow border border-ink px-1.5 py-0.5 rounded font-bold tabular-nums">
+                    {count} kali
                   </span>
                 </div>
               ))}
@@ -362,7 +367,7 @@ Catatan: ${summary.encouragementNote}
                 {summary?.keyObservation ||
                   'Minggu ini kamu terus berusaha memberi ruang jeda untuk pikiran dan tubuhmu, dan itu layak dihargai.'}
               </p>
-              <p className="text-[15px] sm:text-base text-ink leading-relaxed font-medium bg-[#FFF4CC] p-4 rounded-md border-l-4 border-yellow">
+              <p className="text-base sm:text-base text-ink leading-relaxed font-medium bg-[#FFF4CC] p-4 rounded-md border-l-4 border-yellow">
                 <Sprout className="inline w-4 h-4 mr-1 align-[-3px] text-[#151515]" aria-hidden="true" /><strong className="font-bold">Pesan untukmu:</strong> {summary?.encouragementNote}
               </p>
             </div>
@@ -377,9 +382,9 @@ Catatan: ${summary.encouragementNote}
               <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex flex-wrap items-center gap-2">
                 <BookOpen className="w-4 h-4 text-cobalt" aria-hidden="true" />
                 <span>Refleksi mingguan</span>
-                <span className="text-xs font-bold uppercase tracking-wider bg-yellow border border-ink px-1.5 py-0.5 rounded tabular-nums">+20 Langkah</span>
+                <span className="text-sm font-bold bg-yellow border border-ink px-1.5 py-0.5 rounded tabular-nums">+20 Langkah</span>
               </h2>
-              <p id="petunjuk-refleksi" className="text-[15px] text-[#59544D] leading-relaxed">
+              <p id="petunjuk-refleksi" className="text-base text-[#59544D] leading-relaxed">
                 Apa satu hal yang paling kamu sadari atau pelajari tentang dinamika emosimu selama sepekan terakhir?
               </p>
             </div>
@@ -426,7 +431,7 @@ Catatan: ${summary.encouragementNote}
               )}
               {crisis.isCrisis && <CrisisBlockedNote id="refleksi-krisis-catatan" />}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <span id="hitungan-refleksi" className="text-xs text-[#59544D] font-semibold tabular-nums" aria-live="polite">
+                <span id="hitungan-refleksi" className="text-sm text-[#59544D] font-semibold tabular-nums" aria-live="polite">
                   {weeklyReflectionText.trim().length < 20 ? (
                     `${weeklyReflectionText.trim().length}/20 karakter minimal`
                   ) : (
@@ -460,12 +465,12 @@ Catatan: ${summary.encouragementNote}
               <span>Refleksi minggu ini telah tersimpan</span>
             </div>
             {savedWeeklyReflection && (
-              <p className="text-[15px] text-ink italic bg-white p-3 rounded border border-ink">
+              <p className="text-base text-ink italic bg-white p-3 rounded border border-ink">
                 &quot;{savedWeeklyReflection}&quot;
               </p>
             )}
-            <p className="text-sm text-ink">
-              Terima kasih sudah meluangkan waktu untuk mengevaluasi diri secara bermakna.
+            <p className="text-base text-ink">
+              Terima kasih sudah meluangkan waktu untuk melihat kembali minggumu.
             </p>
           </div>
         )}
@@ -473,7 +478,7 @@ Catatan: ${summary.encouragementNote}
         {/* 6. Next Focus */}
         <Reveal className="rounded-lg border-2 border-ink bg-lime p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-hard text-left">
           <div className="space-y-1.5 max-w-md">
-            <span className="text-xs font-bold uppercase tracking-wider text-ink">
+            <span className="text-sm font-bold text-ink">
               Fokus minggu depan
             </span>
             <p className="text-base sm:text-lg font-bold text-ink leading-[1.35]">

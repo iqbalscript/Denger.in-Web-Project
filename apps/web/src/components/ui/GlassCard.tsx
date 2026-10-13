@@ -16,7 +16,7 @@ export function GlassCard({
 }: GlassCardProps) {
   const tintClasses = {
     none: 'bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#151515]',
-    calm: 'bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#4169FF]',
+    calm: 'bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#3357EE]',
     warm: 'bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#FF8A3D]',
   };
 

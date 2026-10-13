@@ -102,16 +102,16 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             {/* Left Column: Hero Content */}
             <div className="lg:col-span-7 space-y-6 text-left">
-              <div className="animate-reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-[4px] bg-[#B8F34A] border-2 border-[#151515] text-[#151515] text-xs font-bold shadow-[2px_2px_0px_#151515]">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#151515]" aria-hidden="true" />
-                <span className="uppercase tracking-wider">100% anonim, tanpa akun</span>
+              <div className="animate-reveal-up inline-flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-[#B8F34A] border-2 border-[#151515] text-[#151515] text-sm font-bold shadow-[2px_2px_0px_#151515]">
+                <ShieldCheck className="w-4 h-4 text-[#151515]" aria-hidden="true" />
+                <span>100% anonim, tanpa akun</span>
               </div>
 
               {/* Display Headline per PRD-DESIGN.md */}
-              <h1 id="judul-utama" className="animate-reveal-up [animation-delay:80ms] text-[2.5rem] sm:text-5xl lg:text-[4rem] font-bold text-[#151515] tracking-[-0.03em] leading-[1.02] uppercase">
-                GAK HARUS <br />
-                BERES SEMUANYA <br />
-                <span className="text-[#4169FF] underline decoration-[#B8F34A] decoration-4 underline-offset-4">HARI INI.</span>
+              <h1 id="judul-utama" className="animate-reveal-up [animation-delay:80ms] text-[2rem] sm:text-5xl lg:text-[4rem] font-bold text-[#151515] tracking-[-0.03em] leading-[1.05] uppercase">
+                Gak harus <br />
+                beres semuanya <br />
+                <span className="text-[#2B51E6] underline decoration-[#B8F34A] decoration-4 underline-offset-4">hari ini.</span>
               </h1>
 
               <p className="animate-reveal-up [animation-delay:160ms] text-lg sm:text-xl text-[#4A453E] max-w-[34rem] font-medium leading-[1.45]">
@@ -127,9 +127,9 @@ export default function LandingPage() {
                   fullWidth
                   icon={<ArrowRight className="w-4 h-4" />}
                   iconPosition="end"
-                  className="text-[#151515] font-bold uppercase tracking-wide flex-1 sm:flex-initial whitespace-nowrap"
+                  className="text-[#151515] font-bold flex-1 sm:flex-initial"
                 >
-                  Mulai Tanpa Akun
+                  Mulai tanpa akun
                 </Button>
 
                 <Button
@@ -137,28 +137,30 @@ export default function LandingPage() {
                   variant="secondary"
                   size="lg"
                   fullWidth
-                  icon={<PhoneCall className="w-4 h-4 text-[#FF5252]" />}
-                  className="font-bold uppercase tracking-wide flex-1 sm:flex-initial whitespace-nowrap"
+                  icon={<PhoneCall className="w-4 h-4 text-[#B3261E]" />}
+                  className="font-bold flex-1 sm:flex-initial"
                 >
-                  Bantuan Darurat
+                  Bantuan darurat
                 </Button>
               </div>
 
               {/* QUICK MOOD CHECK-IN WIDGET ON LANDING */}
               <div className="animate-reveal-up [animation-delay:240ms] mt-2 p-4 sm:p-5 rounded-[6px] bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#151515] space-y-3 max-w-xl" role="group" aria-labelledby="label-mood-cepat">
                 <div className="flex items-center justify-between">
-                  <span id="label-mood-cepat" className="text-sm font-bold text-[#151515] flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-[#4169FF]" aria-hidden="true" />
-                    Apa kabar hatimu hari ini?
+                  <span id="label-mood-cepat" className="text-base font-bold text-[#151515] flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-[#3357EE]" aria-hidden="true" />
+                    Apa kabar hatimu hari ini? Ketuk salah satu.
                   </span>
+                </div>
+                <p role="status" aria-live="polite" className="min-h-[1.5rem] text-sm font-bold text-[#151515]">
                   {moodSavedNotice && (
-                    <span role="status" className="text-[11px] font-bold text-[#151515] bg-[#B8F34A] px-2 py-0.5 rounded-[2px] border border-[#151515] flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" aria-hidden="true" /> Tersimpan
+                    <span className="inline-flex items-center gap-1 bg-[#B8F34A] px-2 py-0.5 rounded-[2px] border border-[#151515]">
+                      <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> Tersimpan di perangkat ini
                     </span>
                   )}
-                </div>
+                </p>
 
-                <div className="grid grid-cols-5 gap-2 pt-1">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-1">
                   {moodOptions.map((m) => {
                     const isSelected = selectedQuickMood === m.id;
                     return (
@@ -170,19 +172,19 @@ export default function LandingPage() {
                         style={{
                           backgroundColor: isSelected ? m.color : '#FFFFFF',
                         }}
-                        className={`py-2 px-1 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[64px] ${isSelected
+                        className={`py-2.5 px-1.5 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[76px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${isSelected
                             ? 'shadow-[2px_2px_0px_#151515] -translate-x-[1px] -translate-y-[1px]'
                             : 'hover:bg-[#FFF8EF] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515] active:translate-x-0 active:translate-y-0 active:shadow-none'
                           }`}
                       >
-                        <MoodIcon mood={m.id} className="w-6 h-6 text-[#151515]" />
-                        <span className="text-[11px] sm:text-xs text-center font-semibold leading-tight truncate w-full text-[#151515]">{m.label}</span>
+                        <MoodIcon mood={m.id} className="w-7 h-7 text-[#151515]" />
+                        <span className="text-sm text-center font-bold leading-tight w-full text-[#151515] break-words">{m.label}</span>
                       </button>
                     );
                   })}
                 </div>
-                <p className="flex items-center gap-1.5 text-[13px] text-[#59544D]">
-                  <Lock className="w-3.5 h-3.5 text-[#2B51E6] shrink-0" aria-hidden="true" />
+                <p className="flex items-center gap-1.5 text-sm text-[#59544D]">
+                  <Lock className="w-4 h-4 text-[#2B51E6] shrink-0" aria-hidden="true" />
                   Pilihanmu hanya tersimpan di perangkat ini.
                 </p>
               </div>
@@ -191,9 +193,9 @@ export default function LandingPage() {
 
             {/* Right Column: Abstract Colorful Neo-Brutalist Composition */}
             <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-reveal-up [animation-delay:320ms]">
-              <div className="relative w-full max-w-[340px] sm:max-w-[380px] p-6 bg-[#4169FF] border-2 border-[#151515] shadow-[6px_6px_0px_#151515] rounded-[8px] space-y-4 text-left text-white">
-                <div className="inline-block px-2.5 py-1 bg-[#B8F34A] text-[#151515] border-2 border-[#151515] font-bold text-xs uppercase tracking-wider rounded-[4px] shadow-[2px_2px_0px_#151515]">
-                  Ruang Aman Anonim
+              <div className="relative w-full max-w-[340px] sm:max-w-[380px] p-6 bg-[#3357EE] border-2 border-[#151515] shadow-[6px_6px_0px_#151515] rounded-[8px] space-y-4 text-left text-white">
+                <div className="inline-block px-2.5 py-1 bg-[#B8F34A] text-[#151515] border-2 border-[#151515] font-bold text-sm rounded-[4px] shadow-[2px_2px_0px_#151515]">
+                  Ruang aman anonim
                 </div>
 
                 <p className="text-2xl sm:text-[1.75rem] font-bold tracking-[-0.02em] leading-[1.15]">
@@ -202,17 +204,17 @@ export default function LandingPage() {
                   diurai perlahan.
                 </p>
 
-                <p className="text-sm text-white leading-relaxed">
+                <p className="text-base text-white leading-relaxed">
                   Dengar.in bukan diagnosis medis, melainkan teman refleksi yang mendengarkan tanpa menghakimi dan menemanimu mengambil satu langkah kecil hari ini.
                 </p>
 
                 {/* Sub-card composition element */}
                 <div className="p-3.5 bg-white text-[#151515] border-2 border-[#151515] shadow-[3px_3px_0px_#151515] rounded-[4px] space-y-1 md:-ml-10 md:translate-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold uppercase">
-                    <span>Misi Hari Ini</span>
-                    <span className="text-[#4169FF] tabular-nums">5 Menit</span>
+                  <div className="flex items-center justify-between text-sm font-bold">
+                    <span>Misi hari ini</span>
+                    <span className="text-[#2B51E6] tabular-nums">5 menit</span>
                   </div>
-                  <p className="text-sm text-[#59544D] leading-relaxed">
+                  <p className="text-base text-[#59544D] leading-relaxed">
                     “Berhenti sejenak. Tarik napas 4 detik, embuskan pelan 4 detik. Tidak perlu terburu-buru.”
                   </p>
                 </div>
@@ -268,11 +270,11 @@ export default function LandingPage() {
                       >
                         {pillar.label}
                       </h3>
-                      <p className={`text-[15px] font-semibold leading-snug ${surface.tagline}`}>
+                      <p className={`text-base font-semibold leading-snug ${surface.tagline}`}>
                         {pillar.tagline}
                       </p>
                     </div>
-                    <p className={`leading-relaxed ${surface.body} ${isLead ? 'text-base sm:text-lg max-w-[32rem]' : 'text-[15px]'}`}>
+                    <p className={`leading-relaxed ${surface.body} ${isLead ? 'text-base sm:text-lg max-w-[32rem]' : 'text-base'}`}>
                       {pillar.description}
                     </p>
                   </div>
@@ -302,11 +304,11 @@ export default function LandingPage() {
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10 text-left">
             {AGE_GROUPS.map((group, index) => (
               <Reveal as="li" key={group.range} delay={index * 80} className="border-t-2 border-[#151515] pt-4 space-y-2">
-                <span className="block text-xs font-bold text-[#4169FF] uppercase tracking-[0.05em] tabular-nums">
+                <span className="block text-sm font-bold text-[#2B51E6] tabular-nums">
                   {group.range}
                 </span>
                 <h3 className="font-bold text-lg text-[#151515] leading-[1.25]">{group.title}</h3>
-                <p className="text-[15px] text-[#59544D] leading-relaxed">{group.body}</p>
+                <p className="text-base text-[#59544D] leading-relaxed">{group.body}</p>
               </Reveal>
             ))}
           </ul>
@@ -318,13 +320,13 @@ export default function LandingPage() {
         <PageContainer size="default">
           <div className="rounded-[8px] border-2 border-[#151515] bg-[#FFEBEB] p-6 sm:p-10 shadow-[4px_4px_0px_#151515] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-left">
             <div className="space-y-3 max-w-2xl">
-              <span className="inline-block text-xs font-bold uppercase tracking-wider text-white bg-[#FF5252] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
-                Pintu Keamanan Pertama
+              <span className="inline-block text-sm font-bold text-white bg-[#D32F2F] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
+                Pintu keamanan pertama
               </span>
               <h2 id="judul-krisis" className="text-2xl sm:text-[1.75rem] font-bold text-[#151515] tracking-[-0.01em] leading-[1.2] pt-1">
                 Kalau terasa terlalu berat, bantuan manusia langsung ada
               </h2>
-              <p className="text-[15px] sm:text-base text-[#4A453E] leading-relaxed">
+              <p className="text-base sm:text-base text-[#4A453E] leading-relaxed">
                 Kalau tulisanmu menunjukkan kamu sedang dalam bahaya atau ingin melukai diri, kami langsung
                 menghentikan alur biasa dan menampilkan kontak bantuan: Healing119 dari Kemenkes (119 ext 8) dan
                 LISA Helpline. Deteksinya memakai aturan tetap, bukan AI, jadi tidak ada yang menunda bantuan untukmu.
@@ -339,9 +341,9 @@ export default function LandingPage() {
                 size="md"
                 fullWidth
                 icon={<PhoneCall className="w-4 h-4" />}
-                className="w-full sm:w-auto min-h-[48px]"
+                className="w-full sm:w-auto"
               >
-                Bantuan Darurat
+                Bantuan darurat
               </Button>
             </div>
           </div>

@@ -28,21 +28,21 @@ export function SupportPathwayCard({ pathway, className = '' }: SupportPathwayCa
   return (
     <section
       aria-label={pathway.title}
-      className={`p-3 rounded-md bg-white border-2 border-ink shadow-hard-sm text-sm space-y-2.5 ${className}`.trim()}
+      className={`p-4 rounded-md bg-white border-2 border-ink shadow-hard-sm text-base space-y-3 ${className}`.trim()}
     >
-      <div className="flex items-center gap-1.5 font-bold text-sm text-ink leading-snug">
+      <div className="flex items-center gap-1.5 font-bold text-base text-ink leading-snug">
         <LifeBuoy className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
         <span>{pathway.title}</span>
       </div>
-      <p className="text-[#59544D] text-sm leading-relaxed">{pathway.message}</p>
+      <p className="text-[#59544D] text-base leading-relaxed">{pathway.message}</p>
       {pathway.contacts.length > 0 && (
         <ul className="space-y-1.5">
           {pathway.contacts.map((contact) => (
             <li key={contact.id} className="rounded border border-ink bg-paper px-2.5 py-1.5">
               <p className="font-semibold text-ink leading-snug">{contact.name}</p>
-              <p className="text-xs text-[#59544D] leading-snug">
+              <p className="text-sm text-[#59544D] leading-snug">
                 {contact.phone && (
-                  <a href={`tel:${contact.phone.replace(/\s*ext\s*/i, ',').replace(/[^\d+,]/g, '')}`} className="font-semibold text-ink underline underline-offset-2">
+                  <a href={`tel:${contact.phone.replace(/\s*ext\s*/i, ',').replace(/[^\d+,]/g, '')}`} className="inline-flex items-center min-h-[44px] font-bold text-ink underline underline-offset-4 decoration-2">
                     {contact.phone}
                   </a>
                 )}
@@ -60,7 +60,7 @@ export function SupportPathwayCard({ pathway, className = '' }: SupportPathwayCa
             href={link.href}
             size="sm"
             variant={link.href === '/resources' ? 'primary' : 'outline'}
-            className="text-xs min-h-[44px]"
+            className="min-h-[44px]"
             iconPosition="end"
             icon={<ArrowRight className="w-3.5 h-3.5" />}
           >

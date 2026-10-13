@@ -99,7 +99,7 @@ export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit,
           </ol>
 
           {error && (
-            <p role="alert" className="text-sm font-bold text-[#D93838] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2">
+            <p role="alert" className="text-sm font-bold text-[#B3261E] border-2 border-[#FF5252] bg-[#FFEBEB] rounded-[4px] px-3 py-2">
               {error}
             </p>
           )}
@@ -129,7 +129,7 @@ export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit,
           <SectionCard as="div" tone="paper" elevation="low" className="space-y-3">
             <h2 className="text-base font-bold text-[#151515]">Terdeteksi ({allFindings.length})</h2>
             {allFindings.length === 0 ? (
-              <p className={`text-[15px] leading-relaxed ${MUTED}`}>Tidak ada yang terdeteksi.</p>
+              <p className={`text-base leading-relaxed ${MUTED}`}>Tidak ada yang terdeteksi.</p>
             ) : (
               <ul className="space-y-2">
                 {segments.flatMap((segment) =>
@@ -144,17 +144,17 @@ export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit,
                           aria-disabled={!f.canKeep || undefined}
                           onClick={() => f.canKeep && onToggle(f)}
                           title={f.canKeep ? undefined : 'Jenis ini selalu disamarkan'}
-                          className={`w-full flex items-center justify-between gap-3 text-left min-h-[48px] px-3 py-2 rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] ${
+                          className={`w-full flex items-center justify-between gap-3 text-left min-h-[48px] px-3 py-2 rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${
                             !f.canKeep ? 'bg-[#F1ECE3] cursor-not-allowed shadow-none' : visible ? 'bg-[#FFF2D6] shadow-none' : 'bg-white shadow-[2px_2px_0px_#151515]'
                           }`}
                         >
                           <span className="min-w-0">
-                            <span className="block text-[11px] font-bold uppercase tracking-[0.05em] text-[#59544D]">
+                            <span className="block text-sm font-bold text-[#59544D]">
                               {PII_KIND_LABELS[f.kind]} · {where}
                             </span>
-                            <span className="block text-[15px] font-bold text-[#151515] truncate">{f.match}</span>
+                            <span className="block text-base font-bold text-[#151515] truncate">{f.match}</span>
                           </span>
-                          <span className="inline-flex items-center gap-1 text-xs font-bold shrink-0">
+                          <span className="inline-flex items-center gap-1 text-sm font-bold shrink-0">
                             {!f.canKeep ? (
                               <>
                                 <Lock className="w-4 h-4" aria-hidden="true" />
@@ -183,7 +183,7 @@ export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit,
 
           <SectionCard as="div" tone="white" elevation="low" className="space-y-2">
             <h2 className="text-base font-bold text-[#151515]">Yang mungkin terlewat</h2>
-            <p className={`text-[15px] leading-relaxed ${MUTED}`}>
+            <p className={`text-base leading-relaxed ${MUTED}`}>
               Pendeteksi ini bekerja dengan pola, bukan pemahaman. Yang sering lolos: nomor telepon rumah, nama yang ditulis huruf kecil, alamat tanpa kata &quot;Jl.&quot;, nama sekolah atau kantor, dan julukan. Kalau ada di jurnal atau check-in, lebih aman tidak menyertakan entrinya.
             </p>
           </SectionCard>

@@ -46,17 +46,17 @@ export function MissionCard({
         </div>
 
         {isCompleted ? (
-          <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#151515] bg-[#B8F34A] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
+          <span className="inline-flex items-center gap-1 text-sm font-bold text-[#151515] bg-[#B8F34A] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
             <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Selesai</span>
           </span>
         ) : isInProgress ? (
-          <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#151515] bg-[#FFD84D] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
+          <span className="inline-flex items-center gap-1 text-sm font-bold text-[#151515] bg-[#FFD84D] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
             <Clock className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Sedang Berjalan</span>
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#151515] bg-[#FFF8EF] px-2.5 py-1 rounded-[4px] border-2 border-[#151515]">
+          <span className="inline-flex items-center gap-1 text-sm font-bold text-[#151515] bg-[#FFF8EF] px-2.5 py-1 rounded-[4px] border-2 border-[#151515]">
             <span>Rekomendasi</span>
           </span>
         )}
@@ -65,12 +65,12 @@ export function MissionCard({
       <h3 className="text-lg sm:text-xl font-bold text-[#151515] mb-1.5 tracking-[-0.01em] leading-[1.25]">
         {title}
       </h3>
-      <p className="text-[15px] text-[#59544D] mb-5 leading-relaxed line-clamp-2">
+      <p className="text-base text-[#59544D] mb-5 leading-relaxed line-clamp-2">
         {description}
       </p>
 
       <div className="mt-auto flex items-center justify-between gap-3 pt-4 border-t border-[#D8D3C9]">
-        <div className="text-[13px] text-[#59544D] font-semibold tabular-nums">
+        <div className="text-sm text-[#59544D] font-semibold tabular-nums">
           {stepsCount > 0 && (
             <span>
               {completedStepsCount} / {stepsCount} langkah selesai

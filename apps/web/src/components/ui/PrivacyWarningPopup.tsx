@@ -20,9 +20,30 @@ export function PrivacyWarningPopup() {
     return () => returnFocusRef.current?.focus?.();
   }, [isVisible]);
 
-  // Keep Tab inside the dialog. Escape is left alone on purpose: it is the
-  // app-wide Quick Exit shortcut (QuickExitButton) and must keep working here.
+  const handleDismiss = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(STORAGE_KEY, 'true');
+        } catch {
+          // Penyimpanan diblokir (mode privat): popup cukup ditutup untuk sesi ini.
+        }
+      }
+    }, 300);
+  };
+
+  // Tab tetap di dalam dialog. Escape menutup dialog ini (standar yang
+  // diharapkan pengguna); preventDefault membuat Keluar Cepat (QuickExitButton)
+  // mengabaikannya, jadi menutup peringatan tidak melempar orang ke luar situs.
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      handleDismiss();
+      return;
+    }
     if (event.key !== 'Tab' || !dialogRef.current) return;
     const focusable = dialogRef.current.querySelectorAll<HTMLElement>('button, [href], [tabindex]:not([tabindex="-1"])');
     if (focusable.length === 0) return;
@@ -39,7 +60,12 @@ export function PrivacyWarningPopup() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const dismissed = localStorage.getItem(STORAGE_KEY);
+      let dismissed: string | null = null;
+      try {
+        dismissed = localStorage.getItem(STORAGE_KEY);
+      } catch {
+        dismissed = null;
+      }
       if (!dismissed) {
         // Small delay so the page loads first, then popup appears with animation
         const timer = setTimeout(() => setIsVisible(true), 600);
@@ -47,16 +73,6 @@ export function PrivacyWarningPopup() {
       }
     }
   }, []);
-
-  const handleDismiss = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setIsVisible(false);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, 'true');
-      }
-    }, 300);
-  };
 
   if (!isVisible) return null;
 
@@ -79,13 +95,13 @@ export function PrivacyWarningPopup() {
         aria-modal="true"
         aria-labelledby="privacy-warning-title"
         aria-describedby="privacy-warning-desc"
-        className={`fixed inset-0 z-[61] flex items-center justify-center p-4 transition-[opacity,transform] duration-300 ${
+        className={`fixed inset-0 z-[61] flex items-center justify-center p-3 sm:p-4 transition-[opacity,transform] duration-300 ${
           isClosing
             ? 'opacity-0 scale-95'
             : 'opacity-100 scale-100'
         }`}
       >
-        <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
+        <div className="relative w-full max-w-md max-h-[calc(100dvh-1.5rem)] overflow-y-auto bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
           {/* Warning accent bar */}
           <div className="h-2 w-full bg-[#FFD84D]" aria-hidden="true" />
 
@@ -93,16 +109,16 @@ export function PrivacyWarningPopup() {
           <button
             type="button"
             onClick={handleDismiss}
-            className="absolute top-4 right-4 inline-flex items-center justify-center w-11 h-11 rounded-[4px] border-2 border-[#151515] bg-white hover:bg-[#FFF8EF] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] transition-all duration-120"
+            className="absolute top-4 right-4 inline-flex items-center justify-center w-11 h-11 rounded-[4px] border-2 border-[#151515] bg-white hover:bg-[#FFF8EF] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] transition-all duration-120 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
             aria-label="Tutup peringatan"
           >
-            <X className="w-4 h-4 text-[#151515]" aria-hidden="true" />
+            <X className="w-5 h-5 text-[#151515]" aria-hidden="true" />
           </button>
 
-          <div className="p-6 sm:p-8 space-y-5">
+          <div className="p-5 sm:p-8 space-y-5">
             {/* Icon + Title */}
             <div className="flex items-start gap-3 pr-12">
-              <div className="shrink-0 w-11 h-11 rounded-[4px] bg-[#FFD84D] border-2 border-[#151515] flex items-center justify-center shadow-[2px_2px_0px_#151515]">
+              <div className="shrink-0 w-11 h-11 rounded-[4px] bg-[#FFD84D] border-2 border-[#151515] flex items-center justify-center shadow-[2px_2px_0px_#151515]" aria-hidden="true">
                 <ShieldAlert className="w-5 h-5 text-[#151515]" aria-hidden="true" />
               </div>
               <div className="space-y-1">
@@ -110,10 +126,10 @@ export function PrivacyWarningPopup() {
                   id="privacy-warning-title"
                   className="text-xl sm:text-2xl font-bold text-[#151515] tracking-[-0.01em] leading-[1.2]"
                 >
-                  Peringatan privasi
+                  Jaga privasimu
                 </h2>
-                <p className="text-xs font-bold text-[#A3480B] uppercase tracking-[0.05em]">
-                  Demi keamananmu sendiri
+                <p className="text-sm font-bold text-[#A3480B]">
+                  Tiga hal yang perlu diingat sebelum bercerita
                 </p>
               </div>
             </div>
@@ -121,39 +137,39 @@ export function PrivacyWarningPopup() {
             {/* Warning message */}
             <div
               id="privacy-warning-desc"
-              className="space-y-3 text-sm text-[#151515] leading-relaxed font-medium"
+              className="space-y-3 text-base text-[#151515] leading-relaxed font-medium"
             >
               <p>
-                Dengar.in adalah ruang <strong className="font-bold">anonim</strong>. Untuk menjaga keamanan dan kenyamananmu:
+                Dengar.in adalah ruang <strong className="font-bold">anonim</strong>. Supaya kamu tetap aman:
               </p>
 
               {/* Warning list */}
-              <div className="space-y-2.5">
-                <div className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px]">
-                  <AlertTriangle className="w-4 h-4 text-[#D93838] shrink-0 mt-0.5" aria-hidden="true" />
-                  <p className="text-sm leading-relaxed">
-                    <strong className="font-bold">Jangan gunakan nama asli</strong>: baik namamu sendiri, teman, keluarga, guru, dosen, atau siapa pun.
+              <ul className="space-y-2.5 list-none p-0 m-0">
+                <li className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px]">
+                  <AlertTriangle className="w-5 h-5 text-[#B3261E] shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-base leading-relaxed">
+                    <strong className="font-bold">Jangan tulis nama asli</strong>, baik namamu, teman, keluarga, guru, dosen, atau siapa pun.
                   </p>
-                </div>
+                </li>
 
-                <div className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px]">
-                  <AlertTriangle className="w-4 h-4 text-[#D93838] shrink-0 mt-0.5" aria-hidden="true" />
-                  <p className="text-sm leading-relaxed">
-                    <strong className="font-bold">Jangan ceritakan detail berlebihan</strong>: hindari menyebutkan alamat, nama sekolah/kampus/kantor, nomor telepon, atau info pribadi lainnya.
+                <li className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px]">
+                  <AlertTriangle className="w-5 h-5 text-[#B3261E] shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-base leading-relaxed">
+                    <strong className="font-bold">Jangan sebut alamat, nama sekolah/kampus/kantor, atau nomor telepon.</strong>
                   </p>
-                </div>
+                </li>
 
-                <div className="flex items-start gap-2.5 p-3 bg-[#F1FCDD] border-2 border-[#151515] rounded-[4px]">
-                  <CheckCircle2 className="w-4 h-4 text-[#151515] shrink-0 mt-0.5" aria-hidden="true" />
-                  <p className="text-sm leading-relaxed">
-                    <strong className="font-bold">Cukup ceritakan perasaanmu</strong>: fokus pada apa yang kamu rasakan, bukan detail spesifik tentang orang atau tempat.
+                <li className="flex items-start gap-2.5 p-3 bg-[#F1FCDD] border-2 border-[#151515] rounded-[4px]">
+                  <CheckCircle2 className="w-5 h-5 text-[#151515] shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-base leading-relaxed">
+                    <strong className="font-bold">Cukup ceritakan perasaanmu.</strong> Fokus pada apa yang kamu rasakan, bukan siapa dan di mana.
                   </p>
-                </div>
-              </div>
+                </li>
+              </ul>
 
-              <p className="text-[13px] text-[#59544D] leading-relaxed">
-                Ini demi melindungi identitasmu dan orang-orang di sekitarmu. Cerita tetap bisa disampaikan tanpa harus menyebutkan siapa dan di mana.{' '}
-                <Heart className="inline w-3.5 h-3.5 text-[#FF8A3D] align-[-2px]" fill="currentColor" aria-hidden="true" />
+              <p className="text-sm text-[#59544D] leading-relaxed">
+                Ini untuk melindungi identitasmu dan orang-orang di sekitarmu. Ceritamu tetap bisa disampaikan tanpa menyebut siapa dan di mana.{' '}
+                <Heart className="inline w-4 h-4 text-[#FF8A3D] align-[-2px]" fill="currentColor" aria-hidden="true" />
               </p>
             </div>
 
@@ -162,9 +178,9 @@ export function PrivacyWarningPopup() {
               ref={confirmRef}
               type="button"
               onClick={handleDismiss}
-              className="w-full min-h-[48px] py-3 px-4 bg-[#4169FF] text-white border-2 border-[#151515] rounded-[4px] font-bold text-sm uppercase tracking-[0.05em] shadow-[3px_3px_0px_#151515] hover:shadow-[4px_4px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] active:shadow-[1px_1px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] transition-all duration-120 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] focus-visible:ring-offset-2 cursor-pointer"
+              className="w-full min-h-[52px] py-3 px-4 bg-[#3357EE] text-white border-2 border-[#151515] rounded-[4px] font-bold text-base shadow-[3px_3px_0px_#151515] hover:shadow-[4px_4px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] active:shadow-[1px_1px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] transition-all duration-120 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 cursor-pointer"
             >
-              Saya Mengerti, Lanjutkan →
+              Saya mengerti, lanjutkan
             </button>
           </div>
         </div>

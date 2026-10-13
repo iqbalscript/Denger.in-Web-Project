@@ -83,8 +83,8 @@ export default function DashboardPage() {
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-2 border-ink pb-6">
           <div className="space-y-3 text-left">
             <div className="animate-reveal-up flex items-center gap-2">
-              <span className="text-xs font-bold text-ink bg-lime px-2.5 py-0.5 rounded border-2 border-ink shadow-hard-sm uppercase tracking-wider">
-                100% ANONIM • TANPA AKUN
+              <span className="text-sm font-bold text-ink bg-lime px-2.5 py-1 rounded border-2 border-ink shadow-hard-sm">
+                100% anonim, tanpa akun
               </span>
             </div>
             <h1 className="animate-reveal-up [animation-delay:80ms] text-[2rem] sm:text-4xl lg:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
@@ -99,16 +99,16 @@ export default function DashboardPage() {
 
           <div className="animate-reveal-up [animation-delay:160ms] flex flex-wrap items-center gap-2 shrink-0">
             {ageInfo && (
-              <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-white text-ink border border-borderSubtle rounded">
+              <span className="text-sm font-bold px-2.5 py-1 bg-white text-ink border border-borderSubtle rounded">
                 {ageInfo.label}
               </span>
             )}
             {occupationInfo && (
-              <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-white text-ink border border-borderSubtle rounded">
+              <span className="text-sm font-bold px-2.5 py-1 bg-white text-ink border border-borderSubtle rounded">
                 {occupationInfo}
               </span>
             )}
-            <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-lime text-ink border-2 border-ink rounded shadow-hard-sm tabular-nums">
+            <span className="text-sm font-bold px-2.5 py-1 bg-lime text-ink border-2 border-ink rounded shadow-hard-sm tabular-nums">
               Hari ke-{currentDay} dari 14
             </span>
           </div>
@@ -121,12 +121,12 @@ export default function DashboardPage() {
             <section aria-labelledby="judul-misi" className="h-full flex flex-col justify-between bg-white border-2 border-ink rounded-lg p-6 sm:p-10 gap-8 shadow-hard-lg text-left">
               <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-white bg-cobalt px-3 py-1 rounded border-2 border-ink shadow-hard-sm tabular-nums">
-                    MISI UTAMA HARI INI • HARI #{currentDay}
+                  <span className="text-sm font-bold text-white bg-cobalt px-3 py-1 rounded border-2 border-ink shadow-hard-sm tabular-nums">
+                    Misi utama hari ke-{currentDay}
                   </span>
-                  <div className="flex items-center gap-1.5 text-xs text-ink font-bold uppercase tracking-wider">
-                    <Clock className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" />
-                    <span className="tabular-nums">~{todayMission?.durationMinutes || 5} MENIT</span>
+                  <div className="flex items-center gap-1.5 text-sm text-ink font-bold">
+                    <Clock className="w-4 h-4 text-cobalt" aria-hidden="true" />
+                    <span className="tabular-nums">Sekitar {todayMission?.durationMinutes || 5} menit</span>
                   </div>
                 </div>
 
@@ -143,7 +143,7 @@ export default function DashboardPage() {
 
               {/* Action Bar */}
               <div className="pt-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-borderSubtle">
-                <div className="text-sm text-ink font-medium flex items-center gap-2">
+                <div className="text-base text-ink font-medium flex items-center gap-2">
                   {isMissionDone ? (
                     <span role="status" className="inline-flex items-center gap-1.5 text-ink font-semibold bg-lime px-2.5 py-1 rounded border border-ink">
                       <CheckCircle2 className="w-4 h-4 text-ink shrink-0" aria-hidden="true" />
@@ -162,7 +162,7 @@ export default function DashboardPage() {
                   iconPosition="end"
                   className="shrink-0 w-full sm:w-auto"
                 >
-                  {isMissionDone ? 'Tinjau kembali langkah misi' : 'MULAI MISI KECIL'}
+                  {isMissionDone ? 'Lihat lagi langkah misi' : 'Mulai misi kecil'}
                 </Button>
               </div>
             </section>
@@ -173,31 +173,31 @@ export default function DashboardPage() {
             {/* Check-in Widget */}
             <section aria-labelledby="judul-checkin" className="bg-white border border-borderSubtle rounded-lg p-5 space-y-3 text-left">
               <div className="flex items-center justify-between border-b border-borderSubtle pb-2">
-                <h2 id="judul-checkin" className="text-xs font-bold text-ink uppercase tracking-wider">
-                  Check-in Emosi
+                <h2 id="judul-checkin" className="text-base font-bold text-ink">
+                  Check-in emosi
                 </h2>
-                <Smile className="w-4 h-4 text-cobalt" aria-hidden="true" />
+                <Smile className="w-5 h-5 text-cobalt" aria-hidden="true" />
               </div>
 
               {todayCheckin ? (
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center gap-2">
                     <MoodIcon mood={todayCheckin.mood} className="w-7 h-7 text-[#151515]" />
-                    <span className="text-sm font-bold text-ink capitalize">
+                    <span className="text-base font-bold text-ink capitalize">
                       {todayCheckin.mood.replace('_', ' ')}
                     </span>
                   </div>
-                  <p className="text-sm text-[#59544D] tabular-nums">
-                    Energi: {todayCheckin.energyLevel}/10 • Tercatat hari ini
+                  <p className="text-base text-[#59544D] tabular-nums">
+                    Energi {todayCheckin.energyLevel} dari 10. Sudah tercatat hari ini.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3 pt-1">
-                  <p className="text-[15px] text-[#4A453E] leading-relaxed">
+                  <p className="text-base text-[#4A453E] leading-relaxed">
                     Apa kabar hatimu saat ini? Luangkan satu menit untuk mencatatnya.
                   </p>
-                  <Button href="/checkin" variant="outline" size="sm" fullWidth icon={<Smile className="w-3.5 h-3.5" aria-hidden="true" />}>
-                    CHECK-IN SEKARANG
+                  <Button href="/checkin" variant="outline" size="md" fullWidth icon={<Smile className="w-4 h-4" aria-hidden="true" />}>
+                    Check-in sekarang
                   </Button>
                 </div>
               )}
@@ -205,13 +205,13 @@ export default function DashboardPage() {
 
             {/* Perjalanan Kecil — Compact Progress Widget */}
             <section aria-labelledby="judul-perjalanan" className="bg-white border border-borderSubtle rounded-lg p-5 space-y-3 text-left">
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-ink border-b border-borderSubtle pb-2">
+              <div className="flex items-center justify-between gap-2 text-base font-bold text-ink border-b border-borderSubtle pb-2">
                 <h2 id="judul-perjalanan" className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" />
-                  Perjalanan Kecil
+                  <Calendar className="w-5 h-5 text-cobalt" aria-hidden="true" />
+                  Perjalanan kecil
                 </h2>
-                <Link href="/perjalanan" className="text-xs text-cobalt hover:underline">
-                  DETAIL →
+                <Link href="/perjalanan" className="inline-flex items-center min-h-[44px] px-2 text-sm text-[#2B51E6] font-bold underline underline-offset-4 decoration-2 rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt">
+                  Lihat detail
                 </Link>
               </div>
 
@@ -225,11 +225,11 @@ export default function DashboardPage() {
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <span className="text-2xl font-bold text-ink tracking-[-0.02em] tabular-nums">{gamState.totalLangkah}</span>
-                        <span className="text-[11px] font-bold text-white uppercase tracking-wider bg-cobalt px-1.5 py-0.5 rounded border border-ink">
+                        <span className="text-sm font-bold text-white bg-cobalt px-2 py-0.5 rounded border border-ink">
                           {levelInfo.name}
                         </span>
                       </div>
-                      <span className="block text-[11px] text-[#59544D] font-bold uppercase tracking-wider">LANGKAH</span>
+                      <span className="block text-sm text-[#59544D] font-bold">Total Langkah</span>
                       {/* Progress bar to next level */}
                       {levelInfo.nextThreshold && (
                         <div className="w-full h-2 bg-paper border border-ink rounded-sm overflow-hidden">
@@ -248,21 +248,23 @@ export default function DashboardPage() {
 
                     {/* Ritme 7 Hari */}
                     <div className="space-y-1">
-                      <span className="block text-[11px] text-[#59544D] font-bold uppercase tracking-wider tabular-nums">
-                        AKTIF 7 HARI: {activeCount}/7
+                      <span className="block text-sm text-[#59544D] font-bold tabular-nums">
+                        Aktif {activeCount} dari 7 hari terakhir
                       </span>
                       <div className="grid grid-cols-7 gap-1.5">
                         {ritme.map((day) => (
                           <div
                             key={day.date}
-                            className={`h-7 rounded flex items-center justify-center text-[11px] font-bold border-2 ${
+                            className={`h-9 rounded flex items-center justify-center text-sm font-bold border-2 ${
                               day.active
                                 ? 'bg-lime text-ink border-ink'
-                                : 'bg-paper text-[#7A756D] border-borderSubtle'
+                                : 'bg-paper text-[#6B665E] border-borderSubtle'
                             }`}
                             title={`${day.dayLabel} ${day.date}${day.active ? ' (aktif)' : ''}`}
+                            role="img"
+                            aria-label={`${day.dayLabel} ${day.date}: ${day.active ? 'aktif' : 'tidak aktif'}`}
                           >
-                            {day.dayLabel.slice(0, 2)}
+                            <span aria-hidden="true">{day.dayLabel.slice(0, 2)}</span>
                           </div>
                         ))}
                       </div>
@@ -270,8 +272,8 @@ export default function DashboardPage() {
 
                     {/* Weekly Quest Progress (compact) */}
                     <div className="space-y-1">
-                      <span className="block text-[11px] text-[#59544D] font-bold uppercase tracking-wider">QUEST MINGGU INI</span>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-medium text-ink tabular-nums">
+                      <span className="block text-sm text-[#59544D] font-bold">Target minggu ini</span>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-base font-medium text-ink tabular-nums">
                         <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />{gamState.questProgress.checkinDays}/{WEEKLY_QUEST_REQUIREMENTS.checkinDays} check-in</span>
                         <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />{gamState.questProgress.missionsCompleted}/{WEEKLY_QUEST_REQUIREMENTS.missionsCompleted} misi</span>
                         <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />{gamState.questProgress.journalEntries}/{WEEKLY_QUEST_REQUIREMENTS.journalEntries} jurnal</span>
@@ -294,17 +296,17 @@ export default function DashboardPage() {
 
             <div className="bg-white border border-borderSubtle rounded-lg p-6 space-y-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-bold text-ink bg-lime px-2.5 py-1 rounded border border-ink uppercase tracking-wider">
-                  {assessment?.recommendedPathId ? 'Program 14 Hari Aktif' : 'Baru Mulai'}
+                <span className="text-sm font-bold text-ink bg-lime px-2.5 py-1 rounded border border-ink">
+                  {assessment?.recommendedPathId ? 'Program 14 hari aktif' : 'Baru mulai'}
                 </span>
                 {assessment && (
-                  <span className="text-xs font-semibold px-2.5 py-1 bg-paper border border-borderSubtle rounded">
+                  <span className="text-sm font-semibold px-2.5 py-1 bg-paper border border-borderSubtle rounded">
                     Beban terasa: {{ MILD: 'Ringan', MODERATE: 'Cukup Berat', SEVERE: 'Sangat Berat' }[assessment.severityLevel || 'MILD']}
                   </span>
                 )}
               </div>
 
-              <p className="text-[15px] sm:text-base text-[#4A453E] leading-relaxed">
+              <p className="text-base sm:text-base text-[#4A453E] leading-relaxed">
                 {assessment?.summaryFeedback ||
                   'Program 14 hari ini menemani hari-harimu lewat langkah kecil yang bisa kamu jalani pelan-pelan.'}
               </p>
@@ -312,7 +314,7 @@ export default function DashboardPage() {
               <div className="pt-4 border-t border-borderSubtle flex items-center justify-between">
                 <Link
                   href="/report"
-                  className="group inline-flex items-center gap-1.5 text-sm font-bold text-cobalt hover:underline"
+                  className="group inline-flex items-center gap-1.5 min-h-[44px] text-base font-bold text-[#2B51E6] underline underline-offset-4 decoration-2 rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt"
                 >
                   <BarChart3 className="w-4 h-4" aria-hidden="true" />
                   <span>Lihat rangkuman mingguanmu</span>
@@ -336,7 +338,7 @@ export default function DashboardPage() {
                     <BookOpen className="w-4 h-4" />
                   </div>
                   <h3 className="font-bold text-base text-ink leading-snug">Jurnal privat lokal</h3>
-                  <p className="text-sm text-[#59544D] leading-relaxed">Tuangkan pikiranmu. Tersimpan di perangkatmu dan tidak dikirim ke AI.</p>
+                  <p className="text-base text-[#59544D] leading-relaxed">Tuangkan pikiranmu. Tersimpan di perangkatmu dan tidak dikirim ke AI.</p>
                 </div>
               </Link>
               </Reveal>
@@ -348,7 +350,7 @@ export default function DashboardPage() {
                     <MessageSquare className="w-4 h-4" />
                   </div>
                   <h3 className="font-bold text-base text-ink leading-snug">Teman bicara</h3>
-                  <p className="text-sm text-[#59544D] leading-relaxed">Cerita apa saja, kami dengarkan.</p>
+                  <p className="text-base text-[#59544D] leading-relaxed">Cerita apa saja, kami dengarkan.</p>
                 </div>
               </Link>
               </Reveal>
@@ -356,11 +358,11 @@ export default function DashboardPage() {
               <Reveal delay={260} className="h-full">
               <Link href="/resources" className="group block h-full rounded-md">
                 <div className="bg-white border-2 border-ink rounded-md p-4 space-y-2 h-full shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-hover:shadow-hard group-active:translate-x-[1px] group-active:translate-y-[1px] group-active:shadow-none">
-                  <div className="w-8 h-8 rounded bg-coral text-white border-2 border-ink flex items-center justify-center" aria-hidden="true">
+                  <div className="w-8 h-8 rounded bg-[#D32F2F] text-white border-2 border-ink flex items-center justify-center" aria-hidden="true">
                     <PhoneCall className="w-4 h-4" />
                   </div>
                   <h3 className="font-bold text-base text-ink leading-snug">Direktori bantuan</h3>
-                  <p className="text-sm text-[#59544D] leading-relaxed">Kontak resmi darurat dan psikolog, kapan pun kamu butuh.</p>
+                  <p className="text-base text-[#59544D] leading-relaxed">Kontak resmi darurat dan psikolog, kapan pun kamu butuh.</p>
                 </div>
               </Link>
               </Reveal>
@@ -372,7 +374,7 @@ export default function DashboardPage() {
                     <Users className="w-4 h-4" />
                   </div>
                   <h3 className="font-bold text-base text-ink leading-snug">Ruang cerita</h3>
-                  <p className="text-sm text-[#59544D] leading-relaxed">Saling menguatkan dengan sesama.</p>
+                  <p className="text-base text-[#59544D] leading-relaxed">Saling menguatkan dengan sesama.</p>
                 </div>
               </Link>
               </Reveal>
@@ -381,10 +383,10 @@ export default function DashboardPage() {
         </div>
 
         {/* 4. TERTIARY UTILITY FOOTER (Recovery key & Crisis safety bar; never animated) */}
-        <div className="pt-5 border-t border-borderSubtle flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-semibold text-ink">
+        <div className="pt-5 border-t border-borderSubtle flex flex-col sm:flex-row items-center justify-between gap-4 text-base font-semibold text-ink">
           <Link
             href="/recovery"
-            className="inline-flex items-center gap-1.5 hover:underline"
+            className="inline-flex items-center gap-1.5 min-h-[44px] underline underline-offset-4 decoration-2 decoration-[#D8D3C9] hover:decoration-ink rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt"
           >
             <Key className="w-4 h-4 text-cobalt" aria-hidden="true" />
             <span>Simpan atau pulihkan sesi dengan kunci pemulihan</span>
@@ -392,10 +394,10 @@ export default function DashboardPage() {
 
           <Link
             href="/crisis"
-            className="inline-flex items-center gap-1.5 min-h-[44px] text-xs font-bold text-white bg-coral px-3 py-1 rounded border-2 border-ink shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+            className="inline-flex items-center gap-2 min-h-[48px] text-base font-bold text-white bg-[#D32F2F] px-4 py-2 rounded border-2 border-ink shadow-hard-sm transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:bg-[#B3261E] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
           >
-            <PhoneCall className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>BUTUH BANTUAN SEGERA? KEMENKES 119 EXT 8</span>
+            <PhoneCall className="w-5 h-5" aria-hidden="true" />
+            <span>Butuh bantuan segera? Kemenkes 119 ext 8</span>
           </Link>
         </div>
       </div>

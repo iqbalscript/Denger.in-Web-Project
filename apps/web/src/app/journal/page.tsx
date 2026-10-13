@@ -19,6 +19,8 @@ export default function JournalPage() {
   const [content, setContent] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [celebration, setCelebration] = useState<CelebrationData | null>(null);
+  // Hapus memerlukan konfirmasi di tempat supaya catatan tidak hilang karena salah ketuk.
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const isSubmittingRef = useRef(false);
 
   useEffect(() => {
@@ -83,6 +85,7 @@ export default function JournalPage() {
 
   const handleDelete = (id: string) => {
     const updated = entries.filter((e) => e.id !== id);
+    setPendingDeleteId(null);
     setEntries(updated);
     if (typeof window !== 'undefined') {
       localStorage.setItem('dengarin_journal_entries', JSON.stringify(updated));
@@ -101,19 +104,19 @@ export default function JournalPage() {
             size="sm"
             icon={<ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />}
           >
-            KEMBALI KE DASHBOARD
+            Kembali ke beranda
           </Button>
 
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-tangerine border-2 border-ink rounded shadow-hard-sm text-ink">
-            <Lock className="w-3.5 h-3.5 text-ink" aria-hidden="true" />
-            <span>Tersimpan Lokal di Peramban</span>
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold px-2.5 py-1 bg-tangerine border-2 border-ink rounded shadow-hard-sm text-ink">
+            <Lock className="w-4 h-4 text-ink" aria-hidden="true" />
+            <span>Hanya tersimpan di perangkat ini</span>
           </span>
         </div>
 
         {/* Header */}
         <header className="pt-2 pb-8 border-b-2 border-ink animate-reveal-up [animation-delay:80ms] flex flex-col sm:flex-row items-start sm:items-end justify-between gap-5">
           <div className="space-y-3">
-            <h1 className="text-[2.5rem] sm:text-5xl lg:text-[4rem] font-bold text-ink tracking-[-0.03em] leading-[1.02] uppercase">
+            <h1 className="text-[2.25rem] sm:text-5xl lg:text-[4rem] font-bold text-ink tracking-[-0.03em] leading-[1.05]">
               Tulis <span className="underline decoration-tangerine decoration-[6px] underline-offset-[6px]">aja.</span>
             </h1>
             <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed max-w-[34rem]">
@@ -124,12 +127,12 @@ export default function JournalPage() {
           {!isCreating && (
             <Button
               variant="primary"
-              size="sm"
+              size="lg"
               onClick={() => setIsCreating(true)}
-              icon={<Plus className="w-4 h-4" aria-hidden="true" />}
-              className="shrink-0"
+              icon={<Plus className="w-5 h-5" aria-hidden="true" />}
+              className="shrink-0 w-full sm:w-auto"
             >
-              TULIS JURNAL BARU
+              Tulis catatan baru
             </Button>
           )}
         </header>
@@ -138,15 +141,15 @@ export default function JournalPage() {
         {isCreating && (
           <section aria-labelledby="judul-catatan-baru" className="animate-reveal-up bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-4 shadow-[4px_4px_0px_#FF8A3D]">
             <form onSubmit={handleSaveEntry} className="space-y-5">
-              <div className="flex items-center justify-between border-b border-borderSubtle pb-3">
-                <h2 id="judul-catatan-baru" className="text-xl font-bold text-ink tracking-[-0.01em]">Catatan refleksi baru</h2>
+              <div className="flex items-center justify-between gap-3 border-b border-borderSubtle pb-3">
+                <h2 id="judul-catatan-baru" className="text-xl font-bold text-ink tracking-[-0.01em]">Catatan baru</h2>
                 <Button variant="outline" size="sm" onClick={() => setIsCreating(false)}>
-                  Batal
+                  Tutup
                 </Button>
               </div>
 
               <Input
-                label="Judul (Opsional)"
+                label="Judul (boleh dikosongkan)"
                 value={title}
                 onChange={(e) => {
                   setTitle(e.target.value);
@@ -156,7 +159,7 @@ export default function JournalPage() {
               />
 
               <Textarea
-                label="Isi Tulisan"
+                label="Isi tulisan"
                 value={content}
                 onChange={handleContentChange}
                 rows={6}
@@ -169,20 +172,20 @@ export default function JournalPage() {
                 <InlineCrisisCard contacts={crisis.contacts} onAcknowledge={crisis.acknowledge} />
               )}
 
-              <div className="flex justify-end gap-2.5 pt-2">
-                <Button variant="outline" size="sm" onClick={() => setIsCreating(false)}>
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 pt-2">
+                <Button variant="outline" size="md" onClick={() => setIsCreating(false)}>
                   Batal
                 </Button>
                 <Button
                   type="submit"
                   variant="primary"
-                  size="sm"
-                  disabled={crisis.isCrisis}
+                  size="md"
+                  disabled={crisis.isCrisis || !content.trim()}
                   aria-describedby={crisis.isCrisis ? 'jurnal-krisis-catatan' : undefined}
                   iconPosition="end"
-                  icon={<ArrowRight className="w-3.5 h-3.5" />}
+                  icon={<ArrowRight className="w-4 h-4" />}
                 >
-                  SIMPAN DI BROWSER
+                  Simpan di perangkat ini
                 </Button>
               </div>
               {crisis.isCrisis && <CrisisBlockedNote id="jurnal-krisis-catatan" />}
@@ -207,11 +210,11 @@ export default function JournalPage() {
               {!isCreating && (
                 <Button
                   variant="secondary"
-                  size="sm"
+                  size="md"
                   onClick={() => setIsCreating(true)}
                   icon={<Plus className="w-4 h-4" aria-hidden="true" />}
                 >
-                  TULIS KALIMAT PERTAMA
+                  Tulis kalimat pertama
                 </Button>
               )}
             </div>
@@ -224,29 +227,42 @@ export default function JournalPage() {
                   delay={Math.min(index, 5) * 70}
                   className="bg-white border border-borderSubtle border-l-4 border-l-tangerine rounded-lg p-5 sm:p-6 space-y-2.5"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-bold text-lg text-ink leading-snug">{entry.title}</h3>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-[#59544D] font-medium flex items-center gap-1 tabular-nums">
-                        <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="space-y-1 min-w-0">
+                      <h3 className="font-bold text-lg text-ink leading-snug">{entry.title}</h3>
+                      <span className="text-sm text-[#59544D] font-medium flex items-center gap-1 tabular-nums">
+                        <Calendar className="w-4 h-4" aria-hidden="true" />
                         {new Date(entry.createdAt).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric',
                         })}
                       </span>
+                    </div>
+                    {pendingDeleteId !== entry.id && (
                       <button
                         type="button"
-                        onClick={() => handleDelete(entry.id)}
-                        className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] text-ink rounded border-2 border-transparent hover:border-ink hover:text-white hover:bg-coral active:translate-x-[1px] active:translate-y-[1px] transition-[transform,background-color,border-color,color] duration-200 ease-spring"
-                        title="Hapus catatan"
+                        onClick={() => setPendingDeleteId(entry.id)}
+                        className="inline-flex items-center gap-1.5 px-3 min-h-[44px] text-sm font-bold text-ink rounded border-2 border-[#D8D3C9] bg-white hover:border-ink hover:text-white hover:bg-[#D32F2F] active:translate-x-[1px] active:translate-y-[1px] transition-[transform,background-color,border-color,color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
                         aria-label={`Hapus catatan ${entry.title}`}
                       >
                         <Trash2 className="w-4 h-4" aria-hidden="true" />
+                        <span>Hapus</span>
                       </button>
-                    </div>
+                    )}
                   </div>
-                  <p className="text-[15px] sm:text-base text-ink whitespace-pre-wrap leading-[1.6] max-w-[65ch]">
+                  {pendingDeleteId === entry.id && (
+                    <div role="group" aria-label="Konfirmasi hapus catatan" className="flex flex-wrap items-center gap-2 p-3 rounded-md bg-[#FFEBEB] border-2 border-ink text-base font-semibold text-ink">
+                      <span>Hapus catatan ini? Tidak bisa dikembalikan.</span>
+                      <Button variant="crisis" size="sm" onClick={() => handleDelete(entry.id)}>
+                        Ya, hapus
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setPendingDeleteId(null)}>
+                        Batal
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-base text-ink whitespace-pre-wrap leading-[1.6] max-w-[65ch]">
                     {entry.content}
                   </p>
                 </Reveal>

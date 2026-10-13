@@ -281,12 +281,12 @@ export default function CarePassportPage() {
             <UrgentHelpLink className="shrink-0" />
           </div>
           <SectionCard as="div" tone="paper" elevation="low" className="space-y-2">
-            <p className={`text-[15px] leading-relaxed ${MUTED}`}>
-              <Link href="/resources" className="font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#4169FF]">
+            <p className={`text-base leading-relaxed ${MUTED}`}>
+              <Link href="/resources" className="inline-flex items-center min-h-[44px] font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE]">
                 Lihat jalur bantuan
               </Link>{' '}
               atau{' '}
-              <Link href="/dashboard" className="font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#4169FF]">
+              <Link href="/dashboard" className="inline-flex items-center min-h-[44px] font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE]">
                 kembali ke beranda
               </Link>
               .

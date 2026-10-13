@@ -20,7 +20,7 @@ export function ProgressBar({
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
 
   const variantColors = {
-    calm: 'bg-[#4169FF]',
+    calm: 'bg-[#3357EE]',
     warm: 'bg-[#FF8A3D]',
     crisis: 'bg-[#FF5252]',
   };
@@ -28,9 +28,9 @@ export function ProgressBar({
   return (
     <div className={`w-full space-y-1.5 ${className}`}>
       {(label || stepIndicator) && (
-        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.05em] text-[#151515]">
+        <div className="flex items-center justify-between text-sm font-bold text-[#151515]">
           {label && <span>{label}</span>}
-          {stepIndicator && <span className="text-[#4169FF] font-bold tabular-nums">{stepIndicator}</span>}
+          {stepIndicator && <span className="text-[#3357EE] font-bold tabular-nums">{stepIndicator}</span>}
         </div>
       )}
       <div

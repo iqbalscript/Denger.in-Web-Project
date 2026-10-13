@@ -201,8 +201,8 @@ export default function AssessmentPage() {
           <div role="status" className="animate-reveal-up p-4 rounded-md bg-[#FFF1C2] border-2 border-ink text-ink flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-start gap-2.5">
               <BookmarkCheck className="w-5 h-5 text-ink shrink-0 mt-0.5" aria-hidden="true" />
-              <div className="text-sm space-y-0.5">
-                <span className="font-bold block text-ink text-[15px]">Draf asesmen ditemukan</span>
+              <div className="text-base space-y-0.5">
+                <span className="font-bold block text-ink text-lg">Jawaban tersimpan ditemukan</span>
                 <span className="text-[#4A453E]">Kamu punya jawaban yang tersimpan dari sebelumnya. Mau lanjut dari sana?</span>
               </div>
             </div>
@@ -210,16 +210,16 @@ export default function AssessmentPage() {
               <button
                 type="button"
                 onClick={handleResumeDraft}
-                className="flex-1 sm:flex-initial min-h-[44px] px-4 py-2 rounded-[4px] bg-cobalt text-white font-bold text-sm border-2 border-ink shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring"
+                className="flex-1 sm:flex-initial min-h-[48px] px-4 py-2 rounded-[4px] bg-cobalt text-white font-bold text-base border-2 border-ink shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
               >
-                Lanjutkan Draf
+                Lanjutkan jawaban
               </button>
               <button
                 type="button"
                 onClick={handleDiscardDraft}
-                className="min-h-[44px] px-4 py-2 rounded-[4px] bg-white border-2 border-ink text-ink font-bold text-sm shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring"
+                className="min-h-[48px] px-4 py-2 rounded-[4px] bg-white border-2 border-ink text-ink font-bold text-base shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
               >
-                Mulai Baru
+                Mulai dari awal
               </button>
             </div>
           </div>
@@ -227,13 +227,13 @@ export default function AssessmentPage() {
 
         {/* Top Header: Progress & Pause Control */}
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.05em] text-ink">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-sm font-bold text-ink">
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" />
+              <Sparkles className="w-4 h-4 text-cobalt" aria-hidden="true" />
               Cek kondisi (bukan diagnosis)
             </span>
-            <div className="flex items-center gap-3">
-              <span className="bg-yellow px-2 py-0.5 border border-ink rounded-[4px] tabular-nums" aria-live="polite">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="bg-yellow px-2.5 py-1 border border-ink rounded-[4px] tabular-nums" aria-live="polite">
                 {isReviewPhase
                   ? 'Catatan opsional'
                   : `Pertanyaan ${currentStepIndex + 1} dari ${totalQuestions}`}
@@ -241,11 +241,10 @@ export default function AssessmentPage() {
               <button
                 type="button"
                 onClick={handleSaveAndPause}
-                className="inline-flex items-center gap-1.5 min-h-[36px] px-3 py-1 rounded-[4px] border-2 border-ink bg-white text-ink font-bold text-xs normal-case tracking-normal shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring"
-                title="Simpan draf dan jeda asesmen"
+                className="inline-flex items-center gap-1.5 min-h-[44px] px-3 py-1 rounded-[4px] border-2 border-ink bg-white text-ink font-bold text-sm shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
               >
-                <Pause className="w-3.5 h-3.5 text-cobalt" aria-hidden="true" />
-                <span>Jeda &amp; Lanjut Nanti</span>
+                <Pause className="w-4 h-4 text-cobalt" aria-hidden="true" />
+                <span>Simpan dan lanjut nanti</span>
               </button>
             </div>
           </div>
@@ -263,12 +262,12 @@ export default function AssessmentPage() {
           <div key={currentQ.id} className="space-y-6">
             <div className="space-y-3 animate-reveal-up">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-[0.05em] text-cobalt tabular-nums">
-                  Pertanyaan #{currentStepIndex + 1}
+                <span className="text-sm font-bold text-[#2B51E6] tabular-nums">
+                  Pertanyaan {currentStepIndex + 1}
                 </span>
                 {currentQ.sensitive && (
-                  <span className="text-[11px] font-bold uppercase tracking-[0.05em] text-ink bg-[#FFEBEB] px-2 py-0.5 rounded-[4px] border border-coral">
-                    Sensitif • Boleh dilewati
+                  <span className="text-sm font-bold text-ink bg-[#FFEBEB] px-2 py-0.5 rounded-[4px] border border-coral">
+                    Pertanyaan sensitif, boleh dilewati
                   </span>
                 )}
               </div>
@@ -295,13 +294,13 @@ export default function AssessmentPage() {
                     role="radio"
                     aria-checked={isSelected}
                     onClick={() => handleSelectOption(currentQ.id, opt.score)}
-                    className={`w-full p-4 sm:p-5 rounded-md text-left border-2 border-ink transition-[transform,box-shadow,background-color,color] duration-200 ease-spring cursor-pointer focus-visible:outline-ink min-h-[60px] flex items-center justify-between gap-3 ${isSelected
+                    className={`w-full p-4 sm:p-5 rounded-md text-left border-2 border-ink transition-[transform,box-shadow,background-color,color] duration-200 ease-spring cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2 min-h-[64px] flex items-center justify-between gap-3 ${isSelected
                         ? 'bg-cobalt text-white shadow-hard -translate-x-[1px] -translate-y-[1px]'
                         : 'bg-white hover:bg-paper text-ink shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-0 active:translate-y-0 active:shadow-none'
                       }`}
                   >
-                    <span className={`text-base leading-snug ${isSelected ? 'font-semibold' : 'font-medium'}`}>{opt.label}</span>
-                    {isSelected && <CheckCircle2 className="w-5 h-5 text-white shrink-0" aria-hidden="true" />}
+                    <span className={`text-lg leading-snug ${isSelected ? 'font-semibold' : 'font-medium'}`}>{opt.label}</span>
+                    {isSelected && <CheckCircle2 className="w-6 h-6 text-white shrink-0" aria-hidden="true" />}
                   </button>
                   </div>
                 );
@@ -314,10 +313,10 @@ export default function AssessmentPage() {
                 <button
                   type="button"
                   onClick={() => handleSkipQuestion(currentQ.id)}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#59544D] hover:text-ink underline decoration-[#D8D3C9] decoration-2 underline-offset-4 hover:decoration-ink transition-colors duration-120 min-h-[44px] py-2 px-2 text-left"
+                  className="inline-flex items-center gap-1.5 text-base font-semibold text-ink underline decoration-[#D8D3C9] decoration-2 underline-offset-4 hover:decoration-ink transition-colors duration-120 min-h-[44px] py-2 px-2 text-left rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt"
                 >
-                  <SkipForward className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
-                  <span>Lewati pertanyaan ini. Tidak apa-apa, kamu tidak harus menjawabnya</span>
+                  <SkipForward className="w-5 h-5 text-cobalt shrink-0" aria-hidden="true" />
+                  <span>Lewati pertanyaan ini. Kamu tidak harus menjawabnya.</span>
                 </button>
               </div>
             )}
@@ -329,7 +328,7 @@ export default function AssessmentPage() {
           <div className="space-y-6">
             <div className="space-y-2 animate-reveal-up">
               <Badge variant="calm" size="md">
-                Langkah Terakhir
+                Langkah terakhir
               </Badge>
               <h1 className="text-2xl sm:text-3xl lg:text-[2.25rem] font-bold text-ink tracking-[-0.02em] leading-[1.2]">
                 Ada keluh kesah lain yang ingin dituliskan?
@@ -348,8 +347,8 @@ export default function AssessmentPage() {
                 aria-label="Catatan opsional"
                 placeholder="Contoh: 'Tugas menumpuk dan takut mengecewakan keluarga', 'Cemas memikirkan tagihan bulan depan'..."
               />
-              <div className="p-3 sm:p-4 rounded-md bg-[#FFF1C2] border-l-4 border-yellow flex items-start gap-2.5 text-sm text-[#4A453E]">
-                <AlertTriangle className="w-4 h-4 text-ink shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="p-3 sm:p-4 rounded-md bg-[#FFF1C2] border-l-4 border-yellow flex items-start gap-2.5 text-base text-[#4A453E]">
+                <AlertTriangle className="w-5 h-5 text-ink shrink-0 mt-0.5" aria-hidden="true" />
                 <span>
                   Tulisanmu diperiksa oleh pemeriksa krisis berbasis aturan tetap, 100% tanpa AI, demi keselamatanmu.
                 </span>
@@ -368,50 +367,55 @@ export default function AssessmentPage() {
         )}
 
         {/* Bottom Navigation */}
-        <div className="pt-5 flex items-center justify-between gap-4 border-t border-[#D8D3C9]">
-          {currentStepIndex > 0 ? (
-            <Button
-              variant="outline"
-              size="md"
-              onClick={handlePrev}
-              icon={<ArrowLeft className="w-4 h-4" />}
-            >
-              SEBELUMNYA
-            </Button>
-          ) : (
-            <div />
+        <div className="pt-5 space-y-3 border-t border-[#D8D3C9]">
+          {!isReviewPhase && currentAnswer === undefined && (
+            <p className="text-base text-[#59544D]" aria-live="polite">Pilih satu jawaban dulu, lalu tombol Lanjut akan aktif.</p>
           )}
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            {currentStepIndex > 0 ? (
+              <Button
+                variant="outline"
+                size="md"
+                onClick={handlePrev}
+                icon={<ArrowLeft className="w-4 h-4" />}
+              >
+                Kembali
+              </Button>
+            ) : (
+              <div />
+            )}
 
-          {!isReviewPhase ? (
-            <Button
-              variant="primary"
-              size="lg"
-              disabled={currentAnswer === undefined}
-              onClick={handleNext}
-              iconPosition="end"
-              icon={<ArrowRight className="w-4 h-4" />}
-            >
-              PERTANYAAN BERIKUTNYA
-            </Button>
-          ) : (
-            <Button
-              variant="primary"
-              size="lg"
-              disabled={isSubmitting || crisis.isCrisis}
-              aria-describedby={crisis.isCrisis ? 'asesmen-krisis-catatan' : undefined}
-              isLoading={isSubmitting}
-              onClick={handleFinalSubmit}
-              iconPosition="end"
-              icon={<ArrowRight className="w-4 h-4" />}
-            >
-              {isSubmitting ? 'MENYUSUN REKOMENDASI...' : 'SELESAIKAN & LIHAT REKOMENDASI'}
-            </Button>
-          )}
+            {!isReviewPhase ? (
+              <Button
+                variant="primary"
+                size="lg"
+                disabled={currentAnswer === undefined}
+                onClick={handleNext}
+                iconPosition="end"
+                icon={<ArrowRight className="w-4 h-4" />}
+              >
+                Lanjut
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="lg"
+                disabled={isSubmitting || crisis.isCrisis}
+                aria-describedby={crisis.isCrisis ? 'asesmen-krisis-catatan' : undefined}
+                isLoading={isSubmitting}
+                onClick={handleFinalSubmit}
+                iconPosition="end"
+                icon={<ArrowRight className="w-4 h-4" />}
+              >
+                {isSubmitting ? 'Menyusun saran...' : 'Selesai, lihat saran'}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Non-Diagnostic Disclaimer */}
-        <div className="pt-2 text-center text-sm text-[#59544D] flex items-center justify-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
+        <div className="pt-2 text-center text-base text-[#59544D] flex items-center justify-center gap-1.5">
+          <ShieldCheck className="w-5 h-5 text-cobalt shrink-0" aria-hidden="true" />
           <span>Hasil ini hanya untuk mengarahkan ke dukungan yang cocok, bukan label medis atau diagnosis.</span>
         </div>
 
@@ -422,6 +426,7 @@ export default function AssessmentPage() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="judul-draf-tersimpan"
+              onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); setShowPauseModal(false); } }}
               className="animate-reveal-up bg-white rounded-lg p-6 sm:p-8 max-w-md w-full space-y-5 shadow-hard-lg border-2 border-ink text-left"
             >
               <div className="w-10 h-10 rounded-md bg-yellow text-ink border-2 border-ink flex items-center justify-center" aria-hidden="true">
@@ -429,11 +434,11 @@ export default function AssessmentPage() {
               </div>
               <div className="space-y-1.5">
                 <h2 id="judul-draf-tersimpan" className="font-bold text-xl text-ink tracking-[-0.01em] leading-[1.25]">
-                  Draf berhasil disimpan
+                  Jawabanmu sudah disimpan
                 </h2>
-                <p className="text-[15px] text-[#4A453E] leading-relaxed">
-                  Jawabanmu telah tersimpan aman di peramban ini. Kamu dapat menutup halaman ini atau kembali ke
-                  dashboard, lalu melanjutkan kapan saja saat kamu siap.
+                <p className="text-base text-[#4A453E] leading-relaxed">
+                  Jawabanmu tersimpan di perangkat ini. Kamu boleh menutup halaman ini atau kembali ke
+                  beranda, lalu melanjutkan kapan saja saat kamu siap.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
@@ -443,7 +448,7 @@ export default function AssessmentPage() {
                   fullWidth
                   onClick={() => setShowPauseModal(false)}
                 >
-                  Lanjut Mengerjakan
+                  Lanjut menjawab
                 </Button>
                 <Button
                   variant="outline"
@@ -451,7 +456,7 @@ export default function AssessmentPage() {
                   fullWidth
                   onClick={() => router.push('/dashboard')}
                 >
-                  Ke Dashboard
+                  Ke beranda
                 </Button>
               </div>
             </div>

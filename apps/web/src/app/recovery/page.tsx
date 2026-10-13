@@ -58,6 +58,9 @@ export default function RecoveryPage() {
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [lastBackupTime, setLastBackupTime] = useState<string | null>(null);
   const [backupNotice, setBackupNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  // Hapus permanen memakai konfirmasi di halaman (bukan window.confirm) supaya
+  // teksnya besar, bisa dibaca pembaca layar, dan tidak hilang karena salah ketuk.
+  const [confirmWipe, setConfirmWipe] = useState(false);
 
   useEffect(() => {
     // Consent is checked by useConsentGuard; never grant it here (H5).
@@ -269,21 +272,16 @@ export default function RecoveryPage() {
   };
 
   const handleWipe = () => {
-    if (
-      confirm(
-        'Apakah kamu yakin ingin menghapus seluruh data anonim yang tersimpan lokal di peramban ini? Tindakan ini tidak dapat dibatalkan. Cadangan cloud terenkripsi dan kunci yang pernah disalin ke clipboard tidak dihapus.'
-      )
-    ) {
-      clearAnonymousSession();
-      // Clear sensitive React state before replacing this history entry, so a
-      // browser back-forward cache cannot redisplay the recovery phrase.
-      setSession(null);
-      setRestoreInput('');
-      setLastBackupTime(null);
-      setBackupNotice(null);
-      setRestoreStatus(null);
-      window.location.replace('/');
-    }
+    clearAnonymousSession();
+    // Clear sensitive React state before replacing this history entry, so a
+    // browser back-forward cache cannot redisplay the recovery phrase.
+    setSession(null);
+    setRestoreInput('');
+    setLastBackupTime(null);
+    setBackupNotice(null);
+    setRestoreStatus(null);
+    setConfirmWipe(false);
+    window.location.replace('/');
   };
 
   if (!ready) return <ConsentPending />;
@@ -296,9 +294,9 @@ export default function RecoveryPage() {
             href="/dashboard"
             variant="outline"
             size="sm"
-            icon={<ArrowLeft className="w-3.5 h-3.5" />}
+            icon={<ArrowLeft className="w-4 h-4" />}
           >
-            Kembali ke dashboard
+            Kembali ke beranda
           </Button>
         </div>
 
@@ -306,7 +304,7 @@ export default function RecoveryPage() {
         <div className="animate-reveal-up space-y-3">
           <Badge variant="cobalt" size="md">
             <Key className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
-            Cadangan & Pemulihan Anonim
+            Cadangan dan pemulihan
           </Badge>
           <h1 className="text-[2.25rem] sm:text-5xl font-bold text-[#151515] tracking-[-0.03em] leading-[1.05]">
             Kunci akses sesi pribadimu
@@ -322,8 +320,8 @@ export default function RecoveryPage() {
             <h2 className="text-xl font-bold text-[#151515] tracking-[-0.01em]">
               12 bagian kunci rahasia
             </h2>
-            <span className="text-xs text-[#59544D] font-semibold flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-[#4169FF]" aria-hidden="true" /> Kunci enkripsi sisi klien
+            <span className="text-sm text-[#59544D] font-semibold flex items-center gap-1">
+              <Lock className="w-4 h-4 text-[#3357EE]" aria-hidden="true" /> Hanya kamu yang memegang kunci ini
             </span>
           </div>
 
@@ -332,9 +330,9 @@ export default function RecoveryPage() {
               <li
                 key={idx}
                 style={{ animationDelay: `${180 + idx * 30}ms` }}
-                className="animate-reveal-up bg-white px-3 py-2.5 rounded-[4px] border border-[#D8D3C9] flex items-baseline gap-2 font-mono text-sm sm:text-base"
+                className="animate-reveal-up bg-white px-3 py-2.5 rounded-[4px] border border-[#D8D3C9] flex items-baseline gap-2 font-mono text-base"
               >
-                <span className="w-5 shrink-0 text-right text-xs text-[#8A857D] font-semibold tabular-nums">{idx + 1}</span>
+                <span className="w-5 shrink-0 text-right text-sm text-[#59544D] font-semibold tabular-nums">{idx + 1}</span>
                 <span className="font-bold text-[#151515] tracking-[0.02em] break-all">{w}</span>
               </li>
             ))}
@@ -347,10 +345,10 @@ export default function RecoveryPage() {
               onClick={handleCopy}
               icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             >
-              {copied ? 'Tersalin ke clipboard' : 'Salin 12 bagian'}
+              {copied ? 'Tersalin' : 'Salin 12 bagian kunci'}
             </Button>
 
-            <span className="text-sm text-[#59544D] font-medium" role="status">
+            <span className="text-base text-[#59544D] font-medium" role="status">
               {copied ? 'Kunci sudah disalin. ' : ''}Jangan bagikan kata-kata ini kepada siapa pun.
             </span>
           </div>
@@ -361,20 +359,20 @@ export default function RecoveryPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
               <h2 className="text-xl font-bold text-[#151515] tracking-[-0.01em] leading-[1.25] flex items-start gap-2">
-                <CloudUpload className="w-5 h-5 text-[#4169FF] shrink-0 mt-0.5" aria-hidden="true" />
+                <CloudUpload className="w-5 h-5 text-[#3357EE] shrink-0 mt-0.5" aria-hidden="true" />
                 <span>Cadangkan ke cloud (terenkripsi, hanya kamu yang bisa buka)</span>
               </h2>
-              <p className="text-[15px] text-[#59544D] leading-relaxed max-w-lg">
+              <p className="text-base text-[#59544D] leading-relaxed max-w-lg">
                 Data check-in dan jurnalmu dienkripsi menggunakan AES-GCM 256-bit langsung di peramban sebelum dikirim. Server tidak pernah memiliki kunci dekripsi.
               </p>
             </div>
 
             <Button
               variant="secondary"
-              size="sm"
+              size="md"
               onClick={handleCloudBackup}
               isLoading={isBackingUp}
-              icon={<CloudUpload className="w-3.5 h-3.5" />}
+              icon={<CloudUpload className="w-4 h-4" />}
               className="shrink-0"
             >
               {isBackingUp ? 'Mengamankan...' : 'Cadangkan sekarang'}
@@ -384,10 +382,10 @@ export default function RecoveryPage() {
           {backupNotice && (
             <div
               role={backupNotice.type === 'error' ? 'alert' : 'status'}
-              className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-sm font-semibold flex items-start gap-2.5 ${
+              className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-base font-semibold flex items-start gap-2.5 ${
                 backupNotice.type === 'success'
                   ? 'bg-[#B8F34A] text-[#151515] shadow-[2px_2px_0px_#151515]'
-                  : 'bg-[#FF5252] text-white shadow-[2px_2px_0px_#151515]'
+                  : 'bg-[#D32F2F] text-white shadow-[2px_2px_0px_#151515]'
               }`}
             >
               <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
@@ -396,8 +394,8 @@ export default function RecoveryPage() {
           )}
 
           {lastBackupTime && (
-            <div className="text-sm text-[#59544D] font-medium pt-3 border-t border-[#D8D3C9] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#4169FF]" aria-hidden="true" />
+            <div className="text-base text-[#59544D] font-medium pt-3 border-t border-[#D8D3C9] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#3357EE]" aria-hidden="true" />
               <span className="tabular-nums">Terakhir dicadangkan: {new Date(lastBackupTime).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
             </div>
           )}
@@ -407,10 +405,10 @@ export default function RecoveryPage() {
         <Reveal as="section" aria-label="Pulihkan sesi" className="p-6 sm:p-7 space-y-4 bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
           <div className="space-y-1">
             <h2 className="text-xl font-bold text-[#151515] tracking-[-0.01em] leading-[1.25] flex items-start gap-2">
-              <CloudDownload className="w-5 h-5 text-[#4169FF] shrink-0 mt-0.5" aria-hidden="true" />
+              <CloudDownload className="w-5 h-5 text-[#3357EE] shrink-0 mt-0.5" aria-hidden="true" />
               <span>Pulihkan sesi di perangkat baru</span>
             </h2>
-            <p id="petunjuk-pulihkan" className="text-[15px] text-[#59544D] leading-relaxed">
+            <p id="petunjuk-pulihkan" className="text-base text-[#59544D] leading-relaxed">
               Masukkan 12 bagian kunci (atau 12 kata lama) untuk membuka cadangan cloud.
             </p>
           </div>
@@ -433,12 +431,12 @@ export default function RecoveryPage() {
             {restoreStatus && (
               <div
                 role={restoreStatus.type === 'error' ? 'alert' : 'status'}
-                className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-sm font-semibold flex items-start gap-2.5 ${
+                className={`p-3.5 rounded-[4px] border-2 border-[#151515] text-base font-semibold flex items-start gap-2.5 ${
                   restoreStatus.type === 'success'
                     ? 'bg-[#B8F34A] text-[#151515] shadow-[2px_2px_0px_#151515]'
                     : restoreStatus.type === 'warning'
                     ? 'bg-[#FFD84D] text-[#151515] shadow-[2px_2px_0px_#151515]'
-                    : 'bg-[#FF5252] text-white shadow-[2px_2px_0px_#151515]'
+                    : 'bg-[#D32F2F] text-white shadow-[2px_2px_0px_#151515]'
                 }`}
               >
                 {restoreStatus.type === 'success' ? (
@@ -454,35 +452,59 @@ export default function RecoveryPage() {
               <Button
                 type="submit"
                 variant="primary"
-                size="sm"
+                size="md"
                 disabled={isRestoring || !restoreInput.trim()}
-                icon={<RefreshCw className={`w-3.5 h-3.5 ${isRestoring ? 'animate-spin' : ''}`} />}
+                icon={<RefreshCw className={`w-4 h-4 ${isRestoring ? 'animate-spin' : ''}`} />}
               >
-                {isRestoring ? 'Membuka cadangan & memulihkan...' : 'Buka cadangan & pulihkan sesi'}
+                {isRestoring ? 'Sedang memulihkan...' : 'Pulihkan sesi'}
               </Button>
             </div>
           </form>
         </Reveal>
 
         {/* 4. DANGER ZONE: Wipe Data */}
-        <Reveal as="section" aria-label="Zona bahaya" className="p-5 sm:p-6 rounded-[8px] bg-white border-2 border-[#FF5252] shadow-[4px_4px_0px_#FF5252] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <h2 className="text-lg font-bold text-[#151515] leading-[1.25] flex items-center gap-1.5">
-              <Trash2 className="w-4 h-4 text-[#FF5252]" aria-hidden="true" />
-              <span>Zona bahaya: bersihkan data lokal</span>
-            </h2>
-            <p className="text-[15px] text-[#59544D] leading-relaxed">
-              Menghapus seluruh data anonim yang tersimpan lokal di browser ini, termasuk jurnal, riwayat, refleksi misi, dan metadata cadangan. Cadangan cloud dan kunci yang pernah disalin ke clipboard tidak dihapus.
-            </p>
+        <Reveal as="section" aria-labelledby="judul-hapus-data" className="p-5 sm:p-6 rounded-[8px] bg-white border-2 border-[#D32F2F] shadow-[4px_4px_0px_#D32F2F] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1.5">
+              <h2 id="judul-hapus-data" className="text-lg font-bold text-[#151515] leading-[1.25] flex items-center gap-1.5">
+                <Trash2 className="w-5 h-5 text-[#B3261E]" aria-hidden="true" />
+                <span>Hapus semua data di perangkat ini</span>
+              </h2>
+              <p className="text-base text-[#59544D] leading-relaxed">
+                Menghapus seluruh data anonim yang tersimpan di peramban ini: jurnal, riwayat check-in, refleksi misi, dan catatan cadangan. Cadangan cloud dan kunci yang sudah kamu salin tidak ikut terhapus.
+              </p>
+            </div>
+            {!confirmWipe && (
+              <Button
+                variant="crisis"
+                size="md"
+                onClick={() => setConfirmWipe(true)}
+                className="shrink-0"
+                aria-expanded={confirmWipe}
+                aria-controls="konfirmasi-hapus"
+              >
+                Hapus permanen
+              </Button>
+            )}
           </div>
-          <Button
-            variant="crisis"
-            size="sm"
-            onClick={handleWipe}
-            className="shrink-0"
-          >
-            Hapus permanen
-          </Button>
+          {confirmWipe && (
+            <div id="konfirmasi-hapus" role="group" aria-labelledby="judul-konfirmasi-hapus" className="p-4 rounded-[6px] bg-[#FFEBEB] border-2 border-[#151515] space-y-3">
+              <p id="judul-konfirmasi-hapus" className="text-lg font-bold text-[#151515] leading-snug">
+                Yakin ingin menghapus semua data di perangkat ini?
+              </p>
+              <p className="text-base text-[#151515] leading-relaxed">
+                Tindakan ini tidak bisa dibatalkan. Setelah dihapus, kamu akan diarahkan ke halaman depan.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2.5">
+                <Button variant="crisis" size="md" onClick={handleWipe} icon={<Trash2 className="w-4 h-4" />}>
+                  Ya, hapus semua
+                </Button>
+                <Button variant="outline" size="md" onClick={() => setConfirmWipe(false)}>
+                  Batal, jangan hapus
+                </Button>
+              </div>
+            </div>
+          )}
         </Reveal>
       </ContentColumn>
     </PageContainer>

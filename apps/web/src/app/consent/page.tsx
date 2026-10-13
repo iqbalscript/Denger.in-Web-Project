@@ -27,7 +27,7 @@ const PRINCIPLES = [
   },
   {
     number: '03',
-    tone: 'bg-coral text-white',
+    tone: 'bg-[#D32F2F] text-white',
     title: 'Kamu tidak sendirian saat krisis',
     body: 'Jika tulisanmu menunjukkan kamu sedang dalam krisis atau berpikir untuk menyakiti diri, kami langsung menampilkan kontak darurat resmi (Healing119 Kemenkes, 119 ext 8) tanpa campur tangan AI.',
   },
@@ -94,10 +94,10 @@ export default function ConsentPage() {
       <div className="space-y-3 animate-reveal-up">
         <Badge variant="calm" size="md">
           <Lock className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
-          Persetujuan Layanan &amp; Privasi
+          Persetujuan layanan dan privasi
         </Badge>
-        <h1 className="text-[2.25rem] sm:text-5xl lg:text-[3.5rem] font-bold text-ink tracking-[-0.03em] uppercase leading-[1.02]">
-          SEBELUM KITA MULAI.
+        <h1 className="text-[2rem] sm:text-5xl lg:text-[3.5rem] font-bold text-ink tracking-[-0.03em] leading-[1.05]">
+          Sebelum kita mulai.
         </h1>
         <p className="text-lg sm:text-xl text-[#4A453E] leading-[1.45] max-w-[34rem] font-medium">
           Kami ingin kamu merasa aman sejak langkah pertama. Dengar.in tidak meminta identitasmu, dan kami jujur soal batasnya: kami pendamping, bukan pengganti penanganan medis darurat.
@@ -119,7 +119,7 @@ export default function ConsentPage() {
             </span>
             <div className="space-y-1.5">
               <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25]">{item.title}</h2>
-              <div className="text-[15px] sm:text-base text-[#4A453E] leading-relaxed">{item.body}</div>
+              <div className="text-base sm:text-base text-[#4A453E] leading-relaxed">{item.body}</div>
             </div>
           </li>
         ))}
@@ -130,8 +130,8 @@ export default function ConsentPage() {
   const rightContent = (
     <div className="animate-reveal-up [animation-delay:120ms] bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-6 shadow-hard-lg lg:sticky lg:top-24">
       <div className="space-y-1.5 border-b border-[#D8D3C9] pb-4">
-        <h2 id="judul-persetujuan" className="font-bold text-xl text-ink tracking-[-0.01em] leading-[1.25]">Sebelum lanjut</h2>
-        <p className="text-[15px] text-[#59544D] leading-relaxed">Cukup centang dua hal ini, lalu kita mulai dengan tenang.</p>
+        <h2 id="judul-persetujuan" className="font-bold text-xl text-ink tracking-[-0.01em] leading-[1.25]">Dua hal untuk dicentang</h2>
+        <p className="text-base text-[#59544D] leading-relaxed">Ketuk kotaknya untuk mencentang. Setelah keduanya tercentang, tombol Lanjutkan akan aktif.</p>
       </div>
 
       <div className="space-y-3" role="group" aria-labelledby="judul-persetujuan">
@@ -140,18 +140,18 @@ export default function ConsentPage() {
           role="checkbox"
           aria-checked={agreedTerms}
           onClick={() => setAgreedTerms(!agreedTerms)}
-          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-4 border-2 border-ink transition-[transform,box-shadow,background-color] duration-200 ease-spring ${
+          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-4 border-2 border-ink transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2 ${
             agreedTerms
               ? 'bg-[#E6ECFF] shadow-hard-sm'
               : 'bg-paper hover:bg-[#F7F0E6] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard-sm active:translate-x-0 active:translate-y-0 active:shadow-none'
           }`}
         >
           {agreedTerms ? (
-            <CheckSquare className="w-5 h-5 text-cobalt shrink-0 mt-0.5" aria-hidden="true" />
+            <CheckSquare className="w-7 h-7 text-cobalt shrink-0" aria-hidden="true" />
           ) : (
-            <Square className="w-5 h-5 text-[#7A756D] shrink-0 mt-0.5" aria-hidden="true" />
+            <Square className="w-7 h-7 text-[#59544D] shrink-0" aria-hidden="true" />
           )}
-          <span className="text-[15px] text-ink leading-snug font-medium">
+          <span className="text-base text-ink leading-snug font-medium">
             Saya paham identitas saya anonim, pesan obrolan saya diproses penyedia AI pihak ketiga seperti dijelaskan di poin 04, dan saya bisa memulihkan sesi saya dengan kunci pemulihan 12 bagian.
           </span>
         </button>
@@ -161,18 +161,18 @@ export default function ConsentPage() {
           role="checkbox"
           aria-checked={agreedDisclaimer}
           onClick={() => setAgreedDisclaimer(!agreedDisclaimer)}
-          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-4 border-2 border-ink transition-[transform,box-shadow,background-color] duration-200 ease-spring ${
+          className={`flex items-start gap-3.5 text-left w-full cursor-pointer select-none rounded-md p-4 border-2 border-ink transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2 ${
             agreedDisclaimer
               ? 'bg-[#E6ECFF] shadow-hard-sm'
               : 'bg-paper hover:bg-[#F7F0E6] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard-sm active:translate-x-0 active:translate-y-0 active:shadow-none'
           }`}
         >
           {agreedDisclaimer ? (
-            <CheckSquare className="w-5 h-5 text-cobalt shrink-0 mt-0.5" aria-hidden="true" />
+            <CheckSquare className="w-7 h-7 text-cobalt shrink-0" aria-hidden="true" />
           ) : (
-            <Square className="w-5 h-5 text-[#7A756D] shrink-0 mt-0.5" aria-hidden="true" />
+            <Square className="w-7 h-7 text-[#59544D] shrink-0" aria-hidden="true" />
           )}
-          <span className="text-[15px] text-ink leading-snug font-medium">
+          <span className="text-base text-ink leading-snug font-medium">
             Saya memahami bahwa Dengar.in adalah pendamping mandiri dan bukan layanan penanganan gawat darurat medis atau psikologis.
           </span>
         </button>
@@ -188,11 +188,16 @@ export default function ConsentPage() {
           iconPosition="end"
           icon={<ArrowRight className="w-4 h-4" />}
         >
-          SAYA SETUJU, LANJUTKAN
+          Saya setuju, lanjutkan
         </Button>
+        {!canProceed && (
+          <p className="text-sm text-[#59544D] text-center leading-relaxed pt-2" aria-live="polite">
+            Centang dua kotak di atas untuk mengaktifkan tombol ini.
+          </p>
+        )}
       </div>
 
-      <p className="text-xs text-[#59544D] text-center leading-relaxed">
+      <p className="text-sm text-[#59544D] text-center leading-relaxed">
         Kunci pemulihan 12 bagian akan dibuat secara lokal di akhir proses ini.
       </p>
     </div>

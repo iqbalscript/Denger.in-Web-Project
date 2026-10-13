@@ -7,74 +7,121 @@
   --bg-paper: #FFF8EF;
   --surface-white: #FFFFFF;
   --ink-main: #151515;
-  --accent-primary: #4169FF;
+  /* Cobalt sedikit lebih gelap dari #4169FF agar teks putih di atasnya dan
+     teks cobalt di atas kertas lolos WCAG AA (>= 4.5:1). */
+  --accent-primary: #3357EE;
   --accent-positive: #B8F34A;
   --accent-attention: #FFD84D;
   --accent-warm: #FF8A3D;
+  /* Coral tetap dipakai untuk aksen; permukaan merah dengan teks putih memakai
+     --accent-crisis-strong, teks merah di latar terang memakai --accent-crisis-text. */
   --accent-crisis: #FF5252;
+  --accent-crisis-strong: #D32F2F;
+  --accent-crisis-text: #B3261E;
   --border-subtle: #D8D3C9;
 
   /* Semantic mappings */
   --background: #FFF8EF;
   --text-primary: #151515;
   --text-secondary: #59544D;
+  --text-muted: #6B665E;
   --surface-card: #FFFFFF;
   --border-primary: #151515;
   --crisis: #FF5252;
-  --ring: #4169FF;
+  --ring: #3357EE;
 }
 
 html {
+  /* 17px dasar: lebih nyaman dibaca lansia dan pengguna ponsel, tetap mengikuti
+     pengaturan ukuran teks peramban karena memakai persentase. */
+  font-size: 106.25%;
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   color: var(--text-primary);
   background-color: var(--background);
   font-family: var(--font-space-grotesk), 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
+  /* Tidak pernah menggulir ke samping di ponsel 360px. */
+  overflow-x: hidden;
 }
 
 /* Keep headlines from leaving a single orphaned word on the last line */
 h1, h2, h3 {
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 p {
   text-wrap: pretty;
 }
 
-/* Accessibility Mode: 18px+ base font */
+/* Tombol dan tautan: hilangkan jeda ketuk ganda di ponsel. */
+a, button, [role="button"], input, select, textarea, label {
+  touch-action: manipulation;
+}
+
+/* Mode teks besar (dipakai di alur untuk usia 50+): menaikkan satu tingkat
+   setiap kelas ukuran teks tanpa menumpuk (tidak memakai em bersarang). */
 .accessibility-large-text {
-  font-size: 18px !important;
-  line-height: 1.7 !important;
+  font-size: 1.0625rem;
+  line-height: 1.7;
 }
 
-.accessibility-large-text p,
-.accessibility-large-text span,
-.accessibility-large-text button {
-  font-size: 1.125rem !important; /* 18px */
-}
+.accessibility-large-text .text-xs { font-size: 1rem; line-height: 1.5; }
+.accessibility-large-text .text-sm { font-size: 1.0625rem; line-height: 1.55; }
+.accessibility-large-text .text-base { font-size: 1.125rem; line-height: 1.65; }
+.accessibility-large-text .text-lg { font-size: 1.25rem; line-height: 1.55; }
 
-.accessibility-large-text h1 {
-  font-size: 2.25rem !important;
-}
-
-.accessibility-large-text h2 {
-  font-size: 1.75rem !important;
-}
-
-.accessibility-large-text h3 {
-  font-size: 1.35rem !important;
-}
-
-/* Accessible focus ring across keyboard navigation */
+/* Fokus keyboard selalu terlihat: cincin 3px cobalt dengan jarak, ditambah
+   lapisan putih agar tetap kontras di atas permukaan berwarna. */
 *:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+/* Slider (tingkat energi) dengan pegangan besar agar mudah digeser. */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 14px;
+  background: #FFFFFF;
+  border: 2px solid #151515;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--accent-primary);
+  border: 2px solid #151515;
+  box-shadow: 2px 2px 0px #151515;
+  cursor: grab;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--accent-primary);
+  border: 2px solid #151515;
+  box-shadow: 2px 2px 0px #151515;
+  cursor: grab;
+}
+
+input[type='range']:focus-visible {
+  outline-offset: 4px;
 }
 
 /* Reduced motion preference */
@@ -175,5 +222,16 @@ p {
   .touch-target-primary {
     min-height: 48px;
     min-width: 48px;
+  }
+
+  /* Tautan teks biasa: selalu bergaris bawah dan punya area ketuk 44px. */
+  .link-inline {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
   }
 }

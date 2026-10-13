@@ -35,7 +35,7 @@ export default function ResourcesPage() {
           size="sm"
           icon={<ArrowLeft className="w-3.5 h-3.5" />}
         >
-          Kembali ke dashboard
+          Kembali ke beranda
         </Button>
       </div>
 
@@ -59,18 +59,20 @@ export default function ResourcesPage() {
       {/* Search & Filter Bar */}
       <div className="animate-reveal-up [animation-delay:120ms] flex flex-col gap-3">
         <div className="relative">
-          <Search className="w-4 h-4 text-[#8A857D] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+          <label htmlFor="cari-layanan" className="block text-base font-bold text-ink mb-1.5">Cari layanan</label>
+          <Search className="w-5 h-5 text-[#6B665E] absolute left-3.5 bottom-[15px] pointer-events-none" aria-hidden="true" />
           <input
+            id="cari-layanan"
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari layanan, nomor telepon, atau jenis bantuan..."
-            aria-label="Cari layanan bantuan"
-            className="w-full min-h-[48px] pl-10 pr-4 py-3 rounded-md border-2 border-ink text-base bg-white shadow-hard-sm placeholder:text-[#8A857D] transition-shadow duration-120 focus:outline-none focus:shadow-[3px_3px_0px_#4169FF] font-medium"
+            placeholder="Contoh: psikolog, pinjol, remaja"
+            className="w-full min-h-[52px] pl-11 pr-4 py-3 rounded-md border-2 border-ink text-base bg-white shadow-hard-sm placeholder:text-[#6B665E] transition-shadow duration-120 focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] font-medium"
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0" role="group" aria-label="Filter kategori layanan">
+        <p className="text-sm font-bold text-ink">Saring berdasarkan jenis layanan</p>
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter kategori layanan">
           {categories.map((cat) => (
             <Chip
               key={cat.id}
@@ -78,7 +80,6 @@ export default function ResourcesPage() {
               onClick={() => setActiveCategory(cat.id)}
               aria-pressed={activeCategory === cat.id}
               size="sm"
-              className="shrink-0 whitespace-nowrap"
             >
               {cat.label}
             </Chip>
@@ -92,11 +93,11 @@ export default function ResourcesPage() {
       <section className="lg:col-span-7 space-y-4" aria-label="Daftar layanan bantuan">
       {filtered.length === 0 && (
         <div role="status" className="py-12 px-6 border-2 border-dashed border-[#D8D3C9] rounded-lg text-left sm:text-center space-y-2">
-          <SearchX className="w-6 h-6 text-[#8A857D] sm:mx-auto" aria-hidden="true" />
+          <SearchX className="w-6 h-6 text-[#6B665E] sm:mx-auto" aria-hidden="true" />
           <p className="text-lg font-bold text-ink">Belum ada layanan yang cocok</p>
-          <p className="text-[15px] text-[#59544D] leading-relaxed max-w-md sm:mx-auto">
+          <p className="text-base text-[#59544D] leading-relaxed max-w-md sm:mx-auto">
             Coba kata kunci lain atau pilih &quot;Semua Layanan&quot;. Kalau kamu butuh bantuan sekarang, hubungi Healing119 (Kemenkes) di{' '}
-            <a href={toTelHref('119 ext 8')} className="font-bold text-coral underline underline-offset-2 tabular-nums">119 ext 8</a>.
+            <a href={toTelHref('119 ext 8')} className="font-bold text-[#B3261E] underline underline-offset-4 decoration-2 tabular-nums">119 ext 8</a>.
           </p>
         </div>
       )}
@@ -110,28 +111,28 @@ export default function ResourcesPage() {
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-ink ${
+                <span className={`text-sm font-bold px-2 py-0.5 rounded border border-ink ${
                   item.cost === 'gratis' ? 'bg-lime text-ink' : 'bg-paper text-ink'
                 }`}>
-                  {item.cost === 'gratis' ? 'Gratis' : 'Tarif Normal'}
+                  {item.cost === 'gratis' ? 'Gratis' : 'Tarif normal'}
                 </span>
-                <span className="text-xs text-[#59544D] font-semibold tabular-nums">
+                <span className="text-sm text-[#59544D] font-semibold tabular-nums">
                   {item.availableHours}
                 </span>
               </div>
               <h2 className="font-bold text-lg text-ink leading-[1.25] pt-1">{item.name}</h2>
-              <p className="text-[15px] text-[#59544D] leading-relaxed">{item.description}</p>
+              <p className="text-base text-[#59544D] leading-relaxed">{item.description}</p>
             </div>
 
             <div className="pt-3 flex flex-wrap items-center gap-2 border-t border-[#D8D3C9]">
               {item.phone && (
                 <a
                   href={toTelHref(item.phone)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-cobalt hover:bg-calm-600 text-white text-sm font-bold rounded border-2 border-ink shadow-hard-sm transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none min-h-[44px]"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-cobalt hover:bg-calm-600 text-white text-base font-bold rounded border-2 border-ink shadow-hard-sm transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none min-h-[48px]"
                   aria-label={`Telepon ${item.name}: ${item.phone}`}
                 >
-                  <PhoneCall className="w-4 h-4" aria-hidden="true" />
-                  <span className="tabular-nums">{item.phone}</span>
+                  <PhoneCall className="w-5 h-5" aria-hidden="true" />
+                  <span>Telepon <span className="tabular-nums">{item.phone}</span></span>
                 </a>
               )}
               {item.whatsapp && (
@@ -139,11 +140,11 @@ export default function ResourcesPage() {
                   href={`https://wa.me/62${item.whatsapp.replace(/^0/, '').replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-lime text-ink text-sm font-bold rounded border-2 border-ink shadow-hard-sm transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none min-h-[44px]"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-lime text-ink text-base font-bold rounded border-2 border-ink shadow-hard-sm transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none min-h-[48px]"
                   aria-label={`WhatsApp ${item.name}: ${item.whatsapp}`}
                 >
-                  <MessageCircle className="w-4 h-4" aria-hidden="true" />
-                  <span className="tabular-nums">WA: {item.whatsapp}</span>
+                  <MessageCircle className="w-5 h-5" aria-hidden="true" />
+                  <span>WhatsApp <span className="tabular-nums">{item.whatsapp}</span></span>
                 </a>
               )}
               {item.website && (
@@ -151,11 +152,11 @@ export default function ResourcesPage() {
                   href={item.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-paper hover:bg-white text-ink rounded border-2 border-ink shadow-hard-sm transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none ml-auto min-h-[44px] min-w-[44px] flex items-center justify-center"
-                  title="Buka Website"
-                  aria-label={`Buka website resmi ${item.name}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-paper hover:bg-white text-ink text-base font-bold rounded border-2 border-ink shadow-hard-sm transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none min-h-[48px]"
+                  aria-label={`Buka situs resmi ${item.name} (tab baru)`}
                 >
-                  <ExternalLink className="w-4 h-4" aria-hidden="true" />
+                  <ExternalLink className="w-5 h-5" aria-hidden="true" />
+                  <span>Situs</span>
                 </a>
               )}
             </div>

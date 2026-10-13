@@ -35,7 +35,7 @@ export function MoodSelector({
   className = '',
 }: MoodSelectorProps) {
   return (
-    <div className={`grid grid-cols-5 gap-2 sm:gap-3 ${className}`} role="radiogroup" aria-label="Pilih suasana hati">
+    <div className={`grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 ${className}`} role="radiogroup" aria-label="Pilih suasana hati">
       {options.map((m) => {
         const isSelected = value === m.value;
         const accent = m.accentColor || '#B8F34A';
@@ -50,7 +50,7 @@ export function MoodSelector({
             style={{
               backgroundColor: isSelected ? accent : '#FFFFFF',
             }}
-            className={`flex flex-col items-center justify-center p-2.5 sm:p-3.5 rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring min-h-[76px] sm:min-h-[88px] text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4169FF] ${
+            className={`flex flex-col items-center justify-center p-2.5 sm:p-3.5 rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring min-h-[76px] sm:min-h-[88px] text-center focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${
               isSelected
                 ? 'shadow-[3px_3px_0px_#151515] -translate-x-[1px] -translate-y-[1px]'
                 : 'shadow-[2px_2px_0px_#151515] hover:bg-[#FFF8EF] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515]'
@@ -64,12 +64,12 @@ export function MoodSelector({
               </span>
             )}
             <span
-              className="text-xs sm:text-[13px] font-bold leading-tight text-[#151515]"
+              className="text-sm font-bold leading-tight text-[#151515]"
             >
               {m.label}
             </span>
             {m.subtext && (
-              <span className="text-xs text-[#4A453E] font-medium hidden sm:block mt-0.5">
+              <span className="text-sm text-[#4A453E] font-medium hidden sm:block mt-0.5">
                 {m.subtext}
               </span>
             )}

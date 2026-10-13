@@ -55,7 +55,7 @@ export default function CheckinPage() {
     { id: 'baik', label: 'Cukup Baik', sub: 'Oke', activeClass: 'bg-cobalt text-white' },
     { id: 'netral', label: 'Biasa Saja', sub: 'Lumayan', activeClass: 'bg-yellow text-ink' },
     { id: 'berat', label: 'Terasa Berat', sub: 'Cemas / Lelah', activeClass: 'bg-tangerine text-white' },
-    { id: 'kewalahan', label: 'Kewalahan', sub: 'Sangat Lelah', activeClass: 'bg-coral text-white' },
+    { id: 'kewalahan', label: 'Kewalahan', sub: 'Sangat Lelah', activeClass: 'bg-[#D32F2F] text-white' },
   ];
 
   const tags = [
@@ -128,7 +128,7 @@ export default function CheckinPage() {
             size="sm"
             icon={<ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />}
           >
-            KEMBALI KE DASHBOARD
+            Kembali ke beranda
           </Button>
         </div>
 
@@ -136,7 +136,7 @@ export default function CheckinPage() {
         <div className="space-y-4 animate-reveal-up [animation-delay:80ms]">
           <Badge variant="yellow" size="md">
             <Sparkles className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
-            Check-in Mandiri Harian
+            Check-in harian
           </Badge>
           <h1 className="text-[2rem] sm:text-4xl lg:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
             Gimana keadaanmu hari ini?
@@ -161,17 +161,17 @@ export default function CheckinPage() {
                     type="button"
                     onClick={() => setSelectedMood(m.id)}
                     aria-pressed={isSelected}
-                    className={`p-4 rounded-md border-2 border-ink flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[104px] last:col-span-2 sm:last:col-span-1 ${
+                    className={`p-4 rounded-md border-2 border-ink flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[112px] last:col-span-2 sm:last:col-span-1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2 ${
                       isSelected
                         ? `${m.activeClass} shadow-hard font-bold -translate-x-[1px] -translate-y-[1px]`
                         : 'bg-white hover:bg-paper font-semibold shadow-hard-sm text-ink hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
                     }`}
                   >
-                    <MoodIcon mood={m.id} className="w-8 h-8 mb-1.5" />
-                    <span className="text-sm text-center leading-tight">
+                    <MoodIcon mood={m.id} className="w-9 h-9 mb-1.5" />
+                    <span className="text-base text-center leading-tight">
                       {m.label}
                     </span>
-                    <span className="text-xs font-medium">{m.sub}</span>
+                    <span className="text-sm font-medium">{m.sub}</span>
                   </button>
                 );
               })}
@@ -185,8 +185,8 @@ export default function CheckinPage() {
                 <BatteryMedium className="w-5 h-5 text-ink" aria-hidden="true" />
                 <span>2. Tingkat energimu (1–10)</span>
               </label>
-              <span aria-live="polite" className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-yellow border-2 border-ink rounded shadow-hard-sm tabular-nums">
-                SKOR: {energyLevel} / 10
+              <span aria-live="polite" className="text-base font-bold px-2.5 py-1 bg-yellow border-2 border-ink rounded shadow-hard-sm tabular-nums">
+                Energi: {energyLevel} dari 10
               </span>
             </div>
             <input
@@ -194,18 +194,23 @@ export default function CheckinPage() {
               type="range"
               min="1"
               max="10"
+              step="1"
               value={energyLevel}
               onChange={(e) => setEnergyLevel(Number(e.target.value))}
-              aria-label="Tingkat energi dari 1 sampai 10"
-              className="w-full h-3 bg-paper border-2 border-ink rounded appearance-none cursor-pointer accent-ink"
+              aria-valuetext={`${energyLevel} dari 10`}
+              className="w-full"
             />
+            <div className="flex justify-between text-sm font-semibold text-[#59544D]" aria-hidden="true">
+              <span>1 = sangat lelah</span>
+              <span>10 = sangat bertenaga</span>
+            </div>
           </div>
 
           {/* Stressor Chips */}
           <div className="space-y-3" role="group" aria-labelledby="label-beban">
             <p id="label-beban" className="text-lg font-bold text-ink leading-snug">
               3. Ada yang terasa membebani hari ini?{' '}
-              <span className="text-sm font-medium text-[#59544D]">(boleh dilewati)</span>
+              <span className="text-base font-medium text-[#59544D]">(boleh dilewati, bisa pilih lebih dari satu)</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => {
@@ -216,7 +221,7 @@ export default function CheckinPage() {
                     selected={isSelected}
                     onClick={() => toggleTag(tag)}
                     aria-pressed={isSelected}
-                    size="sm"
+                    size="md"
                   >
                     {tag}
                   </Chip>
@@ -228,7 +233,7 @@ export default function CheckinPage() {
           {/* Brief Note with safety warning */}
           <div className="space-y-2">
             <Textarea
-              label="4. Catatan Singkat (Opsional)"
+              label="4. Catatan singkat (boleh dikosongkan)"
               value={briefNote}
               onChange={handleNoteChange}
               rows={2}
@@ -242,14 +247,17 @@ export default function CheckinPage() {
               />
             )}
             {crisis.isCrisis && <CrisisBlockedNote id="checkin-krisis-catatan" />}
-            <div className="p-3 rounded-md bg-[#FFF4CC] flex items-center gap-2 text-sm text-ink">
-              <AlertTriangle className="w-4 h-4 text-ink shrink-0" aria-hidden="true" />
+            <div className="p-3 rounded-md bg-[#FFF4CC] flex items-center gap-2 text-base text-ink">
+              <AlertTriangle className="w-5 h-5 text-ink shrink-0" aria-hidden="true" />
               <span>Catatanmu tersimpan anonim di peramban perangkatmu.</span>
             </div>
           </div>
 
           {/* Submit */}
-          <div className="pt-2" role="status">
+          <div className="pt-2 space-y-3">
+            {!selectedMood && !saved && (
+              <p className="text-base text-[#59544D]" aria-live="polite">Pilih dulu perasaanmu di nomor 1, lalu tombol simpan akan aktif.</p>
+            )}
             <Button
               type="submit"
               variant="primary"
@@ -260,8 +268,9 @@ export default function CheckinPage() {
               iconPosition={saved ? 'start' : 'end'}
               icon={saved ? <CheckCircle2 className="w-5 h-5" aria-hidden="true" /> : <ArrowRight className="w-4 h-4" />}
             >
-              {saved ? 'TERSIMPAN. TERIMA KASIH SUDAH MENYAPA DIRIMU' : 'SIMPAN CHECK-IN HARI INI'}
+              {saved ? 'Tersimpan. Terima kasih sudah menyapa dirimu' : 'Simpan check-in hari ini'}
             </Button>
+            <p role="status" aria-live="polite" className="sr-only">{saved ? 'Check-in tersimpan. Kembali ke beranda.' : ''}</p>
           </div>
         </form>
 
@@ -278,28 +287,28 @@ export default function CheckinPage() {
                 <Reveal
                   key={entry.id}
                   delay={index * 70}
-                  className="p-4 rounded-md bg-white border border-borderSubtle flex flex-col sm:flex-row sm:items-start justify-between gap-2 text-sm"
+                  className="p-4 rounded-md bg-white border border-borderSubtle flex flex-col sm:flex-row sm:items-start justify-between gap-2 text-base"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-ink capitalize">
                         {entry.mood.replace('_', ' ')}
                       </span>
-                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 bg-paper border border-borderSubtle rounded tabular-nums">
-                        Energi: {entry.energyLevel}/10
+                      <span className="text-sm font-bold px-2 py-0.5 bg-paper border border-borderSubtle rounded tabular-nums">
+                        Energi {entry.energyLevel}/10
                       </span>
                     </div>
                     {entry.stressorTags.length > 0 && (
-                      <p className="text-sm text-[#59544D]">
+                      <p className="text-base text-[#59544D]">
                         Yang terasa berat: {entry.stressorTags.join(', ')}
                       </p>
                     )}
                     {entry.briefNote && (
-                      <p className="text-[15px] text-ink italic leading-relaxed">&quot;{entry.briefNote}&quot;</p>
+                      <p className="text-base text-ink italic leading-relaxed">&quot;{entry.briefNote}&quot;</p>
                     )}
                   </div>
 
-                  <span className="text-xs text-[#59544D] font-medium shrink-0 tabular-nums">
+                  <span className="text-sm text-[#59544D] font-medium shrink-0 tabular-nums">
                     {new Date(entry.timestamp).toLocaleDateString('id-ID', {
                       day: 'numeric',
                       month: 'short',

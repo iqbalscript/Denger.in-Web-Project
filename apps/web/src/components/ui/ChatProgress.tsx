@@ -27,11 +27,11 @@ export function ChatProgress() {
 
   return (
     <div className="flex items-start gap-3 pl-2" role="status" aria-live="polite">
-      <div className="px-2 py-1 rounded-[4px] border-2 border-ink bg-cobalt text-white font-bold text-xs uppercase tracking-[0.05em] shadow-hard-sm shrink-0" aria-hidden="true">
-        DENGAR
+      <div className="px-2 py-1 rounded-[4px] border-2 border-ink bg-cobalt text-white font-bold text-xs shadow-hard-sm shrink-0" aria-hidden="true">
+        Dengar
       </div>
       <div className="space-y-1.5">
-        <p className="text-sm text-[#4A453E] font-semibold">{stage.label}</p>
+        <p className="text-base text-[#4A453E] font-semibold">{stage.label}</p>
         <div className="flex items-center gap-1.5" aria-hidden="true">
           {Array.from({ length: CHAT_PROGRESS_TOTAL_STEPS }, (_, index) => {
             const number = index + 1;

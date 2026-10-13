@@ -42,12 +42,12 @@ export default function RootLayout({
       <body className="min-h-[100dvh] flex flex-col bg-[#FFF8EF] text-[#151515] font-sans selection:bg-[#B8F34A] selection:text-[#151515]">
         <a
           href="#konten-utama"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#B8F34A] focus:text-[#151515] focus:font-bold focus:text-sm focus:border-2 focus:border-[#151515] focus:rounded-[4px] focus:shadow-[3px_3px_0px_#151515]"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-5 focus:py-3 focus:bg-[#B8F34A] focus:text-[#151515] focus:font-bold focus:text-base focus:border-2 focus:border-[#151515] focus:rounded-[4px] focus:shadow-[3px_3px_0px_#151515]"
         >
           Langsung ke konten utama
         </a>
         <Navbar />
-        <main id="konten-utama" tabIndex={-1} className="flex-1 pb-20 lg:pb-0 focus:outline-none">
+        <main id="konten-utama" tabIndex={-1} className="flex-1 pb-24 lg:pb-0 focus:outline-none">
           {children}
         </main>
         <Footer />

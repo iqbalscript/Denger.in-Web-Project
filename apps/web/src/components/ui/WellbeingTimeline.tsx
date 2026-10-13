@@ -2,7 +2,7 @@ import React from 'react';
 import { MOOD_ICONS_BY_VALUE } from './MoodIcon';
 import type { WellbeingTimeline as TimelineData } from '@/lib/wellbeingTimeline';
 
-const MOOD_COLOR: Record<number, string> = { 5: '#B8F34A', 4: '#4169FF', 3: '#FFD84D', 2: '#FF8A3D', 1: '#FF5252' };
+const MOOD_COLOR: Record<number, string> = { 5: '#B8F34A', 4: '#3357EE', 3: '#FFD84D', 2: '#FF8A3D', 1: '#FF5252' };
 
 const WIDTH = 340;
 const HEIGHT = 170;
@@ -37,20 +37,20 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
 
   const stats: Array<{ label: string; value: number }> = [
     { label: 'Check-in', value: totals.checkins },
-    { label: 'Mission', value: totals.missions },
-    { label: 'Journal', value: totals.journals },
-    { label: 'Active Days', value: totals.activeDays },
+    { label: 'Misi', value: totals.missions },
+    { label: 'Jurnal', value: totals.journals },
+    { label: 'Hari aktif', value: totals.activeDays },
   ];
 
   return (
     <div className={`bg-white border-2 border-ink rounded-[8px] p-6 space-y-5 shadow-hard-sm text-left ${className}`}>
       <div className="border-b border-[#D8D3C9] pb-3 space-y-0.5">
-        <h2 className="text-xl font-bold tracking-[-0.01em] leading-[1.25] text-ink">Personal well-being timeline</h2>
-        <p className="text-[13px] text-[#59544D] font-medium tabular-nums">{days.length} hari terakhir</p>
+        <h2 className="text-xl font-bold tracking-[-0.01em] leading-[1.25] text-ink">Garis waktu kondisimu</h2>
+        <p className="text-sm text-[#59544D] font-medium tabular-nums">{days.length} hari terakhir</p>
       </div>
 
       <div className="space-y-1">
-        <span className="text-xs font-bold uppercase tracking-[0.05em] text-[#59544D]">Mood</span>
+        <span className="text-sm font-bold text-[#59544D]">Suasana hati per hari</span>
         {points.length === 0 ? (
           <p className="text-sm text-[#59544D] py-8 text-center max-w-[32ch] mx-auto leading-relaxed">
             Belum ada check-in di {days.length} hari terakhir. Gak apa-apa, mulai dari satu check-in kecil aja.
@@ -85,8 +85,8 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
             ))}
             {days.map((day, index) => (
               <text
-                key={day.date} x={x(index)} y={HEIGHT - 8} fontSize="10" textAnchor="middle" fontWeight="700" style={{ fontVariantNumeric: 'tabular-nums' }}
-                fill="#151515" fillOpacity={day.active ? 0.9 : 0.35}
+                key={day.date} x={x(index)} y={HEIGHT - 8} fontSize="11" textAnchor="middle" fontWeight="700" style={{ fontVariantNumeric: 'tabular-nums' }}
+                fill="#151515" fillOpacity={day.active ? 1 : 0.55}
               >
                 {day.dayOfMonth}
               </text>
@@ -99,13 +99,13 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
         {stats.map((stat) => (
           // dt must precede dd; flex-col-reverse keeps the number visually on top.
           <div key={stat.label} className="flex flex-col-reverse p-3 rounded-[4px] bg-paper">
-            <dt className="text-xs font-bold uppercase tracking-[0.05em] text-[#59544D] pt-1">{stat.label}</dt>
+            <dt className="text-sm font-bold text-[#59544D] pt-1">{stat.label}</dt>
             <dd className="text-2xl font-bold text-ink leading-none tabular-nums">{stat.value}</dd>
           </div>
         ))}
       </dl>
 
-      <p className="text-[13px] text-[#59544D]">
+      <p className="text-sm text-[#59544D]">
         Hari yang kosong itu normal. Data ini cuma ada di perangkatmu.
       </p>
     </div>

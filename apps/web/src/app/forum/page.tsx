@@ -329,8 +329,8 @@ export default function ForumPage() {
     <PageContainer size="default">
       <div className="space-y-8 text-left">
         <div className="animate-reveal-up">
-          <Button href="/dashboard" variant="outline" size="sm" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-            Kembali ke dashboard
+          <Button href="/dashboard" variant="outline" size="sm" icon={<ArrowLeft className="w-4 h-4" />}>
+            Kembali ke beranda
           </Button>
         </div>
 
@@ -343,8 +343,8 @@ export default function ForumPage() {
               <Users className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
               Ruang Cerita Anonim
             </Badge>
-            <h1 className="text-[2rem] sm:text-4xl lg:text-5xl font-bold text-ink tracking-[-0.03em] uppercase leading-[1.05]">
-              Solidaritas tanpa identitas
+            <h1 className="text-[2rem] sm:text-4xl lg:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.08]">
+              Saling menguatkan, tetap anonim
             </h1>
             <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed max-w-[34rem]">
               Di sini kamu bisa membaca dan berbagi cerita dengan orang-orang yang memahami rasanya.
@@ -354,18 +354,18 @@ export default function ForumPage() {
 
           <Button
             variant="primary"
-            size="md"
+            size="lg"
             iconPosition="end"
             icon={<ArrowRight className="w-4 h-4" />}
             onClick={handleOpenModal}
-            className="shrink-0"
+            className="shrink-0 w-full sm:w-auto"
           >
-            BAGIKAN CERITA
+            Bagikan cerita
           </Button>
         </div>
 
         {/* Safety & Moderation Trust Badge */}
-        <div className="py-1 pl-4 border-l-4 border-cobalt flex items-center justify-between gap-3 text-sm text-[#4A453E] leading-relaxed">
+        <div className="py-1 pl-4 border-l-4 border-cobalt flex items-center justify-between gap-3 text-base text-[#4A453E] leading-relaxed">
           <div className="flex items-start gap-2.5">
             <ShieldCheck className="w-4 h-4 text-cobalt shrink-0 mt-0.5" aria-hidden="true" />
             <span>
@@ -375,16 +375,17 @@ export default function ForumPage() {
           <button
             type="button"
             onClick={() => fetchPosts(activeTab)}
-            className="shrink-0 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-[4px] text-ink hover:text-cobalt hover:bg-[#151515]/5 transition-colors duration-200 ease-spring"
-            title="Muat ulang cerita"
-            aria-label="Muat ulang cerita"
+            className="shrink-0 min-h-[44px] px-3 inline-flex items-center gap-1.5 rounded-[4px] text-sm font-bold text-ink border-2 border-ink bg-white hover:bg-paper transition-colors duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
+            aria-label="Muat ulang daftar cerita"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
+            <span>Muat ulang</span>
           </button>
         </div>
 
         {/* Category Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none lg:flex-wrap lg:overflow-visible">
+        <p className="text-sm font-bold text-ink">Pilih topik cerita</p>
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Topik cerita">
           {CATEGORIES.map((cat) => (
             <Chip
               key={cat.id}
@@ -419,12 +420,12 @@ export default function ForumPage() {
             </div>
             <div className="space-y-2">
               <h2 className="font-bold text-xl text-ink tracking-[-0.01em]">Belum ada cerita di topik ini</h2>
-              <p className="text-[15px] text-[#59544D] max-w-md mx-auto leading-relaxed">
+              <p className="text-base text-[#59544D] max-w-md mx-auto leading-relaxed">
                 Jadilah yang pertama berbagi pengalaman atau beban pikiranmu secara aman dan anonim.
               </p>
             </div>
-            <Button variant="primary" size="sm" onClick={handleOpenModal} iconPosition="end" icon={<ArrowRight className="w-4 h-4" />}>
-              TULIS CERITA PERTAMA
+            <Button variant="primary" size="md" onClick={handleOpenModal} iconPosition="end" icon={<ArrowRight className="w-4 h-4" />}>
+              Tulis cerita pertama
             </Button>
           </div>
         ) : (
@@ -440,11 +441,11 @@ export default function ForumPage() {
                   delay={Math.min(index, 5) * 70}
                   className="bg-white border-2 border-ink rounded-[8px] p-5 sm:p-6 space-y-3.5 shadow-hard-sm"
                 >
-                  <div className="flex items-center justify-between gap-2 text-xs">
-                    <span className="text-xs font-bold px-2 py-0.5 bg-paper border border-ink rounded-[4px] text-ink">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="text-sm font-bold px-2 py-0.5 bg-paper border border-ink rounded-[4px] text-ink">
                       {post.authorPseudonym}
                     </span>
-                    <span className="text-[11px] text-cobalt font-bold uppercase tracking-[0.05em]">
+                    <span className="text-sm text-[#2B51E6] font-bold">
                       {categoryLabel}
                     </span>
                   </div>
@@ -452,29 +453,29 @@ export default function ForumPage() {
                   <h2 className="font-bold text-lg sm:text-xl text-ink tracking-[-0.01em] leading-[1.25]">
                     {post.title}
                   </h2>
-                  <p className="text-[15px] sm:text-base text-[#3D3934] leading-[1.6] whitespace-pre-line">
+                  <p className="text-base text-[#3D3934] leading-[1.6] whitespace-pre-line">
                     {post.body}
                   </p>
 
-                  <div className="pt-3 flex flex-wrap items-center gap-2 text-xs text-ink border-t border-[#D8D3C9]">
-                    <button type="button" onClick={() => thread ? setReplyPages((value) => { const next = { ...value }; delete next[post.id]; return next; }) : loadReplies(post.id)} aria-expanded={Boolean(thread)} className="min-h-[44px] px-3 bg-white border-2 border-ink rounded-[4px] font-bold shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">
-                      <MessageCircle className="inline w-3.5 h-3.5 mr-1" aria-hidden="true" /> {thread ? 'SEMBUNYIKAN BALASAN' : <>LIHAT <span className="tabular-nums">{post.replyCount ?? 0}</span> BALASAN</>}
+                  <div className="pt-3 flex flex-wrap items-center gap-2 text-sm text-ink border-t border-[#D8D3C9]">
+                    <button type="button" onClick={() => thread ? setReplyPages((value) => { const next = { ...value }; delete next[post.id]; return next; }) : loadReplies(post.id)} aria-expanded={Boolean(thread)} className="min-h-[44px] px-3 bg-white border-2 border-ink rounded-[4px] font-bold shadow-hard-sm inline-flex items-center gap-1.5 transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">
+                      <MessageCircle className="w-4 h-4" aria-hidden="true" /> {thread ? 'Sembunyikan balasan' : <>Lihat <span className="tabular-nums">{post.replyCount ?? 0}</span> balasan</>}
                     </button>
-                    <button type="button" onClick={(event) => openComposer(post.id, undefined, event.currentTarget)} className="min-h-[44px] px-3 bg-white border-2 border-ink rounded-[4px] font-bold shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button>
-                    <span className="ml-auto text-xs text-[#7A756D] font-medium tabular-nums">
+                    <button type="button" onClick={(event) => openComposer(post.id, undefined, event.currentTarget)} className="min-h-[44px] px-3 bg-white border-2 border-ink rounded-[4px] font-bold shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">Balas</button>
+                    <span className="ml-auto text-sm text-[#59544D] font-medium tabular-nums">
                       {formatForumDate(post.createdAt, isClient)}
                     </span>
                   </div>
                   {thread && (
                     <section aria-label="Balasan cerita" className="space-y-3 pt-2">
-                      {thread.loading && <p role="status" aria-live="polite" className="text-sm font-semibold text-[#59544D]">Memuat balasan…</p>}
-                      {!thread.loading && thread.replies.length === 0 && <p className="text-sm text-[#59544D]">Belum ada balasan. Jadilah yang pertama memberi dukungan yang aman.</p>}
+                      {thread.loading && <p role="status" aria-live="polite" className="text-base font-semibold text-[#59544D]">Memuat balasan…</p>}
+                      {!thread.loading && thread.replies.length === 0 && <p className="text-base text-[#59544D]">Belum ada balasan. Jadilah yang pertama memberi dukungan yang aman.</p>}
                       {thread.replies.map((reply) => (
                         <article key={reply.id} className={`animate-reveal-up border-l-2 border-[#D8D3C9] bg-[#FFF8EF] rounded-r-[6px] py-3 pl-4 pr-3 space-y-1.5 ${reply.parentReplyId ? 'ml-4 sm:ml-8' : ''}`}>
-                          {reply.parentReplyId && <p className="text-xs font-semibold text-[#7A756D]">↳ {reply.parentContextUnavailable ? 'konteks balasan tidak tersedia' : `membalas ${reply.replyingToAlias}`}</p>}
-                          <div className="flex justify-between gap-2"><strong className="text-sm font-bold">{reply.authorAlias}</strong><time className="text-xs text-[#7A756D] tabular-nums" dateTime={reply.createdAt}>{formatForumDateTime(reply.createdAt, isClient)}</time></div>
-                          <p className="text-[15px] leading-relaxed text-[#3D3934] whitespace-pre-line">{reply.body}</p>
-                          <div className="flex gap-2 text-xs"><button type="button" onClick={(event) => openComposer(post.id, reply, event.currentTarget)} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">BALAS</button><button type="button" aria-label={`Laporkan balasan ${reply.authorAlias}`} onClick={(event) => { setReportTarget({ storyId: post.id, reply, trigger: event.currentTarget }); setReportReason('other_safety'); setReportNotice(null); }} className="min-h-[44px] px-3 font-bold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt"><Flag className="inline w-3 h-3 mr-1" aria-hidden="true" />LAPORKAN</button></div>
+                          {reply.parentReplyId && <p className="text-sm font-semibold text-[#59544D]">↳ {reply.parentContextUnavailable ? 'konteks balasan tidak tersedia' : `membalas ${reply.replyingToAlias}`}</p>}
+                          <div className="flex flex-wrap justify-between gap-2"><strong className="text-base font-bold">{reply.authorAlias}</strong><time className="text-sm text-[#59544D] tabular-nums" dateTime={reply.createdAt}>{formatForumDateTime(reply.createdAt, isClient)}</time></div>
+                          <p className="text-base leading-relaxed text-[#3D3934] whitespace-pre-line">{reply.body}</p>
+                          <div className="flex flex-wrap gap-2 text-sm"><button type="button" onClick={(event) => openComposer(post.id, reply, event.currentTarget)} className="min-h-[44px] px-3 font-bold underline underline-offset-4 decoration-2 rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt">Balas</button><button type="button" aria-label={`Laporkan balasan ${reply.authorAlias}`} onClick={(event) => { setReportTarget({ storyId: post.id, reply, trigger: event.currentTarget }); setReportReason('other_safety'); setReportNotice(null); }} className="min-h-[44px] px-3 font-bold underline underline-offset-4 decoration-2 rounded inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt"><Flag className="w-4 h-4" aria-hidden="true" />Laporkan</button></div>
                         </article>
                       ))}
                     </section>
@@ -490,31 +491,32 @@ export default function ForumPage() {
         {composer && (
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="reply-composer-title" onKeyDown={(event) => { if (event.key === 'Escape' && !replySubmitting) { composer.trigger?.focus(); setComposer(null); } }}>
             <div className="animate-reveal-up bg-white w-full max-w-lg border-2 border-ink rounded-lg shadow-hard-lg p-5 space-y-3">
-              <div className="flex items-center justify-between gap-3"><h2 id="reply-composer-title" className="font-bold text-lg tracking-[-0.01em]">{composer.parent ? `Membalas ${composer.parent.authorAlias}` : 'Balas cerita ini'}</h2><button type="button" aria-label="Tutup penulis balasan" onClick={() => { composer.trigger?.focus(); setComposer(null); }} className="min-w-[44px] min-h-[44px] text-xl font-bold rounded-[4px] hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">×</button></div>
-              <p className="text-sm text-[#59544D] leading-relaxed">Nama samaran dibuat server untuk percakapan ini saja. Hapus Data Lokal menghapus kunci lokal, bukan balasan yang sudah publik.</p>
+              <div className="flex items-center justify-between gap-3"><h2 id="reply-composer-title" className="font-bold text-lg tracking-[-0.01em]">{composer.parent ? `Membalas ${composer.parent.authorAlias}` : 'Balas cerita ini'}</h2><button type="button" aria-label="Tutup kotak balasan" onClick={() => { composer.trigger?.focus(); setComposer(null); }} className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-[4px] border-2 border-ink bg-white hover:bg-paper focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"><X className="w-5 h-5" aria-hidden="true" /></button></div>
+              <p className="text-base text-[#59544D] leading-relaxed">Nama samaranmu dibuat otomatis untuk percakapan ini saja. Balasan yang sudah terkirim tidak bisa dihapus dari perangkat ini.</p>
               <form onSubmit={submitReply} className="space-y-3">
-                <textarea autoFocus value={replyBody} onChange={(event) => setReplyBody(event.target.value)} minLength={3} maxLength={800} required aria-describedby="reply-limit reply-status" className="w-full min-h-28 border-2 border-ink rounded-[4px] p-3 text-base leading-relaxed shadow-[2px_2px_0px_#151515] placeholder:text-[#8A857D] focus:outline-none focus:shadow-[3px_3px_0px_#4169FF]" placeholder="Tulis dukungan dengan aman, tanpa kontak atau tautan." />
-                <div className="flex items-center justify-between text-xs"><span id="reply-limit" className="text-[#59544D] tabular-nums">{replyBody.length}/800 karakter</span><button type="submit" disabled={replySubmitting || replyBody.trim().length < 3 || replyBody.trim().length > 800} className="min-h-[44px] px-4 border-2 border-ink rounded-[4px] bg-lime font-bold shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:bg-[#D8D3C9] disabled:text-[#7A756D] disabled:border-[#7A756D] disabled:shadow-none disabled:transform-none disabled:cursor-not-allowed">{replySubmitting ? 'MENGIRIM…' : 'KIRIM BALASAN'}</button></div>
-                <p id="reply-status" role="status" aria-live="polite" className="text-sm font-semibold">{replyNotice}</p>
+                <label htmlFor="isi-balasan" className="block text-base font-bold text-ink">Balasanmu</label>
+                <textarea id="isi-balasan" autoFocus value={replyBody} onChange={(event) => setReplyBody(event.target.value)} minLength={3} maxLength={800} required aria-describedby="reply-limit reply-status" className="w-full min-h-28 border-2 border-ink rounded-[4px] p-3 text-base leading-relaxed shadow-[2px_2px_0px_#151515] placeholder:text-[#6B665E] focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2" placeholder="Tulis dukungan dengan aman, tanpa kontak atau tautan." />
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span id="reply-limit" className="text-[#59544D] tabular-nums">{replyBody.length}/800 karakter</span><button type="submit" disabled={replySubmitting || replyBody.trim().length < 3 || replyBody.trim().length > 800} className="min-h-[48px] px-5 border-2 border-ink rounded-[4px] bg-lime text-base font-bold shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:bg-[#D8D3C9] disabled:text-[#7A756D] disabled:border-[#7A756D] disabled:shadow-none disabled:transform-none disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">{replySubmitting ? 'Mengirim…' : 'Kirim balasan'}</button></div>
+                <p id="reply-status" role="status" aria-live="polite" className="text-base font-semibold">{replyNotice}</p>
               </form>
             </div>
           </div>
         )}
 
         {reportTarget && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="report-title">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="report-title" onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); reportTarget.trigger?.focus(); setReportTarget(null); } }}>
             <form onSubmit={async (event) => { event.preventDefault(); const res = await fetch(`/api/forum/${reportTarget.storyId}/replies/${reportTarget.reply.id}/report`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: reportReason }) }); setReportNotice(res.ok ? 'Laporan diterima untuk ditinjau.' : 'Laporan belum terkirim. Coba lagi.'); if (res.ok) setTimeout(() => { reportTarget.trigger?.focus(); setReportTarget(null); }, 900); }} className="animate-reveal-up bg-white w-full max-w-md border-2 border-ink rounded-lg shadow-hard-lg p-5 space-y-3">
-              <div className="flex justify-between items-center"><h2 id="report-title" className="font-bold text-lg tracking-[-0.01em]">Laporkan balasan</h2><button type="button" aria-label="Tutup laporan" onClick={() => { reportTarget.trigger?.focus(); setReportTarget(null); }} className="min-w-[44px] min-h-[44px] text-xl font-bold rounded-[4px] hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">×</button></div>
-              <label className="block text-xs font-bold uppercase tracking-[0.05em]" htmlFor="report-reason">Alasan laporan</label><select id="report-reason" value={reportReason} onChange={(event) => setReportReason(event.target.value)} className="w-full min-h-[44px] border-2 border-ink rounded-[4px] bg-white px-3 text-base shadow-[2px_2px_0px_#151515] focus:outline-none focus:shadow-[3px_3px_0px_#4169FF]"><option value="harassment_or_bullying">Perundungan atau pelecehan</option><option value="self_harm_or_dangerous_advice">Saran menyakiti diri atau berbahaya</option><option value="contact_or_privacy">Kontak atau privasi</option><option value="scam_or_spam">Scam atau spam</option><option value="impersonation">Penyamaran</option><option value="other_safety">Masalah keamanan lainnya</option></select>
-              <button type="submit" className="min-h-[44px] px-4 border-2 border-ink rounded-[4px] bg-yellow font-bold shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">KIRIM LAPORAN</button><p role="status" aria-live="polite" className="text-sm font-semibold">{reportNotice}</p>
+              <div className="flex justify-between items-center"><h2 id="report-title" className="font-bold text-lg tracking-[-0.01em]">Laporkan balasan</h2><button type="button" aria-label="Tutup laporan" onClick={() => { reportTarget.trigger?.focus(); setReportTarget(null); }} className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-[4px] border-2 border-ink bg-white hover:bg-paper focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"><X className="w-5 h-5" aria-hidden="true" /></button></div>
+              <label className="block text-base font-bold" htmlFor="report-reason">Alasan laporan</label><select id="report-reason" value={reportReason} onChange={(event) => setReportReason(event.target.value)} className="w-full min-h-[48px] border-2 border-ink rounded-[4px] bg-white px-3 text-base shadow-[2px_2px_0px_#151515] focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"><option value="harassment_or_bullying">Perundungan atau pelecehan</option><option value="self_harm_or_dangerous_advice">Saran menyakiti diri atau berbahaya</option><option value="contact_or_privacy">Kontak atau privasi</option><option value="scam_or_spam">Scam atau spam</option><option value="impersonation">Penyamaran</option><option value="other_safety">Masalah keamanan lainnya</option></select>
+              <button type="submit" className="min-h-[48px] px-5 border-2 border-ink rounded-[4px] bg-yellow text-base font-bold shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">Kirim laporan</button><p role="status" aria-live="polite" className="text-base font-semibold">{reportNotice}</p>
             </form>
           </div>
         )}
 
         {/* Modal: Bagikan Cerita Anonim */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="share-story-title">
-            <div className="animate-reveal-up bg-white rounded-[8px] border-2 border-ink shadow-hard-lg w-full max-w-lg p-6 sm:p-7 space-y-5 text-left relative max-h-[90dvh] overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="share-story-title" onKeyDown={(event) => { if (event.key === 'Escape' && !submitting) { event.preventDefault(); setIsModalOpen(false); } }}>
+            <div className="animate-reveal-up bg-white rounded-[8px] border-2 border-ink shadow-hard-lg w-full max-w-lg p-5 sm:p-7 space-y-5 text-left relative max-h-[92dvh] overflow-y-auto">
               <div className="flex items-center justify-between pb-4 border-b border-[#D8D3C9]">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-[4px] bg-cobalt text-white border-2 border-ink flex items-center justify-center" aria-hidden="true">
@@ -522,14 +524,14 @@ export default function ForumPage() {
                   </div>
                   <div>
                     <h2 id="share-story-title" className="text-lg font-bold text-ink tracking-[-0.01em] leading-tight">Bagikan cerita anonim</h2>
-                    <p className="text-sm text-[#59544D]">Kisahmu mungkin menguatkan orang lain hari ini.</p>
+                    <p className="text-base text-[#59544D]">Kisahmu mungkin menguatkan orang lain hari ini.</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  aria-label="Tutup"
-                  className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-[4px] text-ink hover:bg-paper transition-colors duration-200 ease-spring"
+                  aria-label="Tutup formulir cerita"
+                  className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-[4px] border-2 border-ink bg-white text-ink hover:bg-paper transition-colors duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
                 >
                   <X className="w-5 h-5" aria-hidden="true" />
                 </button>
@@ -539,12 +541,12 @@ export default function ForumPage() {
                 <div
                   role="status"
                   aria-live="polite"
-                  className={`p-3.5 rounded-md border-2 border-ink text-sm flex items-start gap-2.5 shadow-hard-sm ${
+                  className={`p-3.5 rounded-md border-2 border-ink text-base flex items-start gap-2.5 shadow-hard-sm ${
                     submitNotice.type === 'success'
                       ? 'bg-lime text-ink'
                       : submitNotice.type === 'warning'
                       ? 'bg-yellow text-ink'
-                      : 'bg-coral text-white'
+                      : 'bg-[#D32F2F] text-white'
                   }`}
                 >
                   {submitNotice.type === 'success' ? (
@@ -559,17 +561,18 @@ export default function ForumPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Pseudonym */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold uppercase tracking-[0.05em] text-ink flex items-center justify-between">
-                    <span>Nama Samaran Anonim</span>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label htmlFor="nama-samaran" className="text-base font-bold text-ink">Nama samaran (bukan nama asli)</label>
                     <button
                       type="button"
                       onClick={() => setAuthorPseudonym(generateRandomPseudonym())}
-                      className="min-h-[32px] text-cobalt hover:underline text-xs font-bold normal-case tracking-normal flex items-center gap-1"
+                      className="min-h-[44px] px-2 text-[#2B51E6] underline underline-offset-4 decoration-2 text-sm font-bold flex items-center gap-1 rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt"
                     >
-                      <RefreshCw className="w-3 h-3" aria-hidden="true" /> Acak nama
+                      <RefreshCw className="w-4 h-4" aria-hidden="true" /> Acak nama
                     </button>
-                  </label>
+                  </div>
                   <Input
+                    id="nama-samaran"
                     value={authorPseudonym}
                     onChange={(e) => setAuthorPseudonym(e.target.value)}
                     placeholder="Contoh: Langkah Tenang #4829"
@@ -579,12 +582,12 @@ export default function ForumPage() {
 
                 {/* Category Domain */}
                 <div className="space-y-1">
-                  <label htmlFor="story-domain" className="block text-xs font-bold uppercase tracking-[0.05em] text-ink">Topik Beban Hidup</label>
+                  <label htmlFor="story-domain" className="block text-base font-bold text-ink">Topik cerita</label>
                   <select
                     id="story-domain"
                     value={domain}
                     onChange={(e) => setDomain(e.target.value as InterventionDomain)}
-                    className="w-full min-h-[44px] rounded-[4px] border-2 border-ink bg-white px-3.5 py-2.5 text-base text-ink shadow-hard-sm transition-shadow duration-200 ease-spring focus:outline-none focus:shadow-[3px_3px_0px_#4169FF]"
+                    className="w-full min-h-[52px] rounded-[4px] border-2 border-ink bg-white px-3.5 py-2.5 text-base text-ink shadow-hard-sm transition-shadow duration-200 ease-spring focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
                   >
                     <option value="campus">Kampus &amp; Skripsi</option>
                     <option value="finance">Tekanan Finansial &amp; Pinjol</option>
@@ -597,11 +600,12 @@ export default function ForumPage() {
 
                 {/* Title */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-bold uppercase tracking-[0.05em] text-ink">
-                    <span>Judul Cerita</span>
-                    <span className="text-[#7A756D] font-medium tabular-nums">{title.length}/100</span>
+                  <div className="flex justify-between gap-2 text-base font-bold text-ink">
+                    <label htmlFor="judul-cerita">Judul cerita (minimal 5 huruf)</label>
+                    <span className="text-[#59544D] text-sm font-medium tabular-nums">{title.length}/100</span>
                   </div>
                   <Input
+                    id="judul-cerita"
                     value={title}
                     onChange={(e) => setTitle(e.target.value.slice(0, 100))}
                     placeholder="Misal: Menyisihkan waktu istirahat di tengah revisi..."
@@ -611,11 +615,12 @@ export default function ForumPage() {
 
                 {/* Story Body */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-bold uppercase tracking-[0.05em] text-ink">
-                    <span>Isi Pengalaman / Refleksi</span>
-                    <span className="text-[#7A756D] font-medium tabular-nums">{body.length}/2500</span>
+                  <div className="flex justify-between gap-2 text-base font-bold text-ink">
+                    <label htmlFor="isi-cerita">Isi cerita (minimal 20 huruf)</label>
+                    <span className="text-[#59544D] text-sm font-medium tabular-nums">{body.length}/2500</span>
                   </div>
                   <Textarea
+                    id="isi-cerita"
                     value={body}
                     onChange={(e) => setBody(e.target.value.slice(0, 2500))}
                     rows={5}
@@ -624,15 +629,15 @@ export default function ForumPage() {
                   />
                 </div>
 
-                <div className="py-1 pl-3 border-l-4 border-cobalt text-sm text-[#4A453E] leading-relaxed">
-                  <strong className="font-bold text-ink">Etika ruang aman:</strong> Dilarang menyertakan nama asli, kontak pribadi, tautan luar, promosi, atau ujaran kebencian. Postingan akan langsung disaring secara otomatis demi kenyamanan bersama.
+                <div className="py-1 pl-3 border-l-4 border-cobalt text-base text-[#4A453E] leading-relaxed">
+                  <strong className="font-bold text-ink">Aturan ruang aman:</strong> jangan tulis nama asli, kontak pribadi, tautan luar, promosi, atau ujaran kebencian. Setiap cerita disaring otomatis demi kenyamanan bersama.
                 </div>
 
-                <div className="flex items-center justify-end gap-2.5 pt-2">
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 pt-2">
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    size="md"
                     onClick={() => setIsModalOpen(false)}
                     disabled={submitting}
                   >
@@ -641,11 +646,11 @@ export default function ForumPage() {
                   <Button
                     type="submit"
                     variant="primary"
-                    size="sm"
-                    icon={<Send className="w-3.5 h-3.5" aria-hidden="true" />}
+                    size="md"
+                    icon={<Send className="w-4 h-4" aria-hidden="true" />}
                     disabled={submitting || title.trim().length < 5 || body.trim().length < 20}
                   >
-                    {submitting ? 'Memverifikasi...' : 'KIRIM CERITA'}
+                    {submitting ? 'Memeriksa...' : 'Kirim cerita'}
                   </Button>
                 </div>
               </form>

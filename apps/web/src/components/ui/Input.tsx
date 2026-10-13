@@ -6,11 +6,12 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: string;
 }
 
-// PRD-DESIGN.md §13: 16px text (no iOS zoom), 14px 16px padding, static bold label 6px above.
+// PRD-DESIGN.md §13: teks >= 16px (tanpa zoom iOS), padding 14px 16px, label tebal statis di atas.
 const fieldBaseClasses =
-  'w-full px-4 py-3.5 bg-white border-2 rounded-[4px] text-base font-medium text-[#151515] placeholder:text-[#8A857D] transition-all duration-120 focus:outline-none focus:shadow-[3px_3px_0px_#4169FF] disabled:bg-[#D8D3C9]/40 disabled:text-[#7A756D] disabled:border-[#7A756D] disabled:shadow-none disabled:cursor-not-allowed';
+  'w-full px-4 py-3.5 bg-white border-2 rounded-[4px] text-base font-medium text-[#151515] placeholder:text-[#6B665E] transition-all duration-120 focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 disabled:bg-[#D8D3C9]/40 disabled:text-[#7A756D] disabled:border-[#7A756D] disabled:shadow-none disabled:cursor-not-allowed';
 
-const labelClasses = 'block text-[13px] font-bold uppercase tracking-[0.05em] text-[#151515]';
+// Label kalimat biasa (bukan huruf kapital semua) supaya lebih mudah dibaca.
+const labelClasses = 'block text-base font-bold text-[#151515] leading-snug';
 
 function fieldStateClasses(error?: string) {
   return error
@@ -21,7 +22,7 @@ function fieldStateClasses(error?: string) {
 function FieldMessage({ id, error, helperText }: { id?: string; error?: string; helperText?: string }) {
   if (error) {
     return (
-      <p id={id} className="text-sm text-[#D93838] font-bold">
+      <p id={id} role="alert" className="text-sm text-[#B3261E] font-bold leading-snug">
         {error}
       </p>
     );
@@ -60,7 +61,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
           aria-invalid={error ? true : props['aria-invalid']}
           aria-describedby={describedBy(messageId, Boolean(error || helperText), props['aria-describedby'])}
-          className={`${fieldBaseClasses} min-h-[48px] ${fieldStateClasses(error)} ${className}`}
+          className={`${fieldBaseClasses} min-h-[52px] ${fieldStateClasses(error)} ${className}`}
         />
         <FieldMessage id={messageId} error={error} helperText={helperText} />
       </div>

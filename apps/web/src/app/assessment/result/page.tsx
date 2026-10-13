@@ -39,7 +39,7 @@ export default function AssessmentResultPage() {
   if (!evaluation) {
     return (
       <PageContainer size="narrow">
-        <div role="status" className="py-20 text-center text-[#59544D] font-medium">Memuat hasil rekomendasi...</div>
+        <div role="status" className="py-20 text-center text-base text-[#59544D] font-medium">Memuat saran untukmu...</div>
       </PageContainer>
     );
   }
@@ -58,7 +58,7 @@ export default function AssessmentResultPage() {
     },
     SEVERE: {
       label: 'Beban Terasa: Sangat Berat',
-      colorClass: 'bg-coral text-white border-2 border-ink shadow-hard-sm',
+      colorClass: 'bg-[#D32F2F] text-white border-2 border-ink shadow-hard-sm',
     },
   }[severity];
 
@@ -69,11 +69,11 @@ export default function AssessmentResultPage() {
         <div className="space-y-3 animate-reveal-up">
           <Badge variant="calm" size="md">
             <Sparkles className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
-            Saran Dukungan (Bukan Diagnosis)
+            Saran dukungan (bukan diagnosis)
           </Badge>
 
-          <h1 className="text-[2.25rem] sm:text-5xl lg:text-[3.5rem] font-bold text-ink tracking-[-0.03em] uppercase leading-[1.02]">
-            INI YANG BISA MENEMANIMU
+          <h1 className="text-[2rem] sm:text-5xl lg:text-[3.5rem] font-bold text-ink tracking-[-0.03em] leading-[1.05]">
+            Ini yang bisa menemanimu
           </h1>
 
           <p className="text-lg sm:text-xl text-[#4A453E] leading-[1.45] max-w-[34rem] font-medium">
@@ -86,12 +86,12 @@ export default function AssessmentResultPage() {
         <div className={`bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-5 shadow-hard ${severity === 'SEVERE' ? '' : 'animate-reveal-up [animation-delay:120ms]'}`}>
           <div className="flex items-center justify-between gap-3">
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-bold uppercase tracking-[0.05em] ${severityBadgeProps.colorClass}`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-sm font-bold ${severityBadgeProps.colorClass}`}
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />
               {severityBadgeProps.label}
             </span>
-            <span className="text-xs text-[#59544D] font-bold uppercase tracking-[0.05em]">Bukan diagnosis</span>
+            <span className="text-sm text-[#59544D] font-bold">Bukan diagnosis</span>
           </div>
 
           <div className="space-y-2">
@@ -109,13 +109,13 @@ export default function AssessmentResultPage() {
 
           {/* Recommended Support Spaces Checklist */}
           <div className="pt-4 border-t border-[#D8D3C9] space-y-3">
-            <h3 className="text-xs font-bold text-ink uppercase tracking-[0.05em]">
+            <h3 className="text-base font-bold text-ink">
               Ruang yang mungkin cocok untukmu
             </h3>
             <ul className="divide-y divide-[#D8D3C9]">
               {evaluation.recommendedSupportSpaces?.map((space, idx) => (
-                <li key={idx} className="flex items-start gap-2.5 text-[15px] text-ink font-medium py-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-cobalt shrink-0 mt-1" aria-hidden="true" />
+                <li key={idx} className="flex items-start gap-2.5 text-base text-ink font-medium py-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-cobalt shrink-0 mt-0.5" aria-hidden="true" />
                   <span>{space}</span>
                 </li>
               ))}
@@ -134,19 +134,19 @@ export default function AssessmentResultPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Action 1: Dashboard / Missions */}
             <Reveal delay={80}>
-            <Link href="/dashboard" className="group block h-full rounded-md focus-visible:outline-ink">
+            <Link href="/dashboard" className="group block h-full rounded-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">
               <div className="bg-white border-2 border-ink rounded-md p-5 sm:p-6 space-y-3 h-full flex flex-col justify-between shadow-hard transition-[transform,box-shadow] duration-200 ease-spring group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-hover:shadow-hard-lg group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-hard-sm">
                 <div className="space-y-2">
                   <div className="w-10 h-10 rounded-md bg-yellow text-ink border-2 border-ink flex items-center justify-center" aria-hidden="true">
                     <Compass className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-lg text-ink tracking-[-0.01em] leading-[1.25]">Masuk ke dashboard</h3>
-                  <p className="text-[15px] text-[#4A453E] leading-relaxed">
+                  <h3 className="font-bold text-lg text-ink tracking-[-0.01em] leading-[1.25]">Masuk ke beranda</h3>
+                  <p className="text-base text-[#4A453E] leading-relaxed">
                     Mulai misi kecil harian 3–7 menit yang sesuai kemampuanmu.
                   </p>
                 </div>
-                <span className="text-sm font-bold text-cobalt flex items-center gap-1.5 pt-2" aria-hidden="true">
-                  Buka dashboard <span className="inline-block transition-transform duration-400 ease-spring group-hover:translate-x-1">→</span>
+                <span className="text-base font-bold text-[#2B51E6] flex items-center gap-1.5 pt-2" aria-hidden="true">
+                  Buka beranda <span className="inline-block transition-transform duration-400 ease-spring group-hover:translate-x-1">→</span>
                 </span>
               </div>
             </Link>
@@ -154,36 +154,36 @@ export default function AssessmentResultPage() {
 
             {/* Action 2: Journal or Professional Referral depending on severity */}
             {severity === 'SEVERE' ? (
-              <Link href="/resources" className="group block h-full rounded-md focus-visible:outline-ink">
+              <Link href="/resources" className="group block h-full rounded-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">
                 <div className="bg-white border-2 border-ink rounded-md p-5 sm:p-6 space-y-3 h-full flex flex-col justify-between shadow-hard transition-[transform,box-shadow] duration-200 ease-spring group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-hover:shadow-hard-lg group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-hard-sm">
                   <div className="space-y-2">
-                    <div className="w-10 h-10 rounded-md bg-coral text-white border-2 border-ink flex items-center justify-center" aria-hidden="true">
+                    <div className="w-10 h-10 rounded-md bg-[#D32F2F] text-white border-2 border-ink flex items-center justify-center" aria-hidden="true">
                       <PhoneCall className="w-5 h-5" />
                     </div>
                     <h3 className="font-bold text-lg text-ink tracking-[-0.01em] leading-[1.25]">Direktori bantuan terverifikasi</h3>
-                    <p className="text-[15px] text-[#4A453E] leading-relaxed">
+                    <p className="text-base text-[#4A453E] leading-relaxed">
                       Kontak resmi Healing119 (Kemenkes) 119 ext 8, LISA Helpline, dan layanan konseling, kapan pun kamu ingin bicara dengan manusia.
                     </p>
                   </div>
-                  <span className="text-sm font-bold text-[#D93838] flex items-center gap-1.5 pt-2" aria-hidden="true">
+                  <span className="text-base font-bold text-[#B3261E] flex items-center gap-1.5 pt-2" aria-hidden="true">
                     Lihat kontak bantuan <span className="inline-block transition-transform duration-400 ease-spring group-hover:translate-x-1">→</span>
                   </span>
                 </div>
               </Link>
             ) : (
               <Reveal delay={160}>
-              <Link href="/journal" className="group block h-full rounded-md focus-visible:outline-ink">
+              <Link href="/journal" className="group block h-full rounded-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">
                 <div className="bg-white border-2 border-ink rounded-md p-5 sm:p-6 space-y-3 h-full flex flex-col justify-between shadow-hard transition-[transform,box-shadow] duration-200 ease-spring group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-hover:shadow-hard-lg group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-hard-sm">
                   <div className="space-y-2">
                     <div className="w-10 h-10 rounded-md bg-lime text-ink border-2 border-ink flex items-center justify-center" aria-hidden="true">
                       <BookOpen className="w-5 h-5" />
                     </div>
                     <h3 className="font-bold text-lg text-ink tracking-[-0.01em] leading-[1.25]">Jurnal refleksi privat</h3>
-                    <p className="text-[15px] text-[#4A453E] leading-relaxed">
+                    <p className="text-base text-[#4A453E] leading-relaxed">
                       Tuliskan perasaanmu secara bebas di peramban tanpa terhubung ke server manapun.
                     </p>
                   </div>
-                  <span className="text-sm font-bold text-cobalt flex items-center gap-1.5 pt-2" aria-hidden="true">
+                  <span className="text-base font-bold text-[#2B51E6] flex items-center gap-1.5 pt-2" aria-hidden="true">
                     Mulai menulis <span className="inline-block transition-transform duration-400 ease-spring group-hover:translate-x-1">→</span>
                   </span>
                 </div>
@@ -194,10 +194,10 @@ export default function AssessmentResultPage() {
         </div>
 
         {/* Strict Ethical Non-Diagnostic Disclaimer */}
-        <aside aria-label="Bukan diagnosis" className="p-4 sm:p-5 rounded-md bg-[#FFF1C2] border-l-4 border-yellow text-sm sm:text-[15px] text-[#4A453E] leading-relaxed flex items-start gap-3">
+        <aside aria-label="Bukan diagnosis" className="p-4 sm:p-5 rounded-md bg-[#FFF1C2] border-l-4 border-yellow text-base text-[#4A453E] leading-relaxed flex items-start gap-3">
           <ShieldCheck className="w-5 h-5 text-cobalt shrink-0 mt-0.5" aria-hidden="true" />
           <div>
-            <span className="font-bold text-ink block mb-1 text-xs uppercase tracking-[0.05em]">Bukan diagnosis</span>
+            <span className="font-bold text-ink block mb-1 text-base">Bukan diagnosis</span>
             <span>
               Hasil ini merupakan panduan awal mandiri non-klinis dan{' '}
               <strong className="text-ink font-bold">bukan diagnosis medis</strong> (seperti depresi klinis, gangguan kecemasan, atau PTSD).
@@ -216,7 +216,7 @@ export default function AssessmentResultPage() {
             icon={<ArrowRight className="w-4 h-4" />}
             className="w-full sm:w-auto"
           >
-            LANJUT KE DASHBOARD
+            Lanjut ke beranda
           </Button>
         </Reveal>
       </ContentColumn>

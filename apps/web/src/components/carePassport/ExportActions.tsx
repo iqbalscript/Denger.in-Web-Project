@@ -52,7 +52,7 @@ export function ExportActions({ passport, provenanceLabel, appendix }: ExportAct
     <SectionCard as="div" tone="cobalt" elevation="high" className="space-y-4">
       <div className="space-y-1">
         <h2 className="text-xl font-bold text-[#151515] leading-[1.25]">Simpan ke perangkatmu</h2>
-        <p className={`text-[15px] leading-relaxed ${MUTED}`}>
+        <p className={`text-base leading-relaxed ${MUTED}`}>
           File berisi hanya poin yang kamu setujui, pertanyaanmu, dan catatan penting. Tanpa kutipan mentah, tanpa nama model. Tidak dikirim ke mana pun.
         </p>
       </div>

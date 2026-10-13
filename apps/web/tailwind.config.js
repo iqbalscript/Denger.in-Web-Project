@@ -9,7 +9,9 @@ module.exports = {
         // PRD-DESIGN.md Canonical Palette
         paper: '#FFF8EF',
         ink: '#151515',
-        cobalt: '#4169FF',
+        // Cobalt sedikit lebih gelap dari #4169FF supaya teks putih di atasnya
+        // dan teks cobalt di atas kertas lolos WCAG AA (>= 4.5:1).
+        cobalt: '#3357EE',
         lime: '#B8F34A',
         yellow: '#FFD84D',
         amber: '#FF8A3D',
@@ -21,7 +23,7 @@ module.exports = {
         brand: {
           bg: '#FFF8EF',
           ink: '#151515',
-          primary: '#4169FF',   // Cobalt
+          primary: '#3357EE',   // Cobalt (aksesibel)
           cta: '#B8F34A',       // Positive Lime
           accent: '#FFD84D',    // Sunny Yellow
           warm: '#FF8A3D',      // Tangerine
@@ -58,9 +60,9 @@ module.exports = {
           50: '#F0F4FF',
           100: '#DBE4FE',
           200: '#BAC9FE',
-          500: '#4169FF',
+          500: '#3357EE',
           600: '#2B51E6',
-          700: '#4169FF',
+          700: '#3357EE',
           800: '#1A37B3',
           900: '#151515',
           950: '#151515',
@@ -68,7 +70,10 @@ module.exports = {
         crisis: {
           light: '#FFEBEB',
           DEFAULT: '#FF5252',
-          dark: '#D93838',
+          // Permukaan merah yang memakai teks putih (tombol darurat) dan teks
+          // merah di atas latar terang; keduanya lolos WCAG AA.
+          strong: '#D32F2F',
+          dark: '#B3261E',
           border: '#151515',
         },
       },
@@ -77,7 +82,7 @@ module.exports = {
         'hard': '3px 3px 0px #151515',
         'hard-lg': '4px 4px 0px #151515',
         'hard-xl': '6px 6px 0px #151515',
-        'hard-cobalt': '3px 3px 0px #4169FF',
+        'hard-cobalt': '3px 3px 0px #3357EE',
         'hard-lime': '3px 3px 0px #B8F34A',
         'hard-coral': '3px 3px 0px #FF5252',
         // Backward-compat aliases
@@ -86,6 +91,19 @@ module.exports = {
         'soft-md': '3px 3px 0px #151515',
         'soft-lg': '4px 4px 0px #151515',
         'glass': '3px 3px 0px #151515',
+      },
+      // Skala tipografi "ramah semua usia": ukuran terkecil 13.8px, teks
+      // biasa 15.9px, body 17px (root 106.25%), dengan line-height lega.
+      fontSize: {
+        xs: ['0.8125rem', { lineHeight: '1.25rem' }],
+        sm: ['0.9375rem', { lineHeight: '1.45rem' }],
+        base: ['1rem', { lineHeight: '1.6' }],
+        lg: ['1.125rem', { lineHeight: '1.55' }],
+        xl: ['1.25rem', { lineHeight: '1.45' }],
+        '2xl': ['1.5rem', { lineHeight: '1.3' }],
+        '3xl': ['1.875rem', { lineHeight: '1.2' }],
+        '4xl': ['2.25rem', { lineHeight: '1.1' }],
+        '5xl': ['3rem', { lineHeight: '1.05' }],
       },
       borderRadius: {
         'xs': '2px',
