@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#FAFAFA',
+  themeColor: '#FFF8EF',
 };
 
 export default function RootLayout({
@@ -57,7 +57,7 @@ export default function RootLayout({
         {/* Terapkan pilihan bahasa dan Akses cepat sebelum halaman tampil (tanpa kedipan). */}
         <script dangerouslySetInnerHTML={{ __html: LANGUAGE_INIT_SCRIPT + ACCESSIBILITY_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-[100dvh] flex flex-col bg-[#FAFAFA] text-[#151515] font-sans selection:bg-[#B8F34A] selection:text-[#151515]">
+      <body className="min-h-[100dvh] flex flex-col bg-[#FFF8EF] text-[#151515] font-sans selection:bg-[#B8F34A] selection:text-[#151515]">
         <SkipLink />
         <Navbar />
         <main id="konten-utama" tabIndex={-1} className="flex-1 pb-24 lg:pb-0 focus:outline-none">

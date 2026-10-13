@@ -88,7 +88,7 @@ export function SectionCard({
 }: SectionCardProps) {
   const tones = {
     white: 'bg-white text-[#151515]',
-    paper: 'bg-[#FAFAFA] text-[#151515]',
+    paper: 'bg-[#FFF8EF] text-[#151515]',
     cobalt: 'bg-[#E6ECFF] text-[#151515]',
     crisis: 'bg-[#FFEBEB] text-[#151515]',
   };
@@ -116,7 +116,7 @@ export function Tag({
   className?: string;
 }) {
   const tones = {
-    paper: 'bg-[#FAFAFA] text-[#151515]',
+    paper: 'bg-[#FFF8EF] text-[#151515]',
     white: 'bg-white text-[#151515]',
     cobalt: 'bg-[#3357EE] text-white',
     lime: 'bg-[#B8F34A] text-[#151515]',

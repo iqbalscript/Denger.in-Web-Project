@@ -77,7 +77,7 @@ export function QuickExitButton({ className = '', variant = 'navbar' }: QuickExi
     >
       <LogOut className="w-[18px] h-[18px] text-[#B3261E] group-hover:text-white shrink-0 transition-colors duration-120" aria-hidden="true" />
       {/* Petunjuk Esc ikut tampil mulai xl: di laptop 1024px baris navigasi butuh ruangnya. */}
-      <span>{t.label} <kbd className="hidden xl:inline-block text-xs font-mono px-1 py-0.5 bg-[#FAFAFA] text-[#151515] rounded-[2px] border border-[#151515] ml-0.5 group-hover:bg-white">Esc</kbd></span>
+      <span>{t.label} <kbd className="hidden xl:inline-block text-xs font-mono px-1 py-0.5 bg-[#FFF8EF] text-[#151515] rounded-[2px] border border-[#151515] ml-0.5 group-hover:bg-white">Esc</kbd></span>
     </button>
   );
 }

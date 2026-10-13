@@ -98,10 +98,10 @@ function NgobrolMenu({ pathname, focusRing, t }: { pathname: string; focusRing: 
                 aria-current={current ? 'page' : undefined}
                 onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 min-h-[52px] rounded-[4px] border-2 transition-colors duration-200 ${focusRing} ${
-                  current ? 'border-[#151515] bg-[#B8F34A]' : 'border-transparent hover:border-[#151515] hover:bg-[#FAFAFA]'
+                  current ? 'border-[#151515] bg-[#B8F34A]' : 'border-transparent hover:border-[#151515] hover:bg-[#FFF8EF]'
                 }`}
               >
-                <span className="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-[4px] border-2 border-[#151515] bg-[#FAFAFA]" aria-hidden="true">
+                <span className="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-[4px] border-2 border-[#151515] bg-[#FFF8EF]" aria-hidden="true">
                   <Icon className="w-5 h-5 text-[#151515]" />
                 </span>
                 <span>
@@ -178,7 +178,7 @@ export function Navbar() {
     <>
       {/* Permukaan kertas 92% + blur hanya pada header lengket (bukan konten bergulir);
           teks tinta tetap kontras > 12:1 di atasnya. */}
-      <header className="sticky top-0 z-40 bg-[#FAFAFA] supports-[backdrop-filter]:bg-[#FAFAFA]/[0.92] supports-[backdrop-filter]:backdrop-blur-md border-b-2 border-[#151515]">
+      <header className="sticky top-0 z-40 bg-[#FFF8EF] supports-[backdrop-filter]:bg-[#FFF8EF]/[0.92] supports-[backdrop-filter]:backdrop-blur-md border-b-2 border-[#151515]">
         {/* Lebar baris (dulu diukur dengan Space Grotesk 700; font sistem sekarang lebih sempit):
             lg 1024: logo 126 + 5 tautan 411 + Bantuan(ikon) 46 + Keluar Cepat 137 + Darurat 104 + Akses 44 + jarak 40 = ~910 dari 960.
             xl 1280: + ikon tautan, label Bantuan, petunjuk Esc = ~1188 dari 1216.
@@ -242,7 +242,7 @@ export function Navbar() {
                 className={`hidden lg:inline-flex items-center justify-center gap-1.5 min-h-[44px] px-3 rounded-[4px] text-sm font-bold border-2 border-[#151515] shadow-[2px_2px_0px_#151515] transition-all duration-120 active:translate-x-[1px] active:translate-y-[1px] whitespace-nowrap ${focusRing} ${
                   pathname === '/resources'
                     ? 'bg-[#B8F34A] text-[#151515]'
-                    : 'bg-white text-[#151515] hover:bg-[#FAFAFA]'
+                    : 'bg-white text-[#151515] hover:bg-[#FFF8EF]'
                 }`}
               >
                 <HelpCircle className="w-[18px] h-[18px] text-[#151515] shrink-0" aria-hidden="true" />
@@ -281,7 +281,7 @@ export function Navbar() {
           <div
             id="menu-seluler"
             onKeyDown={handleMenuKeyDown}
-            className="lg:hidden bg-[#FAFAFA] border-t-2 border-[#151515] px-4 pt-3 pb-24 space-y-3 max-h-[calc(100dvh-4.25rem)] overflow-y-auto overscroll-contain"
+            className="lg:hidden bg-[#FFF8EF] border-t-2 border-[#151515] px-4 pt-3 pb-24 space-y-3 max-h-[calc(100dvh-4.25rem)] overflow-y-auto overscroll-contain"
           >
             <p className="text-sm font-bold text-[#59544D]">{t.pickPage}</p>
 
@@ -309,7 +309,7 @@ export function Navbar() {
                     className={`animate-reveal-up flex items-center gap-3 px-4 min-h-[52px] rounded-[4px] text-base font-bold border-2 border-[#151515] transition-colors duration-200 ease-spring ${focusRing} ${
                       isActive
                         ? 'bg-[#B8F34A] text-[#151515] shadow-[2px_2px_0px_#151515]'
-                        : 'bg-white text-[#151515] hover:bg-[#FAFAFA]'
+                        : 'bg-white text-[#151515] hover:bg-[#FFF8EF]'
                     }`}
                   >
                     <Icon className="w-5 h-5 text-[#151515] shrink-0" aria-hidden="true" />

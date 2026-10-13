@@ -7,7 +7,7 @@ module.exports = {
     extend: {
       colors: {
         // PRD-DESIGN.md Canonical Palette
-        paper: '#FAFAFA',
+        paper: '#FFF8EF',
         ink: '#151515',
         // Cobalt sedikit lebih gelap dari #4169FF supaya teks putih di atasnya
         // dan teks cobalt di atas kertas lolos WCAG AA (>= 4.5:1).
@@ -21,7 +21,7 @@ module.exports = {
 
         // Semantic mappings
         brand: {
-          bg: '#FAFAFA',
+          bg: '#FFF8EF',
           ink: '#151515',
           primary: '#3357EE',   // Cobalt (aksesibel)
           cta: '#B8F34A',       // Positive Lime
@@ -35,7 +35,7 @@ module.exports = {
 
         // Backward compatibility mappings
         terracotta: {
-          50: '#FAFAFA',
+          50: '#FFF8EF',
           100: '#F5ECE0',
           200: '#EBD9C6',
           500: '#FF8A3D',
@@ -45,7 +45,7 @@ module.exports = {
           900: '#151515',
         },
         sand: {
-          50: '#FAFAFA',
+          50: '#FFF8EF',
           100: '#F7F0E6',
           200: '#D8D3C9',
           300: '#C5BFB4',

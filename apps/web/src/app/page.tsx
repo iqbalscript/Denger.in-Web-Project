@@ -144,12 +144,11 @@ export default function LandingPage() {
                   )}
                 </p>
 
-                {/* Lima pilihan dalam dua baris (3 + 2) tanpa sel kosong; di tablet
-                    muat lima sejajar. Label tetap utuh, tidak terpotong di tengah kata. */}
-                <div className="grid grid-cols-6 sm:grid-cols-5 lg:grid-cols-6 gap-2 pt-1">
-                  {moodOptions.map((m, index) => {
+                {/* Pilihan mood sebagai baris chip: ikon di samping label (bukan kotak
+                    identik berikon di atas), membungkus ke baris baru bila sempit. */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {moodOptions.map((m) => {
                     const isSelected = selectedQuickMood === m.id;
-                    const span = index < 3 ? 'col-span-2 sm:col-span-1 lg:col-span-2' : 'col-span-3 sm:col-span-1 lg:col-span-3';
                     return (
                       <button
                         key={m.id}
@@ -159,13 +158,13 @@ export default function LandingPage() {
                         style={{
                           backgroundColor: isSelected ? m.color : '#FFFFFF',
                         }}
-                        className={`${span} py-2.5 px-1.5 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[76px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${isSelected
+                        className={`inline-flex items-center gap-2 min-h-[48px] pl-2.5 pr-4 rounded-[4px] border-2 border-[#151515] text-sm font-bold text-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${isSelected
                             ? 'shadow-[2px_2px_0px_#151515] -translate-x-[1px] -translate-y-[1px]'
-                            : 'hover:bg-[#FAFAFA] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515] active:translate-x-0 active:translate-y-0 active:shadow-none'
+                            : 'hover:bg-[#FFF8EF] active:translate-x-0 active:translate-y-0'
                           }`}
                       >
-                        <MoodIcon mood={m.id} className="w-7 h-7 text-[#151515]" />
-                        <span className="text-sm text-center font-bold leading-tight w-full text-[#151515] break-words">{m.label}</span>
+                        <MoodIcon mood={m.id} className="w-6 h-6 shrink-0 text-[#151515]" />
+                        <span className="leading-tight">{m.label}</span>
                       </button>
                     );
                   })}

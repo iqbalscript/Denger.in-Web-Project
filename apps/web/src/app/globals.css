@@ -4,7 +4,7 @@
 
 :root {
   /* PRD-DESIGN.md Design Tokens */
-  --bg-paper: #FAFAFA;
+  --bg-paper: #FFF8EF;
   --surface-white: #FFFFFF;
   --ink-main: #151515;
   /* Cobalt sedikit lebih gelap dari #4169FF agar teks putih di atasnya dan
@@ -21,7 +21,7 @@
   --border-subtle: #D8D3C9;
 
   /* Semantic mappings */
-  --background: #FAFAFA;
+  --background: #FFF8EF;
   --text-primary: #151515;
   --text-secondary: #59544D;
   --text-muted: #6B665E;
@@ -187,7 +187,7 @@ svg.lucide[stroke-width='2'][width='14'] {
   }
 
   .brutal-card-tinted {
-    background-color: #FAFAFA;
+    background-color: #FFF8EF;
     border: 2px solid #151515;
     box-shadow: 3px 3px 0px #151515;
     border-radius: 6px;
@@ -204,7 +204,7 @@ svg.lucide[stroke-width='2'][width='14'] {
   }
 
   .soft-surface-tinted {
-    background-color: #FAFAFA;
+    background-color: #FFF8EF;
     border: 2px solid #151515;
     box-shadow: 3px 3px 0px #151515;
     border-radius: 6px;

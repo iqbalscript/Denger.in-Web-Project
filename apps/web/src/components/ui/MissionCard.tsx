@@ -62,7 +62,7 @@ export function MissionCard({
             <span>{t.inProgress}</span>
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-sm font-bold text-[#151515] bg-[#FAFAFA] px-2.5 py-1 rounded-[4px] border-2 border-[#151515]">
+          <span className="inline-flex items-center gap-1 text-sm font-bold text-[#151515] bg-[#FFF8EF] px-2.5 py-1 rounded-[4px] border-2 border-[#151515]">
             <span>{t.recommended}</span>
           </span>
         )}

@@ -114,7 +114,7 @@ export function ManualNote({ reason, provenance, warnings, onRetry, onBack, busy
             disabled={!hasContent}
             onClick={() => setReviewed((v) => !v)}
             className={`flex items-start gap-3.5 text-left w-full rounded-[6px] p-4 border-2 border-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring disabled:opacity-60 disabled:cursor-not-allowed ${
-              reviewed ? 'bg-[#E6ECFF] shadow-[2px_2px_0px_#151515]' : 'bg-white hover:bg-[#FAFAFA]'
+              reviewed ? 'bg-[#E6ECFF] shadow-[2px_2px_0px_#151515]' : 'bg-white hover:bg-[#FFF8EF]'
             } focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE]`}
           >
             {reviewed ? (

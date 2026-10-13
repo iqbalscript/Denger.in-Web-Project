@@ -113,7 +113,7 @@ export function PrivacyWarningPopup() {
           <button
             type="button"
             onClick={handleDismiss}
-            className="absolute top-4 right-4 inline-flex items-center justify-center w-11 h-11 rounded-[4px] border-2 border-[#151515] bg-white hover:bg-[#FAFAFA] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] transition-all duration-120 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
+            className="absolute top-4 right-4 inline-flex items-center justify-center w-11 h-11 rounded-[4px] border-2 border-[#151515] bg-white hover:bg-[#FFF8EF] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] transition-all duration-120 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
             aria-label={t.close}
           >
             <X className="w-5 h-5 text-[#151515]" aria-hidden="true" />

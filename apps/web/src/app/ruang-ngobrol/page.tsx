@@ -551,7 +551,7 @@ export default function RuangNgobrolPage() {
   const statusMessage = 'key' in status ? t.status[status.key] : status.text;
 
   return (
-    <div className="bg-[#FAFAFA] text-[#151515]">
+    <div className="bg-[#FFF8EF] text-[#151515]">
       <PageContainer size="narrow">
         <ContentColumn size="sm" className="space-y-6">
           <header className="animate-reveal-up space-y-3">
@@ -568,13 +568,13 @@ export default function RuangNgobrolPage() {
             <p className="mt-4 text-base leading-relaxed" aria-live="polite">{statusMessage}</p>
 
             {!speechRecognitionSupported && (
-              <p className="mt-4 border-l-4 border-[#FFD84D] bg-[#FAFAFA] p-3 text-base leading-relaxed" role="status">
+              <p className="mt-4 border-l-4 border-[#FFD84D] bg-[#FFF8EF] p-3 text-base leading-relaxed" role="status">
                 {t.unsupportedNote}
               </p>
             )}
 
             {showPrivacyDisclosure && (
-              <div className="animate-reveal-up mt-5 rounded-[6px] border-2 border-[#151515] bg-[#FAFAFA] p-4" role="region" aria-label={t.privacyRegion}>
+              <div className="animate-reveal-up mt-5 rounded-[6px] border-2 border-[#151515] bg-[#FFF8EF] p-4" role="region" aria-label={t.privacyRegion}>
                 <p className="text-base leading-relaxed">{voiceRoomPrivacyDisclosure(lang)}</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Button variant="secondary" onClick={() => setShowPrivacyDisclosure(false)}>{t.cancel}</Button>

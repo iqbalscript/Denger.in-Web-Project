@@ -160,7 +160,7 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
                       <button
                         type="button"
                         onClick={() => dismissUnknown(u)}
-                        className="shrink-0 inline-flex items-center gap-1 min-h-[44px] px-2.5 rounded-[4px] border-2 border-[#151515] bg-white text-sm font-bold hover:bg-[#FAFAFA] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
+                        className="shrink-0 inline-flex items-center gap-1 min-h-[44px] px-2.5 rounded-[4px] border-2 border-[#151515] bg-white text-sm font-bold hover:bg-[#FFF8EF] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
                         aria-label={t.dismissAria(u)}
                       >
                         <X className="w-4 h-4" aria-hidden="true" />

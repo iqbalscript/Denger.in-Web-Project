@@ -121,7 +121,7 @@ export function ImmediateHelp({ contacts, onRestart }: ImmediateHelpProps) {
                         href={contact.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-[#FAFAFA] text-[#151515] text-base font-bold rounded-[4px] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none min-h-[48px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
+                        className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-[#FFF8EF] text-[#151515] text-base font-bold rounded-[4px] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none min-h-[48px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
                         aria-label={t.siteAria(text.name)}
                       >
                         <ExternalLink className="w-5 h-5" aria-hidden="true" />

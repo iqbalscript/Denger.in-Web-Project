@@ -457,7 +457,7 @@ export default function ForumPage() {
                       {thread.loading && <p role="status" aria-live="polite" className="text-base font-semibold text-[#59544D]">{t.loadingReplies}</p>}
                       {!thread.loading && thread.replies.length === 0 && <p className="text-base text-[#59544D]">{t.noReplies}</p>}
                       {thread.replies.map((reply) => (
-                        <article key={reply.id} className={`animate-reveal-up border-l-2 border-[#D8D3C9] bg-[#FAFAFA] rounded-r-[6px] py-3 pl-4 pr-3 space-y-1.5 ${reply.parentReplyId ? 'ml-4 sm:ml-8' : ''}`}>
+                        <article key={reply.id} className={`animate-reveal-up border-l-2 border-[#D8D3C9] bg-[#FFF8EF] rounded-r-[6px] py-3 pl-4 pr-3 space-y-1.5 ${reply.parentReplyId ? 'ml-4 sm:ml-8' : ''}`}>
                           {reply.parentReplyId && <p className="text-sm font-semibold text-[#59544D]">↳ {reply.parentContextUnavailable ? t.replyContextMissing : t.replyingTo(reply.replyingToAlias ?? '')}</p>}
                           <div className="flex flex-wrap justify-between gap-2"><strong className="text-base font-bold">{reply.authorAlias}</strong><time className="text-sm text-[#59544D] tabular-nums" dateTime={reply.createdAt}>{formatForumDateTime(reply.createdAt, isClient, lang)}</time></div>
                           <p className="text-base leading-relaxed text-[#3D3934] whitespace-pre-line">{reply.body}</p>
