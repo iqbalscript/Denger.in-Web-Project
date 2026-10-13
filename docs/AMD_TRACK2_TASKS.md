@@ -1,7 +1,5 @@
 # Dengar.in CareBridge — Backlog AMD Track 2
 
-> Proposal lanjutan tersedia di [Yang Tak Terucap](yang-tak-terucap/00_README.md), dengan [backlog khusus](yang-tak-terucap/08_TASKS.md). Perbedaan scope dicatat pada indeks; jangan menggabungkan prioritas kedua MVP secara otomatis.
-
 Tanggal: 13 Oktober 2026. Sumber: [development plan](AMD_TRACK2_DEVELOPMENT_PLAN.md).
 
 Semua task berstatus **TODO**. Dokumen ini membuat backlog baru; belum menjalankan implementasi. ID task stabil untuk pembagian kerja dan pelacakan PR. Dependensi berarti task sebelumnya harus memenuhi kriteria selesai. Jadwal mengikuti konfirmasi deadline portal, bukan tanggal asumsi.

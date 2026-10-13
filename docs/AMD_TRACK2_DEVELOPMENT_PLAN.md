@@ -1,7 +1,5 @@
 # Dengar.in CareBridge — AMD Track 2 Development Plan
 
-> Proposal lanjutan tersedia di [Yang Tak Terucap](yang-tak-terucap/00_README.md), dengan [backlog khusus](yang-tak-terucap/08_TASKS.md). Perbedaan scope dicatat pada indeks; jangan menggabungkan prioritas kedua MVP secara otomatis.
-
 **Event:** AMD Developer Hackathon: ACT III — Track 2, Health & Wellbeing  
 **Planning date:** 2026-10-13 (Asia/Jakarta)  
 **Repository:** https://github.com/iqbalscript/Denger.in-Web-Project  
