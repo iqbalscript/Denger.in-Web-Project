@@ -18,10 +18,9 @@ export function Chip({
   type = 'button',
   ...props
 }: ChipProps) {
-  // Chip adalah tombol pilihan: selalu 44px dan label minimal ~16px.
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm gap-1.5 min-h-[44px]',
-    md: 'px-4 py-2 text-base gap-2 min-h-[48px]',
+    sm: 'px-2.5 py-1 text-[13px] gap-1 min-h-[44px] sm:min-h-[34px]',
+    md: 'px-3.5 py-1.5 text-sm gap-1.5 min-h-[44px] sm:min-h-[40px]',
   };
 
   const unselectedVariants = {

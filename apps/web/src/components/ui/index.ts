@@ -15,3 +15,4 @@ export * from './ChatProgress';
 export * from './PrivacyWarningPopup';
 export * from './Reveal';
 export * from './MoodIcon';
+export * from './AccessibilityMenu';

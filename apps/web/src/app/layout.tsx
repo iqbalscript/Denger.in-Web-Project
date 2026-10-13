@@ -4,6 +4,7 @@ import { Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { ACCESSIBILITY_INIT_SCRIPT } from '@/components/ui/AccessibilityMenu';
 
 // Self-hosted at build time by next/font, so it satisfies the `font-src 'self'` CSP.
 const spaceGrotesk = Space_Grotesk({
@@ -44,7 +45,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className={spaceGrotesk.variable}>
+    <html lang="id" className={spaceGrotesk.variable} suppressHydrationWarning>
+      <head>
+        {/* Terapkan pilihan Akses cepat sebelum halaman tampil (tanpa kedipan). */}
+        <script dangerouslySetInnerHTML={{ __html: ACCESSIBILITY_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-[100dvh] flex flex-col bg-[#FFF8EF] text-[#151515] font-sans selection:bg-[#B8F34A] selection:text-[#151515]">
         <a
           href="#konten-utama"

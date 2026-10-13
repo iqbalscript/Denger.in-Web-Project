@@ -36,9 +36,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     // Semua ukuran memenuhi area sentuh 44px; label tidak pernah lebih kecil dari ~16px.
     const sizeClasses = {
-      sm: 'px-3.5 py-2 text-sm min-h-[44px] gap-2',
-      md: 'px-5 py-2.5 text-base min-h-[48px] gap-2',
-      lg: 'px-6 py-3 text-lg min-h-[52px] gap-2.5',
+      sm: 'px-3 py-1.5 text-xs min-h-[44px] sm:min-h-[40px] gap-1.5',
+      md: 'px-4 py-2 text-sm min-h-[44px] gap-2',
+      lg: 'px-6 py-3 text-base min-h-[48px] gap-2.5',
     };
 
     const variantClasses = {

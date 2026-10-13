@@ -21,7 +21,7 @@ import {
   Mic,
   X,
 } from 'lucide-react';
-import { QuickExitButton } from './ui';
+import { AccessibilityMenu, QuickExitButton } from './ui';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -158,21 +158,9 @@ export function Navbar() {
                 <span className="xl:hidden">Darurat</span>
               </Link>
 
-              {/* Mobile Menu Toggle */}
-              <button
-                type="button"
-                className={`lg:hidden relative inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-[4px] border-2 border-[#151515] bg-white text-[#151515] shadow-[2px_2px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] transition-[transform,box-shadow] duration-200 ease-spring ${focusRing}`}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-expanded={mobileMenuOpen}
-                aria-controls="menu-seluler"
-                aria-label={mobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
-              >
-                {mobileMenuOpen ? (
-                  <X className="w-6 h-6" aria-hidden="true" />
-                ) : (
-                  <Menu className="w-6 h-6" aria-hidden="true" />
-                )}
-              </button>
+              {/* Akses cepat mandiri (pojok kanan atas, semua ukuran layar). Tombol menu
+                  seluler ada di dock bawah, jadi tidak diulang di sini. */}
+              <AccessibilityMenu />
             </div>
           </div>
         </div>

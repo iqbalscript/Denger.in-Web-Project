@@ -32,9 +32,6 @@
 }
 
 html {
-  /* 17px dasar: lebih nyaman dibaca lansia dan pengguna ponsel, tetap mengikuti
-     pengaturan ukuran teks peramban karena memakai persentase. */
-  font-size: 106.25%;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -45,7 +42,7 @@ body {
   background-color: var(--background);
   font-family: var(--font-space-grotesk), 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
   /* Tidak pernah menggulir ke samping di ponsel 360px. */
@@ -277,4 +274,52 @@ svg.lucide[stroke-width='2'][width='14'] {
     text-underline-offset: 4px;
     text-decoration-thickness: 2px;
   }
+}
+
+/*
+ * Akses cepat (components/ui/AccessibilityMenu.tsx). Kelas dipasang di <html>.
+ * Ukuran teks diatur lewat font-size <html>, jadi semua ukuran rem ikut membesar.
+ */
+.a11y-contrast body {
+  background-color: #FFFFFF;
+}
+.a11y-contrast .text-\[\#59544D\],
+.a11y-contrast .text-\[\#6B665E\],
+.a11y-contrast .text-\[\#7A756D\],
+.a11y-contrast .text-\[\#8A857D\],
+.a11y-contrast .text-\[\#9E988D\] {
+  color: #151515;
+}
+.a11y-contrast .border-\[\#D8D3C9\] {
+  border-color: #151515;
+}
+.a11y-contrast ::placeholder {
+  color: #3D3A35;
+}
+
+.a11y-underline a {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.a11y-spacing body {
+  letter-spacing: 0.03em;
+  word-spacing: 0.12em;
+}
+.a11y-spacing p,
+.a11y-spacing li {
+  line-height: 1.85;
+}
+
+.a11y-reduce-motion *,
+.a11y-reduce-motion ::before,
+.a11y-reduce-motion ::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+.a11y-reduce-motion [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
 }
