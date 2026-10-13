@@ -499,9 +499,10 @@ export default function ChatPage() {
 
   return (
     <PageContainer size="narrow">
-      <ContentColumn size="md" className="space-y-6">
-        {/* Top Navigation & Safety Indicator */}
-        <div className="animate-reveal-up flex flex-wrap items-center justify-between gap-3">
+      <ContentColumn size="md" className="space-y-4 sm:space-y-6">
+        {/* Top Navigation & Safety Indicator. Di HP disembunyikan agar kotak chat
+            mendapat tinggi penuh: dock bawah sudah punya Beranda, navbar punya Darurat. */}
+        <div className="animate-reveal-up hidden sm:flex flex-wrap items-center justify-between gap-3">
           <Button
             href="/dashboard"
             variant="outline"
@@ -519,15 +520,15 @@ export default function ChatPage() {
 
         <h1 className="sr-only">{t.pageTitle}</h1>
 
-        {/* Chat Container. Tinggi ikut dvh: di Android (interactive-widget=resizes-content)
-            dan iOS kotak tulis tetap terlihat saat keyboard layar terbuka; di HP pendek
-            tingginya dibatasi 480px dan halaman yang bergulir. */}
-        <div className="animate-reveal-up [animation-delay:80ms] flex flex-col h-[calc(100dvh-15rem)] min-h-[480px] max-h-[680px] sm:h-[680px] bg-white border-2 border-ink rounded-lg shadow-hard overflow-hidden text-left">
+        {/* Chat Container. Di HP tingginya mengisi layar di antara navbar dan dock
+            (ikut dvh, jadi kotak tulis tetap terlihat saat keyboard terbuka di iOS dan
+            Android). Hanya area pesan yang bergulir; kolom tulis selalu terlihat. */}
+        <div className="animate-reveal-up [animation-delay:80ms] flex flex-col h-[calc(100dvh-11.5rem)] min-h-[420px] sm:h-[680px] sm:max-h-[calc(100dvh-10rem)] sm:min-h-[520px] bg-white border-2 border-ink rounded-lg shadow-hard overflow-hidden text-left">
           {/* Chat Header */}
-          <div className="p-3 sm:p-4 border-b-2 border-ink bg-paper space-y-3">
+          <div className="shrink-0 p-3 sm:p-4 border-b-2 border-ink bg-paper space-y-2 sm:space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-md bg-cobalt text-white flex items-center justify-center font-bold text-base border-2 border-ink shadow-hard-sm shrink-0" aria-hidden="true">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-md bg-cobalt text-white flex items-center justify-center font-bold text-base border-2 border-ink shadow-hard-sm shrink-0" aria-hidden="true">
                   AI
                 </div>
                 <div className="min-w-0">
@@ -537,13 +538,13 @@ export default function ChatPage() {
                       {t.headerStatus}
                     </span>
                   </div>
-                  <p className="text-sm text-[#59544D] leading-snug">{t.headerSubtitle}</p>
+                  <p className="hidden sm:block text-sm text-[#59544D] leading-snug">{t.headerSubtitle}</p>
                 </div>
               </div>
 
               <Link
                 href="/crisis"
-                className="shrink-0 min-h-[44px] text-sm font-bold text-white bg-[#D32F2F] hover:bg-[#B3261E] px-3 rounded border-2 border-ink shadow-hard-sm inline-flex items-center gap-1.5 transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
+                className="hidden sm:inline-flex shrink-0 min-h-[44px] text-sm font-bold text-white bg-[#D32F2F] hover:bg-[#B3261E] px-3 rounded border-2 border-ink shadow-hard-sm items-center gap-1.5 transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
               >
                 <PhoneCall className="w-[18px] h-[18px]" aria-hidden="true" />
                 <span>{t.emergency}</span>
@@ -579,7 +580,7 @@ export default function ChatPage() {
           </div>
 
           {/* Message History */}
-          <div ref={messagesContainerRef} onScroll={handleMessagesScroll} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5" role="log" aria-live="polite" aria-relevant="additions" aria-label={t.historyLabel}>
+          <div ref={messagesContainerRef} onScroll={handleMessagesScroll} className="flex-1 min-h-0 p-3 sm:p-6 overflow-y-auto overscroll-contain space-y-5" role="log" aria-live="polite" aria-relevant="additions" aria-label={t.historyLabel}>
             {messages.map((msg, index) => (
               <div
                 key={msg.id}
@@ -677,32 +678,35 @@ export default function ChatPage() {
               </div>
             ))}
 
+            {/* Saran pembuka ada di dalam area pesan supaya ikut bergulir dan tidak
+                mendorong kolom tulis keluar dari layar HP. */}
+            {messages.length === 1 && !isTyping && (
+              <div className="animate-reveal-up [animation-delay:160ms] space-y-2">
+                <p className="text-sm text-ink font-bold flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
+                  {t.starterIntro}
+                </p>
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                  {t.starters.map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => sendMessageWithText(prompt)}
+                      className="text-base bg-white text-ink border-2 border-ink rounded-md px-3.5 py-2 shadow-hard-sm text-left font-medium transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none min-h-[44px] flex items-center focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {isTyping && <ChatProgress />}
 
           </div>
 
-          {/* Quick Starter Chips */}
-          {messages.length === 1 && !isTyping && (
-            <div className="animate-reveal-up [animation-delay:160ms] px-4 py-3 bg-paper border-t-2 border-ink flex flex-wrap gap-2 items-center">
-              <span className="text-sm text-ink font-bold mr-1 flex items-center gap-1 w-full sm:w-auto">
-                <Sparkles className="w-4 h-4 text-cobalt" aria-hidden="true" />
-                {t.starterIntro}
-              </span>
-              {t.starters.map((prompt) => (
-                <button
-                  key={prompt}
-                  type="button"
-                  onClick={() => sendMessageWithText(prompt)}
-                  className="text-base bg-white text-ink border-2 border-ink rounded-md px-3.5 py-2 shadow-hard-sm text-left font-medium transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none min-h-[44px] flex items-center focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          )}
-
           {/* Input Form */}
-          <form onSubmit={handleSendMessage} className="p-3 border-t-2 border-ink bg-paper space-y-2">
+          <form onSubmit={handleSendMessage} className="shrink-0 p-3 border-t-2 border-ink bg-paper space-y-2">
             {showVoiceDisclosure && (
               <div className="animate-reveal-up border-2 border-ink rounded-md bg-white p-3 text-base leading-relaxed shadow-hard-sm" role="status">
                 <p>{browserVoicePrivacyDisclosure(lang)}</p>
@@ -743,8 +747,8 @@ export default function ChatPage() {
               </p>
             )}
 
-            <label htmlFor="pesan-chat" className="block text-sm font-bold text-ink">{t.inputLabel}</label>
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <label htmlFor="pesan-chat" className="sr-only sm:not-sr-only sm:block text-sm font-bold text-ink">{t.inputLabel}</label>
+            <div className="flex gap-2">
               <input
                 id="pesan-chat"
                 type="text"
@@ -757,7 +761,7 @@ export default function ChatPage() {
                 enterKeyHint="send"
                 className="min-h-[48px] flex-1 min-w-0 px-4 py-2.5 rounded-md border-2 border-ink text-base bg-white placeholder:text-[#6B665E] shadow-[2px_2px_0px_#151515] transition-shadow duration-200 ease-spring focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2 disabled:bg-[#D8D3C9]/40 disabled:cursor-not-allowed"
               />
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 {speechRecognitionSupported && (
                   <Button
                     type="button"
@@ -767,10 +771,10 @@ export default function ChatPage() {
                     disabled={isTyping}
                     aria-label={isListening ? t.micStop : t.micStart}
                     aria-pressed={isListening}
-                    className="min-h-[48px] flex-1 sm:flex-none"
+                    className="min-h-[48px] min-w-[48px] shrink-0"
                     icon={isListening ? <Square className="w-4 h-4" aria-hidden="true" /> : <Mic className="w-4 h-4" aria-hidden="true" />}
                   >
-                    {isListening ? t.micStopShort : t.micStartShort}
+                    <span className="hidden sm:inline">{isListening ? t.micStopShort : t.micStartShort}</span>
                   </Button>
                 )}
                 <Button
@@ -778,10 +782,11 @@ export default function ChatPage() {
                   variant="primary"
                   size="sm"
                   disabled={!inputText.trim() || isTyping}
+                  aria-label={t.send}
                   icon={<Send className="w-4 h-4" />}
-                  className="min-h-[48px] flex-1 sm:flex-none"
+                  className="min-h-[48px] min-w-[48px] shrink-0"
                 >
-                  {t.send}
+                  <span className="hidden sm:inline">{t.send}</span>
                 </Button>
               </div>
             </div>
