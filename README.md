@@ -1,222 +1,314 @@
 # Dengar.in
 
-> **Anonymous, Local-First AI Mental Well-being Companion**  
-> Built with Next.js 15, TypeScript, Multi-Brain AI Orchestration, and a Deterministic Crisis Safety Architecture.
+> **Anonymous, local-first mental wellbeing companion for Indonesia, with CareBridge: grounded consultation prep built for inference on AMD.**
+> Submission for **AMD Developer Hackathon ACT III, Track 2: Health and Wellbeing** (lablab.ai, October 2026).
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue.svg)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-15.1.4-black.svg)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19.0.0-blue.svg)](https://react.dev/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4.17-38bdf8.svg)](https://tailwindcss.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](package.json)
+[![AMD Developer Hackathon ACT III](https://img.shields.io/badge/AMD%20Developer%20Hackathon-ACT%20III%20%C2%B7%20Track%202-ED1C24.svg)](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-iii)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8.svg)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
----
-
-## Technical Overview
-
-Dengar.in is a privacy-first, zero-registration mental well-being companion for users in Indonesia. It connects real-life situational stressors (academic, workplace burnout, debt/pinjol, family dynamics) with 3–7 minute daily micro-interventions, local-first mood tracking, and emergency escalation.
-
-### Key Architectural Pillars
-- **Zero PII & Anonymous by Design**: Session identity relies on client-generated UUID v4 and a 12-word recovery mnemonic. No names, emails, or phone numbers collected.
-- **Deterministic Crisis Gate (Zero-LLM)**: Life-safety screening runs sub-millisecond regex and text normalization *before* any AI processing.
-- **Multi-Brain AI Pipeline**: Tiered LLM architecture with independent bias review and fallback resilience.
-- **Local-First & Client-Side E2EE**: Journal and check-in logs reside in `localStorage`. Multi-device backup uses Web Crypto API (AES-GCM 256-bit + PBKDF2 100k rounds) with zero-knowledge server storage.
-- **Hybrid Storage & Auto Fallback**: PostgreSQL persistence for public forum and admin moderation, with automatic in-memory fallback for offline/local development. Optional Redis for distributed rate-limiting and ISR caching.
+**Live app:** https://dengar-in.vercel.app · **Repository:** https://github.com/iqbalscript/Denger.in-Web-Project
 
 ---
 
-## Safety Architecture (4-Layer Defense)
+## Contents
 
-```
-[ User Input (Chat / Assessment / Forum) ]
-                   │
-                   ▼
-┌────────────────────────────────────────────────────────┐
-│ LAYER 0: DETERMINISTIC CRISIS ENGINE                   │
-│ (services/crisis-engine)                               │
-│ • Sub-ms regex & leetspeak/elongation normalization    │
-│ • ZERO LLM / Vector reliance                           │
-└───────────────────────┬────────────────────────────────┘
-                        │
-        ┌───────────────┴───────────────┐
- [CRISIS DETECTED]               [NON-CRISIS]
-        │                               │
-        ▼                               ▼
-  AI Flow Halts           ┌────────────────────────────────────────────────────────┐
-  Redirect to /crisis     │ LAYER 1: DOMAIN & ANTI-CODING GATE                     │
-  (Kemenkes 119 ext 8)    │ (services/orchestrator)                                │
-                          │ • Intercepts coding/IT syntax & off-topic spam         │
-                          │ • Instant empathetic redirect (Zero token cost)        │
-                          └─────────────────────┬──────────────────────────────────┘
-                                                │
-                                                ▼
-                          ┌────────────────────────────────────────────────────────┐
-                          │ LAYER 2: MULTI-BRAIN AI PIPELINE                       │
-                          │ 1. Primary: DeepSeek Platform (deepseek-flash, JSON)   │
-                          │ 2. Reviewer: NVIDIA Nemotron 3 Ultra 550B (Debiaser)   │
-                          │ 3. Fallback: Google Gemini 3.1 Flash-Lite              │
-                          │ 4. Deterministic Safe Rule Fallback                    │
-                          └─────────────────────┬──────────────────────────────────┘
-                                                │
-                                                ▼
-                          ┌────────────────────────────────────────────────────────┐
-                          │ LAYER 3: ACTION VALIDATOR & MAXIMUM GUARDRAILS         │
-                          │ (services/validator)                                   │
-                          │ • Whitelist 6 JSON action schemas                      │
-                          │ • Strips markdown code blocks (```)                    │
-                          │ • Auto-redacts PII (NIK, email, Indonesian phone)      │
-                          │ • Blocks psychiatric diagnosis & toxic positivity      │
-                          └─────────────────────┬──────────────────────────────────┘
-                                                │
-                                                ▼
-                                    [ Safe Client Output ]
-```
+- [The problem](#the-problem)
+- [AMD Developer Hackathon ACT III: what we built](#amd-developer-hackathon-act-iii-what-we-built)
+- [How Track 2 requirements are handled](#how-track-2-requirements-are-handled)
+- [AMD integration status](#amd-integration-status)
+- [Pre-existing project and hackathon scope](#pre-existing-project-and-hackathon-scope)
+- [Product features](#product-features)
+- [Safety architecture](#safety-architecture)
+- [Monorepo layout](#monorepo-layout)
+- [Quickstart](#quickstart)
+- [Running CareBridge on AMD](#running-carebridge-on-amd)
+- [Commands and tests](#commands-and-tests)
+- [API reference](#api-reference)
+- [Security and privacy controls](#security-and-privacy-controls)
+- [Documentation](#documentation)
+- [Team](#team)
+- [Disclaimer and license](#disclaimer-and-license)
 
 ---
 
-## Monorepo Layout
+## The problem
 
-Managed via **npm workspaces**:
+Many Indonesian adults finally book a first session with a psychologist or counselor, then sit there unable to explain what has been happening, for how long, and what it affects. Stigma makes registration and real names a barrier, and hotlines are hard to find in the moment.
+
+Dengar.in is a privacy-first, zero-registration companion: chat (text or voice), daily check-ins, a private journal, an anonymous story forum, verified crisis contacts, and short micro-missions. For the hackathon we added **CareBridge**, which turns a hard-to-explain story into a user-owned **Care Passport** for that first consultation.
+
+## AMD Developer Hackathon ACT III: what we built
+
+**Track 2: Health and Wellbeing.** The goal is to help one part of the patient journey: preparing for a first mental health consultation.
+
+**CareBridge / Care Passport** (`/care-passport`):
+
+1. **Tell it in your own words.** Text intake, adults (18+) only for this module.
+2. **Safety first, in code.** A deterministic crisis gate runs on the raw text before consent and before any model call. A crisis or an explicit request for urgent help shows verified support contacts and calls no AI at all.
+3. **Redaction preview the user controls.** Emails, Indonesian phone numbers, NIK, URLs, handles, card numbers, address hints, and self-introduced names are detected and redacted. The user sees and corrects the preview before anything is sent.
+4. **Separate AI consent.** Opting in to AI processing is its own step, separate from any sharing.
+5. **Model drafts, validator decides.** The model (served on AMD) proposes a structured draft: main concerns, daily impact, duration, context, and questions to ask a professional. A deterministic validator keeps a fact only if it quotes the user's sanitized text. Invented durations, diagnostic labels, medication advice, and confidence percentages are removed. Missing information is shown as **unknown**, never guessed.
+6. **Dated evidence.** Facts can link to dated journal or check-in entries the user picks.
+7. **Opening lines.** Grounded first sentences for starting the consultation, plus a sourced checklist.
+8. **Review, approve, export locally.** Every note stays `user_pending` until the user approves it. Export (`.md` / `.txt`) needs a separate action. Nothing is sent to a third party automatically.
+9. **Honest outages.** If the AMD endpoint is unreachable, the app says so and offers a manual path instead of a silently generated summary from another provider.
+
+The result model has five states, and AI can only **escalate** toward human support, never downgrade a rule-based flag.
+
+## How Track 2 requirements are handled
+
+| Requirement (from the event page) | How Dengar.in handles it | Where |
+|---|---|---|
+| No autonomous diagnosis or treatment | Validator strips diagnostic labels, medication advice, and confidence percentages. Chat validator blocks psychiatric diagnosis. | `services/validator/src/carePassport.ts`, `npm run test:security-m04` |
+| Incorrect or ungrounded responses | Every field must quote the sanitized input. Ungrounded fields are dropped and counted, never shown as fact. | `services/validator/src/carePassport.ts` |
+| Sensitive information | PII detection and redaction before inference, user-controlled preview, no AI response cache for this flow, metadata-only logs. | `services/validator/src/piiRedactor.ts`, `apps/web/src/lib/api/carePassportHandler.ts` |
+| Uncertain results | Explicit `unknowns`, `needsReview` on paraphrases, at most one clarification question, no confidence scores. | `packages/types`, `services/validator/src/carePassport.ts` |
+| High-risk decisions | Rule-based crisis gate before consent and before AI. Immediate-help screen with zero model calls. Model may only escalate. | `services/crisis-engine`, `services/orchestrator/src/carePassportPipeline.ts`, [`docs/CAREBRIDGE_SAFETY_POLICY.md`](docs/CAREBRIDGE_SAFETY_POLICY.md) |
+| Human review and handoff | User approval required on every note. Crisis and high-distress paths always show human contacts (Healing119 Kemenkes, 119 ext 8). | `apps/web/src/components/carePassport/**`, `/crisis`, `/resources` |
+| Realistic demo, input to output | Synthetic cases A to E plus 20 attribution scenarios. No real patient data. | `tests/carebridge/fixtures.mjs`, [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) |
+
+## AMD integration status
+
+We report this honestly; the submission copy follows the same rule.
+
+| Piece | Status |
+|---|---|
+| OpenAI-compatible AMD adapter (`createAmdProvider`) with timeout, malformed-JSON, and outage handling | Done, tested against mock servers |
+| Capability probe (`probeAmdEndpoint`: models, chat latency, JSON mode) | Done, tested against mock servers |
+| Care Passport pipeline uses AMD as the default provider, with accurate provenance (`providerId: amd:<model>`, `isAmd`, `latencyMs`) | Done |
+| Care Passport API, page, redaction preview, review, local export | Done and deployed |
+| **Live AMD endpoint** (AMD Token Factory or vLLM on AMD Developer Cloud / Instinct MI300X) | **Pending (AMD-02).** No AMD endpoint is configured in this repository yet. Until a live trace exists, "runs on AMD" is the design target, not a measured fact. |
+| Measured impact and latency on AMD | Pending (AMD-14) |
+
+Setup paths and the probe procedure: [`docs/AMD_SETUP.md`](docs/AMD_SETUP.md). Task tracking: [`docs/AMD_TRACK2_TASKS.md`](docs/AMD_TRACK2_TASKS.md).
+
+## Pre-existing project and hackathon scope
+
+Dengar.in existed before the hackathon (anonymous chat, check-in, journal, forum, crisis resources). Work for AMD Developer Hackathon ACT III started on **13 October 2026**, beginning with commit `ff707c7` (CareBridge / Care Passport). Everything from that commit onward is hackathon work, including:
+
+- CareBridge: Care Passport pipeline, AMD adapter and probe, grounding validator, PII redactor, `/api/care-passport/*`, `/care-passport` UI, dated evidence, opening lines, local export.
+- Safety: high-distress support pathway, English crisis detection, expanded crisis phrase coverage with regression tests.
+- Accessibility and inclusion: WCAG AA contrast, 44 px touch targets, the "Akses cepat" quick-access panel (text size, contrast, link underline, reading spacing, stop animations), layouts that adapt to larger text.
+- Language: Indonesian / English UI, English chat replies, English voice.
+- Copy: plain everyday Indonesian ("Bahasa Lazim"), documented in [`AGENTS.md`](AGENTS.md).
+
+Scope decisions for the hackathon (adults 18+ for CareBridge, synthetic demo data only) are recorded with sources in [`docs/AMD_01_SCOPE_DAN_SYARAT.md`](docs/AMD_01_SCOPE_DAN_SYARAT.md). The wider product keeps its existing age scope and policies.
+
+## Product features
+
+- **Ngobrol (chat):** write or talk. Text chat with AI, and a voice room (speech in, natural expressive speech out).
+- **Check-in and journal:** stored on the device (`localStorage`), with optional end-to-end encrypted backup.
+- **Cerita (forum):** anonymous stories with automatic moderation and admin review.
+- **Micro-missions and weekly reflection:** 3 to 7 minute steps tied to real stressors (study, work burnout, debt and illegal loans, family).
+- **Crisis and help directory:** verified Indonesian contacts (Healing119 Kemenkes 119 ext 8, LISA Helpline, TePSA, OJK).
+- **Quick Exit:** one button or the Esc key leaves to a neutral page.
+- **Akses cepat:** top-right panel for text size (100 to 140 percent), high contrast, link underline, reading spacing, stopping animations, and language.
+- **Bahasa Indonesia / English:** switch in the Akses cepat panel, the mobile menu, or the footer. AI replies, voice, and crisis detection follow the selected language.
+
+## Safety architecture
 
 ```
-Denger.in/
+[ User input: chat / voice / check-in / journal / forum / Care Passport ]
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 0: DETERMINISTIC CRISIS ENGINE (services/crisis-engine)│
+│ • Indonesian + English phrase rules, leetspeak/elongation    │
+│   normalization, sub-millisecond, ZERO LLM                    │
+│ • Runs on message AND history, before cache and before AI    │
+└───────────────┬───────────────────────────┬─────────────────┘
+        [CRISIS]                     [HIGH DISTRESS / NONE]
+            │                               │
+            ▼                               ▼
+   AI halts. /crisis with          Human-support card shown
+   verified contacts               (high), then continue
+   (Healing119, 119 ext 8)                  │
+                                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 1: DOMAIN GATE (services/orchestrator)                 │
+│ • Off-topic and coding requests get an instant, kind redirect│
+└───────────────────────────────┬─────────────────────────────┘
+                                │
+              ┌─────────────────┴──────────────────┐
+              ▼                                    ▼
+┌───────────────────────────────┐  ┌───────────────────────────────────┐
+│ LAYER 2a: CHAT PIPELINE        │  │ LAYER 2b: CAREBRIDGE PIPELINE      │
+│ 1. DeepSeek (primary)          │  │ consent → PII redaction preview    │
+│ 2. Gemini (fallback)           │  │ → AMD model (createAmdProvider)    │
+│ 3. Optional OpenRouter debiaser│  │ → honest outage state, no silent   │
+│ 4. Deterministic safe fallback │  │   non-AMD summary                  │
+└───────────────┬───────────────┘  └─────────────────┬─────────────────┘
+                ▼                                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 3: VALIDATORS (services/validator)                     │
+│ • Chat: whitelist of 6 JSON actions, PII redaction, blocks    │
+│   diagnosis and toxic positivity                              │
+│ • Care Passport: grounding by quotation, unknowns, no         │
+│   diagnosis/medication/percentages, max one clarification     │
+└───────────────────────────────┬─────────────────────────────┘
+                                ▼
+                     [ Safe output for the user ]
+```
+
+## Monorepo layout
+
+Managed with **npm workspaces**:
+
+```
+Denger.in-Web-Project/
 ├── apps/
-│   └── web/                   # Next.js 15 App Router (frontend pages & API routes)
-│       ├── src/app/           # UI routes (/consent, /dashboard, /chat, /forum, etc.)
-│       ├── src/app/api/       # Backend route handlers (REST API)
-│       └── src/lib/           # Client storage, crypto, rate limiters, singleton repos
+│   └── web/                     # Next.js 15 App Router: pages + API route handlers
+│       ├── src/app/             # /chat, /ruang-ngobrol, /care-passport, /forum, /crisis, ...
+│       ├── src/app/api/         # chat, care-passport, forum, sync, report, admin, health
+│       ├── src/i18n/            # Indonesian / English dictionaries (no extra dependency)
+│       └── src/lib/             # storage, crypto, speech, rate limits, handlers
 ├── packages/
-│   ├── types/                 # Shared TypeScript interfaces (@dengarin/types)
-│   ├── config/                # Mnemonic dictionary, crisis hotlines, missions catalog
-│   └── prompts/               # AI system prompts, JSON action schemas, guardrail rules
+│   ├── types/                   # Shared types, including Care Passport schema v1
+│   ├── config/                  # Emergency contacts, help destinations, missions
+│   └── prompts/                 # System prompts, JSON action schemas, guardrails
 ├── services/
-│   ├── crisis-engine/         # Zero-dependency deterministic crisis detector
-│   ├── orchestrator/          # Multi-Brain pipeline (DeepSeek → Nemotron → Gemini)
-│   ├── validator/             # Action schema validator & forum content moderator
-│   ├── persistence/           # Postgres repository + in-memory fallback (forum, sync, admin)
-│   └── auth/                  # Scrypt password hashing & HMAC-SHA256 session management
-├── tests/                     # 157+ automated tests (native Node.js test runner)
-├── docs/                      # Architectural specs, API contracts, security & Redis guides
-└── scripts/                   # Operational and verification scripts
+│   ├── crisis-engine/           # Deterministic crisis detector (ID + EN)
+│   ├── orchestrator/            # Chat pipeline, CareBridge pipeline, providers (AMD, DeepSeek, Gemini, OpenRouter)
+│   ├── validator/               # Action validator, Care Passport validator, PII redactor, forum moderation
+│   ├── persistence/             # PostgreSQL repository + in-memory fallback
+│   └── auth/                    # scrypt hashing + HMAC-SHA256 admin sessions
+├── tests/                       # node:test suites (crisis, carebridge, voice, security, ...)
+├── docs/                        # Specs, AMD setup, safety policy, demo script
+├── AGENTS.md                    # Writing rules (Bahasa Lazim) and project dictionary
+└── scripts/                     # Operational scripts
 ```
-
----
 
 ## Quickstart
 
 ### Prerequisites
-- **Node.js**: `v20.x` or higher (uses native `--experimental-strip-types`)
-- **npm**: `v10.x` or higher
+- **Node.js** v22.6 or newer (tests use `--experimental-strip-types`)
+- **npm** v10 or newer
 
-### 1. Install Dependencies
+### 1. Install
 ```bash
 npm install
 ```
 
-### 2. Environment Configuration
-Copy `.env.example` to `.env.local`:
+### 2. Environment
 ```bash
 cp .env.example .env.local
 ```
 
-Key environment variables:
+Key variables (see `.env.example` for all of them):
 ```env
-# AI Providers (At least one required for live /chat)
-DEEPSEEK_API_KEY=sk-...                          # Primary Brain
-OPENROUTER_API_KEY=sk-or-v1-...                  # Second Brain (Nemotron debiaser)
-GEMINI_API_KEY=...                               # Third Brain Fallback
+# Chat AI (at least one for live /chat)
+DEEPSEEK_API_KEY=
+GEMINI_API_KEY=
+OPENROUTER_API_KEY=        # optional debiaser
 
-# Database & Auth (Optional in dev - defaults to in-memory)
-DATABASE_URL=postgresql://user:pass@localhost:5432/dengarin
-ADMIN_SESSION_SECRET=min-32-char-random-secret-string
+# CareBridge on AMD (OpenAI-compatible endpoint)
+AMD_BASE_URL=              # e.g. AMD Token Factory URL, or http://127.0.0.1:8000/v1 via SSH tunnel to vLLM
+AMD_API_KEY=
+AMD_MODEL=                 # exact id from GET /v1/models
+AMD_JSON_MODE=             # "true" only if the probe reports jsonModeOk
+AMD_TIMEOUT_MS=12000
 
-# Redis (Optional - falls back to in-memory rate limiting & cache)
-REDIS_URL=redis://localhost:6379
+# Optional (in-memory fallbacks are used when unset)
+DATABASE_URL=
+ADMIN_SESSION_SECRET=
+REDIS_URL=
 ```
 
-### 3. Run Development Server
+### 3. Run
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000). The app works out-of-the-box in local development with in-memory persistence if no database or Redis is configured.
+Open http://localhost:3000. Without a database or Redis, the app runs with in-memory persistence. Without `AMD_*` values, `/care-passport` shows the honest "AI not available" state and the manual path.
 
-### 4. Database Setup (Optional)
-If using PostgreSQL:
+### 4. Database (optional)
 ```bash
 npm run db:migrate
 ADMIN_SEED_USERNAME=admin ADMIN_SEED_PASSWORD=strongpassword npm run db:seed-admin
 ```
 
----
+### Docker
+A production image is defined in [`apps/web/Dockerfile`](apps/web/Dockerfile).
 
-## Key Commands
+## Running CareBridge on AMD
+
+Two paths satisfy the "meaningful part of the workload on AMD" rule. Both work through the same adapter without code changes:
+
+| Path | What it is |
+|---|---|
+| **A. AMD Token Factory** (recommended for the event) | Managed AMD inference gateway used by the event (`notebooks.amd.com/tokenfactory`). Put its OpenAI-compatible base URL, key, and model in `AMD_*`. |
+| **B. vLLM on AMD Developer Cloud** | Instinct MI300X VM running vLLM ROCm on loopback, reached through an SSH tunnel. |
+
+Then run `probeAmdEndpoint()` (see [`docs/AMD_SETUP.md`](docs/AMD_SETUP.md) §6) and confirm `ok: true` before recording the demo. The server log line `[CarePassport] {...}` shows metadata only (`state`, `providerId`, `latencyMs`, `droppedClaims`), never user text.
+
+## Commands and tests
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start Next.js development server (`apps/web`) |
-| `npm run build` | Compile production build (`next build`) |
-| `npm run test` | Run full test suite (157+ unit, security, and integration tests) |
-| `npm run typecheck` | Run monorepo TypeScript checks (`tsc --noEmit`) |
-| `npm run lint` | Run ESLint validation |
-| `npm run db:migrate` | Run PostgreSQL migrations (`services/persistence`) |
-| `npm run db:seed-admin` | Seed initial moderator credentials |
+| `npm run dev` | Start the Next.js dev server (`apps/web`) |
+| `npm run build` | Production build |
+| `npm test` | Full suite (660+ node:test cases plus script tests) |
+| `npm run typecheck` | TypeScript checks (`tsc --noEmit`) |
+| `npm run lint` | ESLint |
 
-### Selective Testing
+Selected suites:
 ```bash
-npm run test:crisis         # Deterministic crisis engine & regression tests
-npm run test:validator      # Action validator & forum content moderation
-npm run test:orchestrator   # Multi-Brain pipeline & domain gate
-npm run test:crypto         # Web Crypto AES-GCM / PBKDF2 E2EE tests
-npm run test:security-m01   # Rate limiting & request payload bounds
-npm run test:security-m02   # Forum pseudonym anti-abuse filters
-npm run test:security-m03   # Local storage data wipe verification
-npm run test:security-m04   # Medical output prevention tests
-npm run test:persistence-pg # PostgreSQL integration (auto-skipped if DATABASE_URL unset)
+npm run test:carebridge     # Care Passport contract, validator, AMD adapter/probe, handler, routes
+npm run test:crisis         # Crisis engine (ID + EN), coverage gaps, contact consistency
+npm run test:validator      # Action validator and forum moderation
+npm run test:orchestrator   # Chat pipeline and domain gate
+npm run test:crypto         # AES-GCM / PBKDF2 end-to-end encryption
+npm run test:security-m04   # No medical diagnosis or prescription output
 ```
 
----
+## API reference
 
-## Backend API Reference
+Next.js route handlers in `apps/web/src/app/api/`. Full contracts: [`docs/API_SPEC.md`](docs/API_SPEC.md).
 
-Implemented as Next.js Route Handlers (`apps/web/src/app/api/`). Full specifications in [`docs/API_SPEC.md`](docs/API_SPEC.md).
-
-| Endpoint | Method | Description | Auth / Security |
+| Endpoint | Method | Description | Safety |
 |---|---|---|---|
-| `/api/chat` | `POST` | Empathetic chat via Multi-Brain AI | Crisis gate, domain gate, rate limited, PII redacted |
-| `/api/forum` | `GET`, `POST` | List forum posts or submit new anonymous story | Auto-moderated (`moderateForumPost`), crisis filter |
-| `/api/forum/[id]/support` | `POST` | Increment community empathy counter | Rate limited |
-| `/api/forum/[id]/moderate`| `PATCH` | Approve / reject forum submissions | Admin HMAC session cookie required |
-| `/api/sync` | `GET`, `PUT` | Retrieve or push encrypted backup payload | Zero-Knowledge E2EE (ciphertext only) |
-| `/api/report/weekly` | `POST` | Synthesize dynamic weekly progress report | Rate limited |
-| `/api/admin/login` | `POST` | Authenticate moderator (`scrypt` verification) | Rate limited, sets HTTP-only signed session cookie |
-| `/api/admin/logout` | `POST` | Invalidate moderator session | Admin session |
-| `/api/admin/me` | `GET` | Verify active admin session | Admin session |
-| `/api/health` | `GET` | Service status check | Public |
+| `/api/chat` | `POST` | Chat (text and voice room), `lang: "id" \| "en"` | Crisis gate on message and history, domain gate, rate limit, PII redaction |
+| `/api/care-passport/preview` | `POST` | Redaction preview before inference | Crisis gate first, no AI call |
+| `/api/care-passport` | `POST` | Care Passport draft via the AMD pipeline | Consent, crisis gate, server-side redaction, grounding validator |
+| `/api/care-passport/opening` | `POST` | Grounded opening lines for the consultation | Same pipeline rules |
+| `/api/forum` | `GET`, `POST` | List or submit anonymous stories | Auto-moderation, crisis filter |
+| `/api/forum/[id]/support` | `POST` | Empathy counter | Rate limit |
+| `/api/forum/[id]/moderate` | `PATCH` | Approve or reject stories | Admin session |
+| `/api/sync` | `GET`, `PUT` | Encrypted backup | Zero-knowledge (ciphertext only) |
+| `/api/report/weekly` | `POST` | Weekly reflection | Rate limit |
+| `/api/admin/login`, `/logout`, `/me` | `POST`, `GET` | Moderator session | scrypt, HTTP-only signed cookie |
+| `/api/health` | `GET` | Health check | Public |
 
----
+## Security and privacy controls
 
-## Security & Privacy Controls
-
-- **Zero-Knowledge E2EE Sync**: Multi-device sync uses client-side Web Crypto API (`AES-GCM-256` + `PBKDF2` with 100,000 iterations). Server never sees plaintext keys or data.
-- **Fixed-Window & Distributed Rate Limiting**: Protection across `/api/chat` (max 4 concurrent), `/api/admin/login`, and `/api/forum` with Redis backing and memory fallback ([`docs/M01_RATE_LIMITING.md`](docs/M01_RATE_LIMITING.md), [`docs/REDIS.md`](docs/REDIS.md)).
-- **Forum Anti-Abuse Moderation**: Rejects phone numbers, emails, illegal loan/gambling promotions, profanity, and unicode obfuscation on pseudonyms and content.
-- **Total Local Data Wipe**: Complete purge of all `dengarin_*` local storage keys via `/recovery`.
-- **Automatic PII Redaction**: Regex-level redaction of Indonesian NIK (16-digit), phone numbers, and emails before LLM output reaches users.
-
----
+- **No registration, no PII:** client-generated UUID v4 and a 12-part recovery key. No names, emails, or phone numbers collected.
+- **Zero-knowledge encrypted sync:** Web Crypto AES-GCM-256 with PBKDF2 (100,000 iterations). The server stores ciphertext only.
+- **Rate limiting:** Redis-backed with in-memory fallback ([`docs/M01_RATE_LIMITING.md`](docs/M01_RATE_LIMITING.md)).
+- **PII redaction:** before model output reaches users (chat), and before inference with a user preview (CareBridge).
+- **Local data wipe:** `/recovery` removes every `dengarin_*` key on the device.
+- **Metadata-only logs:** server logs never contain user text.
 
 ## Documentation
 
-- [`docs/API_SPEC.md`](docs/API_SPEC.md) — Comprehensive API schemas, request/response contracts.
-- [`docs/SAFETY.md`](docs/SAFETY.md) — Safety charter, clinical boundaries, and crisis escalation protocols.
-- [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) — Product requirements, demographic contexts, and competition alignment.
-- [`docs/REDIS_SETUP.md`](docs/REDIS_SETUP.md) — panduan setup Redis (lokal dan produksi/Vercel).
-- [`docs/REDIS.md`](docs/REDIS.md) & [`docs/REDIS_TESTING_CHECKLIST.md`](docs/REDIS_TESTING_CHECKLIST.md) — Redis caching and rate-limiting deployment guide.
-- [`docs/Scriptwrite.md`](docs/Scriptwrite.md) — UI copy map and text editing guide for contributors.
+- [`docs/AMD_01_SCOPE_DAN_SYARAT.md`](docs/AMD_01_SCOPE_DAN_SYARAT.md): hackathon rules, scope decisions, sources
+- [`docs/AMD_SETUP.md`](docs/AMD_SETUP.md): AMD Token Factory and vLLM on AMD Developer Cloud, probe procedure
+- [`docs/AMD_TRACK2_DEVELOPMENT_PLAN.md`](docs/AMD_TRACK2_DEVELOPMENT_PLAN.md) and [`docs/AMD_TRACK2_TASKS.md`](docs/AMD_TRACK2_TASKS.md): plan and task status
+- [`docs/CAREBRIDGE_ARCHITECTURE.md`](docs/CAREBRIDGE_ARCHITECTURE.md), [`docs/CAREBRIDGE_SAFETY_POLICY.md`](docs/CAREBRIDGE_SAFETY_POLICY.md), [`docs/CAREBRIDGE_EVAL_RUBRIC.md`](docs/CAREBRIDGE_EVAL_RUBRIC.md)
+- [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) and [`docs/SUBMISSION_COPY.md`](docs/SUBMISSION_COPY.md): demo and lablab.ai submission copy
+- [`docs/SAFETY.md`](docs/SAFETY.md), [`docs/AI_POLICY.md`](docs/AI_POLICY.md), [`docs/API_SPEC.md`](docs/API_SPEC.md)
+- [`docs/RUANG_NGOBROL.md`](docs/RUANG_NGOBROL.md) and [`docs/VOICE_ACCESSIBILITY.md`](docs/VOICE_ACCESSIBILITY.md): voice room
+- [`AGENTS.md`](AGENTS.md): writing rules (Bahasa Lazim) and project dictionary
+- Proposal (not implemented): [Yang Tak Terucap](docs/yang-tak-terucap/00_README.md) · [backlog](docs/yang-tak-terucap/08_TASKS.md) · [full document](docs/DengarIn_Yang_Tak_Terucap_COMPLETE_DOCS.md)
 
----
+## Team
 
-## Disclaimer & License
+Built by **Kata Justin Nama Timnya Gokil Udah** (Telkom University Surabaya).
 
-> **Disclaimer**: Dengar.in is a self-help digital companion prototype and **NOT a replacement for licensed medical, psychiatric, or emergency services**. It does not diagnose conditions, prescribe medications, or offer legal/financial counsel. If in acute distress, contact **Kemenkes Sejiwa at 119 ext 8** or emergency services.
+## Disclaimer and license
 
-Licensed under the **MIT License**.
+> **Disclaimer:** Dengar.in is a self-help companion prototype and **not a replacement for licensed medical, psychiatric, or emergency services**. It does not diagnose, treat, triage, or prescribe, and it does not give legal or financial advice. All CareBridge demo data is synthetic. If you are in acute distress in Indonesia, contact **Healing119 (Kemenkes) at 119 ext 8** or local emergency services.
+
+Licensed under the [MIT License](LICENSE).
