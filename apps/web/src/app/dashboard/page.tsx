@@ -117,8 +117,8 @@ export default function DashboardPage() {
         {/* 2. MAIN COMPOSITION: TODAY'S MISSION (Primary) + CHECK-IN & RHYTHM (Secondary) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
           {/* LEFT: TODAY'S MISSION (Dominant Action Hero Card - 8 Cols) */}
-          <div className="lg:col-span-8 animate-reveal-up [animation-delay:240ms]">
-            <section aria-labelledby="judul-misi" className="h-full flex flex-col justify-between bg-white border-2 border-ink rounded-lg p-6 sm:p-10 gap-8 shadow-hard-lg text-left">
+          <div className="bezel bezel-paper flex lg:col-span-8 animate-reveal-up [animation-delay:240ms]">
+            <section aria-labelledby="judul-misi" className="bezel-core w-full flex flex-col justify-between bg-white p-6 sm:p-10 gap-8 text-left">
               <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-bold text-white bg-cobalt px-3 py-1 rounded border-2 border-ink shadow-hard-sm tabular-nums">

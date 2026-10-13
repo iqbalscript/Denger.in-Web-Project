@@ -33,14 +33,16 @@ export default function NotFound() {
         </div>
 
         {/* Crisis panel is never animated or delayed */}
-        <aside className="lg:col-span-5 lg:justify-self-end w-full max-w-[380px] p-6 rounded-[8px] bg-[#FFEBEB] border-2 border-[#151515] shadow-[4px_4px_0px_#151515] space-y-3">
-          <h2 className="text-xl font-bold text-[#151515] leading-[1.25]">Sedang butuh bantuan sekarang?</h2>
-          <p className="text-base text-[#4A453E] leading-relaxed">
-            Kalau kamu merasa tidak aman, kamu tidak perlu mencari halaman yang tepat dulu. Hubungi Healing119 (Kemenkes) di 119 ext 8.
-          </p>
-          <Button href="/crisis" variant="crisis" size="md" fullWidth icon={<PhoneCall className="w-4 h-4" />}>
-            Bantuan darurat
-          </Button>
+        <aside className="bezel lg:col-span-5 lg:justify-self-end w-full max-w-[388px]">
+          <div className="bezel-core p-6 bg-[#FFEBEB] space-y-3">
+            <h2 className="text-xl font-bold text-[#151515] leading-[1.25]">Sedang butuh bantuan sekarang?</h2>
+            <p className="text-base text-[#4A453E] leading-relaxed">
+              Kalau kamu merasa tidak aman, kamu tidak perlu mencari halaman yang tepat dulu. Hubungi Healing119 (Kemenkes) di 119 ext 8.
+            </p>
+            <Button href="/crisis" variant="crisis" size="md" fullWidth icon={<PhoneCall className="w-4 h-4" />}>
+              Bantuan darurat
+            </Button>
+          </div>
         </aside>
       </div>
     </PageContainer>

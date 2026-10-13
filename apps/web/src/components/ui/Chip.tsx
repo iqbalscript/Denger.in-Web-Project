@@ -45,7 +45,7 @@ export function Chip({
       type={type}
       // Only announce as a toggle when the caller actually drives `selected`.
       aria-pressed={selected === undefined ? undefined : isSelected}
-      className={`inline-flex items-center justify-center rounded-[4px] font-bold text-center leading-tight transition-all duration-120 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${
+      className={`inline-flex items-center justify-center rounded-[4px] font-bold text-center leading-tight transition-[transform,box-shadow,background-color,color] duration-200 ease-spring active:scale-[0.98] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${
         sizeClasses[size]
       } ${isSelected ? selectedClass : `${unselectedVariants[variant]} shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515]` } ${className}`}
       {...props}

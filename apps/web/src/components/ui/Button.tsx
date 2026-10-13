@@ -31,7 +31,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseClasses =
-      'group inline-flex items-center justify-center text-center font-bold leading-tight rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color,color] duration-200 ease-spring select-none disabled:transform-none disabled:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2';
+      // active:scale-[0.98] menumpuk dengan translate tekan: terasa seperti tombol fisik yang benar-benar masuk.
+      'group inline-flex items-center justify-center text-center font-bold leading-tight rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color,color] duration-200 ease-spring select-none active:scale-[0.98] disabled:transform-none disabled:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2';
 
     // Semua ukuran memenuhi area sentuh 44px; label tidak pernah lebih kecil dari ~16px.
     const sizeClasses = {
@@ -78,7 +79,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             ? spinner
             : icon && (
                 <span
-                  className="shrink-0 -mr-2 inline-flex items-center justify-center w-7 h-7 rounded-[3px] border-2 border-current transition-transform duration-400 ease-spring group-hover:translate-x-0.5 group-active:translate-x-0"
+                  className="shrink-0 -mr-2 inline-flex items-center justify-center w-8 h-8 rounded-[3px] border-2 border-current bg-[#151515]/[0.06] transition-transform duration-400 ease-spring group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105 group-active:translate-x-0 group-active:translate-y-0 group-active:scale-100"
                   aria-hidden="true"
                 >
                   {icon}

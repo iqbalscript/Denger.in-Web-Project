@@ -121,7 +121,10 @@ module.exports = {
         700: '700ms',
       },
       // Spring-like curves: fast start, long settle. Used for presses, reveals and the drawer.
+      // DEFAULT replaces Tailwind's ease-in-out-ish curve so every `transition-*`
+      // utility settles like a physical object without touching each call site.
       transitionTimingFunction: {
+        DEFAULT: 'cubic-bezier(0.32, 0.72, 0, 1)',
         spring: 'cubic-bezier(0.32, 0.72, 0, 1)',
         'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
       },

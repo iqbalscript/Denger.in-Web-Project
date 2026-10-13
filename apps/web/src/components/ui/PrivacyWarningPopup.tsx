@@ -101,7 +101,8 @@ export function PrivacyWarningPopup() {
             : 'opacity-100 scale-100'
         }`}
       >
-        <div className="relative w-full max-w-md max-h-[calc(100dvh-1.5rem)] overflow-y-auto bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
+        <div className="bezel bezel-paper w-full max-w-md max-h-[calc(100dvh-1.5rem)] flex">
+        <div className="bezel-core relative w-full min-h-0 overflow-y-auto bg-white">
           {/* Warning accent bar */}
           <div className="h-2 w-full bg-[#FFD84D]" aria-hidden="true" />
 
@@ -183,6 +184,7 @@ export function PrivacyWarningPopup() {
               Saya mengerti, lanjutkan
             </button>
           </div>
+        </div>
         </div>
       </div>
     </>

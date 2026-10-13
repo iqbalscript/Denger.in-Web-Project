@@ -93,11 +93,11 @@ export default function LandingPage() {
   const topicPillarsList = Object.values(TOPIC_PILLARS);
 
   return (
-    <div className="space-y-16 sm:space-y-24 pb-20">
-      {/* Privacy Warning Popup - shows once on first visit */}
-      <PrivacyWarningPopup />
+    <>
+    <div className="space-y-24 sm:space-y-32 lg:space-y-40 pb-24">
+      {/* Jarak antarbagian lebih lega khusus halaman depan (layar aplikasi tetap padat). */}
       {/* 1. EDITORIAL HERO (PRD-DESIGN.md section 15) */}
-      <section className="pt-8 sm:pt-14" aria-labelledby="judul-utama">
+      <section className="pt-10 sm:pt-16 lg:pt-20" aria-labelledby="judul-utama">
         <PageContainer size="default">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             {/* Left Column: Hero Content */}
@@ -108,7 +108,7 @@ export default function LandingPage() {
               </div>
 
               {/* Display Headline per PRD-DESIGN.md */}
-              <h1 id="judul-utama" className="animate-reveal-up [animation-delay:80ms] text-[2rem] sm:text-5xl lg:text-[4rem] font-bold text-[#151515] tracking-[-0.03em] leading-[1.05] uppercase">
+              <h1 id="judul-utama" className="animate-reveal-up [animation-delay:80ms] text-[2rem] sm:text-5xl lg:text-[4rem] font-bold text-[#151515] tracking-[-0.03em] leading-[1.05]">
                 Gak harus <br />
                 beres semuanya <br />
                 <span className="text-[#2B51E6] underline decoration-[#B8F34A] decoration-4 underline-offset-4">hari ini.</span>
@@ -193,7 +193,8 @@ export default function LandingPage() {
 
             {/* Right Column: Abstract Colorful Neo-Brutalist Composition */}
             <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-reveal-up [animation-delay:320ms]">
-              <div className="relative w-full max-w-[340px] sm:max-w-[380px] p-6 bg-[#3357EE] border-2 border-[#151515] shadow-[6px_6px_0px_#151515] rounded-[8px] space-y-4 text-left text-white">
+              <div className="bezel w-full max-w-[348px] sm:max-w-[388px] shadow-[6px_6px_0px_#151515]">
+              <div className="bezel-core relative p-6 bg-[#3357EE] space-y-4 text-left text-white">
                 <div className="inline-block px-2.5 py-1 bg-[#B8F34A] text-[#151515] border-2 border-[#151515] font-bold text-sm rounded-[4px] shadow-[2px_2px_0px_#151515]">
                   Ruang aman anonim
                 </div>
@@ -209,7 +210,7 @@ export default function LandingPage() {
                 </p>
 
                 {/* Sub-card composition element */}
-                <div className="p-3.5 bg-white text-[#151515] border-2 border-[#151515] shadow-[3px_3px_0px_#151515] rounded-[4px] space-y-1 md:-ml-10 md:translate-y-2">
+                <div className="p-3.5 bg-white text-[#151515] border-2 border-[#151515] shadow-[3px_3px_0px_#151515] rounded-[4px] space-y-1 md:-mx-2 md:translate-y-1">
                   <div className="flex items-center justify-between text-sm font-bold">
                     <span>Misi hari ini</span>
                     <span className="text-[#2B51E6] tabular-nums">5 menit</span>
@@ -218,6 +219,7 @@ export default function LandingPage() {
                     “Berhenti sejenak. Tarik napas 4 detik, embuskan pelan 4 detik. Tidak perlu terburu-buru.”
                   </p>
                 </div>
+              </div>
               </div>
             </div>
           </div>
@@ -318,7 +320,8 @@ export default function LandingPage() {
       {/* 4. DETERMINISTIC CRISIS SAFETY GATE COMMITMENT (never animated or hidden) */}
       <section aria-labelledby="judul-krisis">
         <PageContainer size="default">
-          <div className="rounded-[8px] border-2 border-[#151515] bg-[#FFEBEB] p-6 sm:p-10 shadow-[4px_4px_0px_#151515] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-left">
+          <div className="bezel">
+          <div className="bezel-core bg-[#FFEBEB] p-6 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-left">
             <div className="space-y-3 max-w-2xl">
               <span className="inline-block text-sm font-bold text-white bg-[#D32F2F] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
                 Pintu keamanan pertama
@@ -347,8 +350,15 @@ export default function LandingPage() {
               </Button>
             </div>
           </div>
+          </div>
         </PageContainer>
       </section>
     </div>
+
+      {/* Popup privasi (sekali saat kunjungan pertama) di luar wadah space-y: elemen fixed
+          tidak boleh jadi saudara di dalamnya, karena hero ikut mendapat margin atas
+          dan melompat naik begitu popup ditutup. */}
+      <PrivacyWarningPopup />
+    </>
   );
 }

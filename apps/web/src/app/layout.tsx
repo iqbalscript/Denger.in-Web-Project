@@ -14,7 +14,13 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'Dengar.in: Ruang Aman untuk Bercerita & Rujukan Kesehatan Mental',
+  // Setiap rute mengisi judulnya sendiri lewat layout.tsx kecil di foldernya,
+  // sehingga tab peramban, riwayat, dan pengumuman pembaca layar saat pindah
+  // halaman (Next route announcer membaca document.title) menyebut halaman yang benar.
+  title: {
+    default: 'Dengar.in: Ruang Aman untuk Bercerita & Rujukan Kesehatan Mental',
+    template: '%s | Dengar.in',
+  },
   description: 'Ruang aman anonim tanpa registrasi untuk usia 15 hingga 50+ tahun. Tempat rehat, bercerita tanpa dihakimi, dan melangkah pelan-pelan, dengan asesmen non-diagnostik dan akses ke bantuan krisis terverifikasi.',
   icons: {
     icon: '/icon.svg',

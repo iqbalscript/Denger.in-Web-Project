@@ -77,7 +77,9 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#FFF8EF] border-b-2 border-[#151515]">
+      {/* Permukaan kertas 92% + blur hanya pada header lengket (bukan konten bergulir);
+          teks tinta tetap kontras > 12:1 di atasnya. */}
+      <header className="sticky top-0 z-40 bg-[#FFF8EF] supports-[backdrop-filter]:bg-[#FFF8EF]/[0.92] supports-[backdrop-filter]:backdrop-blur-md border-b-2 border-[#151515]">
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between min-h-[4.25rem] gap-2 xl:gap-4">
             {/* LEFT: Dengar.in logo & 100% ANONIM */}
@@ -94,7 +96,7 @@ export function Navbar() {
                   <span className="font-bold text-lg text-[#151515] tracking-tight leading-none">
                     Dengar.in
                   </span>
-                  <span className="text-xs text-[#59544D] font-bold tracking-wider uppercase mt-0.5">
+                  <span className="text-xs text-[#59544D] font-bold tracking-[0.02em] mt-0.5">
                     100% anonim
                   </span>
                 </div>
@@ -213,7 +215,7 @@ export function Navbar() {
                   >
                     <Icon className="w-5 h-5 text-[#151515] shrink-0" aria-hidden="true" />
                     <span>{item.label}</span>
-                    {isActive && <span className="ml-auto text-xs font-bold uppercase tracking-wider">Di sini</span>}
+                    {isActive && <span className="ml-auto text-xs font-bold">Halaman ini</span>}
                   </Link>
                 );
               })}

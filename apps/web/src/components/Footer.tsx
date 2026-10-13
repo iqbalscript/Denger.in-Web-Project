@@ -108,7 +108,7 @@ export function Footer() {
 
         {/* Legal & Medical Disclaimer Boundary */}
         <div className="border-t border-[#D8D3C9] pt-8 md:pt-10 text-sm text-[#59544D] space-y-5">
-          <div className="bg-white p-4 sm:p-6 rounded-[6px] border border-[#D8D3C9]">
+          <div className="bg-white p-4 sm:p-6 rounded-[6px] hairline">
             <p className="leading-relaxed max-w-[90ch] text-base">
               <strong className="text-[#151515] font-bold">Batasan medis dan hukum:</strong> Dengar.in adalah pendamping mandiri,{' '}
               <strong className="text-[#151515] font-bold">
