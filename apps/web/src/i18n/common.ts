@@ -103,8 +103,8 @@ const id = {
       '. Dengar.in tidak memberi diagnosis atau resep obat. Jika kamu dalam bahaya mendesak atau punya pikiran untuk mengakhiri hidup, segera hubungi',
     legalLink: 'Healing119 di 119 ext 8',
     legalD: 'atau datang ke puskesmas, klinik, atau rumah sakit terdekat.',
-    copyright: '© 2026 Dengar.in, MindCraft Web Competition 2026',
-    credit: 'Website by 5 Pria Berflanell (Telkom University Surabaya)',
+    copyright: '© 2026 Dengar.in',
+    credit: 'Website by Kata Justin Nama Timnya Gokil Udah (Telkom University Surabaya)',
   },
 
   /**
@@ -261,8 +261,8 @@ const en: typeof id = {
       '. Dengar.in does not give diagnoses or prescriptions. If you are in immediate danger or thinking about ending your life, call',
     legalLink: 'Healing119 at 119 ext 8',
     legalD: 'or go to the nearest hospital or community health centre (puskesmas).',
-    copyright: '© 2026 Dengar.in, MindCraft Web Competition 2026',
-    credit: 'Website by 5 Pria Berflanell (Telkom University Surabaya)',
+    copyright: '© 2026 Dengar.in',
+    credit: 'Website by Kata Justin Nama Timnya Gokil Udah (Telkom University Surabaya)',
   },
 
   contacts: {

@@ -87,7 +87,40 @@ const CRISIS_RULES: PatternRule[] = [
     severity: 'crisis'
   },
 
+  // Coverage gaps found in manual testing: wishing to end everything, overdose,
+  // cutting phrased with a verb prefix/suffix, and "life is not worth living".
+  {
+    id: 'end-everything-phrase',
+    pattern: /\b(?:ingin|mau|pengen|akan)?\s*(?:mengakhiri|akhiri|menyudahi|sudahi)\s*(?:semuanya|semua\s*ini|segalanya)\b/i,
+    category: 'suicide',
+    severity: 'crisis'
+  },
+  {
+    id: 'overdose-intent',
+    pattern: /\b(?:(?:mau|ingin|pengen|akan|udah|sudah|berencana)\s*overdosis|overdosis\s*obat|minum\s*obat\s*(?:sebanyak\s*(?:mungkin|mungkin\s*biar)|banyak\s*banget\s*biar|segenggam|sekaligus\s*(?:semua|sebotol))|nelen\s*obat\s*(?:semua|sebotol|segenggam))\b/i,
+    category: 'self_harm',
+    severity: 'crisis'
+  },
+  {
+    id: 'self-cutting-affixed',
+    pattern: /\b(?:menyayat|nyayat|sayat|mengiris|ngiris|iris|nyilet|menyilet|silet)\s*(?:pergelangan\s*)?(?:tangan|nadi|lengan|urat|leher|paha)(?:ku|nya)?\b/i,
+    category: 'self_harm',
+    severity: 'crisis'
+  },
+  {
+    id: 'life-not-worth-living',
+    pattern: /\b(?:hidup(?:ku)?\s*(?:ini\s*)?(?:tidak|gak|ga|nggak|enggak)\s*layak\s*(?:dijalani|untuk\s*dijalani)|(?:gak|ga|nggak|tidak)\s*ada\s*gunanya\s*(?:aku\s*)?hidup|buat\s*apa\s*(?:aku\s*)?hidup\s*lagi)\b/i,
+    category: 'suicide',
+    severity: 'crisis'
+  },
+
   // High Distress (Urgent but not explicit lethal intent)
+  {
+    id: 'cannot-bear-anymore',
+    pattern: /\b(?:(?:g(?:a|ak|k)|nggak|enggak|tidak|udah\s*(?:gak|ga|nggak|tidak))\s*(?:kuat|sanggup|tahan)\s*lagi|bunuh\s*(?:aku|saya|gue|gw)\s*(?:aja|saja)?)\b/i,
+    category: 'extreme_hopelessness',
+    severity: 'high'
+  },
   {
     id: 'severe-exhaustion-pain',
     pattern: /\b(sakit\s*banget\s*jiwaku|hancur\s*lebur|g(a|ak|k)\s*kuat\s*lagi\s*nanggung\s*hidup|teror\s*pinjol\s*bikin\s*gila)\b/i,
@@ -128,6 +161,34 @@ const CRISIS_RULES: PatternRule[] = [
     pattern: /\b(?:goodbye\s*(?:everyone|forever|world|all)|this\s*is\s*(?:my\s*)?(?:goodbye|last\s*message|final\s*message|suicide\s*note)|(?:writing|wrote|written)\s*(?:my\s*)?(?:suicide|goodbye)\s*(?:note|letter)|(?:world|everyone|everybody|they)\s*(?:is|are|would\s*be|will\s*be)\s*better\s*(?:off\s*)?without\s*me|(?:want|wanna|wish|hope|like)\s*to\s*(?:sleep\s*forever|disappear\s*forever|never\s*wake\s*up|not\s*wake\s*up))\b/i,
     category: 'extreme_hopelessness',
     severity: 'crisis'
+  },
+  {
+    // Ending everything with a plan/time, or wanting to stop existing.
+    id: 'en-end-everything',
+    pattern: /\b(?:end(?:ing)?\s*(?:it|everything|things|my\s*pain\s*for\s*good)\s*(?:all|tonight|today|now|for\s*good|soon)|(?:want|wanna|going\s*to|gonna|plan(?:ning)?\s*to|ready\s*to|about\s*to|decided\s*to)\s*end\s*everything|(?:want|wanna)\s*to\s*stop\s*(?:existing|living|being\s*alive)|(?:don'?t|do\s*not|can'?t)\s*see\s*(?:the|any)\s*point\s*(?:in|of)\s*(?:living|life|being\s*alive|going\s*on|staying\s*alive)|(?:i'?m|im|i\s*am)\s*(?:so\s*)?done\s*with\s*(?:life|living|being\s*alive)\b(?!\s*admin)|life\s*(?:is\s*)?not\s*worth\s*living|hopeless[^.!?]*\b(?:want|wanna)\s*to\s*end\s*it|(?:nobody|no\s*one|no-one)\s*would\s*(?:miss|care\s*about|notice)\s*(?:me\s*)?if\s*i\s*(?:was|were|died|disappeared|(?:was|were)\s*gone|killed\s*myself))\b/i,
+    category: 'suicide',
+    severity: 'crisis'
+  },
+  {
+    // Overdose plans or having already taken many pills, and acquired means.
+    id: 'en-overdose-means',
+    pattern: /\b(?:(?:plan(?:ning)?\s*to|going\s*to|gonna|want\s*to|wanna|will|about\s*to|ready\s*to|trying\s*to)\s*(?:overdose|od\b)|(?:took|taken|swallowed|just\s*took)\s*(?:a\s*lot\s*of|all\s*(?:of\s*)?(?:my|the)|too\s*many|a\s*bunch\s*of|so\s*many|a\s*whole\s*(?:bottle|pack)\s*of|handfuls?\s*of)\s*(?:pills|meds|tablets|medication|medicine|sleeping\s*pills|painkillers)|(?:bought|got|have|found|made|tied)\s*(?:a\s*)?(?:rope|noose)\b|\bnoose\b|(?:stockpil\w*|saving\s*up|hoarding)\s*(?:my\s*)?(?:pills|meds|tablets|medication))\b/i,
+    category: 'self_harm',
+    severity: 'crisis'
+  },
+  {
+    // Ongoing self-harm described without "myself".
+    id: 'en-self-harm-ongoing',
+    pattern: /\b(?:(?:been|started|keep|kept|still)\s*(?:self[\s-]*)?(?:cutting|burning\s*my\s*skin)(?:\s*again)?|cutting\s*again|relapsed\s*(?:on|into|with)\s*(?:cutting|self[\s-]*harm))\b/i,
+    category: 'self_harm',
+    severity: 'crisis'
+  },
+  {
+    // Ambiguous wishes (often hyperbole): show the human-support card, not a redirect.
+    id: 'en-ambiguous-distress',
+    pattern: /^kill\s*me[\s.!]*$|\b(?:(?:please|someone|somebody|just)\s*kill\s*me|i\s*(?:just\s*)?want\s*(?:it|this|everything)\s*to\s*(?:stop|end)|(?:i\s*)?can'?t\s*go\s*on|(?:want|wanna)\s*to\s*end\s*it)\b/i,
+    category: 'extreme_hopelessness',
+    severity: 'high'
   },
   {
     id: 'en-severe-distress',
