@@ -1,5 +1,7 @@
+'use client';
+
 import React from 'react';
-import { UrgentHelpLink } from './shared';
+import { UrgentHelpLink, usePassportText } from './shared';
 
 function Block({ w = 'w-full', h = 'h-4' }: { w?: string; h?: string }) {
   return <div className={`${w} ${h} bg-[#E7E1D6] rounded-[3px] animate-pulse`} aria-hidden="true" />;
@@ -21,6 +23,7 @@ function CardSkeleton({ rows }: { rows: number }) {
 
 /** Mirrors the review layout so nothing jumps when the real result lands. */
 export function ResultSkeleton() {
+  const t = usePassportText().skeleton;
   return (
     <div className="space-y-8" role="status" aria-live="polite" aria-busy="true">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -28,7 +31,7 @@ export function ResultSkeleton() {
           <Block w="w-32" h="h-6" />
           <Block w="w-3/4" h="h-10" />
           <Block w="w-full" h="h-5" />
-          <p className="text-base font-bold text-[#151515]">Menyusun catatan dari ceritamu. Biasanya kurang dari satu menit.</p>
+          <p className="text-base font-bold text-[#151515]">{t.loading}</p>
         </div>
         <UrgentHelpLink className="shrink-0" />
       </div>

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, MessageCircleQuestion, SkipForward } from 'lucide-react';
 import type { CarePassportProvenance } from '@dengarin/types';
 import { Button } from '@/components/ui';
-import { MUTED, ProvenanceTag, SectionCard, StepHeading, Tag, UrgentHelpLink } from './shared';
+import { MUTED, ProvenanceTag, SectionCard, StepHeading, Tag, UrgentHelpLink, usePassportText } from './shared';
 
 export interface ClarificationStepProps {
   question: string;
@@ -28,6 +28,7 @@ export interface ClarificationStepProps {
  * story and selected entries, and goes through preview and redaction again.
  */
 export function ClarificationStep({ question, provenance, remainingChars, round, maxRounds, onAnswer, onSkip, onBack, busy, error }: ClarificationStepProps) {
+  const t = usePassportText().clarification;
   const [answer, setAnswer] = useState('');
   const room = Math.max(0, remainingChars);
   const tooLong = answer.length > room;
@@ -36,11 +37,7 @@ export function ClarificationStep({ question, provenance, remainingChars, round,
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <StepHeading
-          step={`Putaran ${round} dari ${maxRounds}`}
-          title="Ceritamu sudah dibaca, tapi ada yang belum jelas."
-          lede="Supaya catatannya tidak menebak-nebak, jawab satu pertanyaan ini. Jawabanmu jadi bagian tersendiri, diperiksa lagi datanya, lalu catatan disusun ulang. Boleh juga dilewati; yang belum diketahui akan ditulis apa adanya."
-        />
+        <StepHeading step={t.step(round, maxRounds)} title={t.title} lede={t.lede} />
         <UrgentHelpLink className="shrink-0" />
       </div>
 
@@ -55,10 +52,10 @@ export function ClarificationStep({ question, provenance, remainingChars, round,
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 text-base font-bold text-[#151515]">
               <MessageCircleQuestion className="w-4 h-4 text-[#3357EE]" aria-hidden="true" />
-              Pertanyaan
+              {t.question}
             </span>
             <span className="flex items-center gap-2">
-              <Tag tone="white">Putaran {round}/{maxRounds}</Tag>
+              <Tag tone="white">{t.round(round, maxRounds)}</Tag>
               <ProvenanceTag provenance={provenance} />
             </span>
           </div>
@@ -67,7 +64,7 @@ export function ClarificationStep({ question, provenance, remainingChars, round,
 
         <div className="space-y-1.5">
           <label htmlFor="jawaban" className="block text-base font-bold text-[#151515]">
-            Jawabanmu
+            {t.answerLabel}
           </label>
           <textarea
             id="jawaban"
@@ -82,7 +79,7 @@ export function ClarificationStep({ question, provenance, remainingChars, round,
             }`}
           />
           <p id="jawaban-sisa" className={`text-sm ${tooLong ? 'text-[#B3261E] font-bold' : MUTED}`}>
-            {tooLong ? `Kelebihan ${answer.length - room} karakter.` : `${room - answer.length} karakter tersisa.`}
+            {tooLong ? t.over(answer.length - room) : t.remaining(room - answer.length)}
           </p>
         </div>
 
@@ -94,13 +91,13 @@ export function ClarificationStep({ question, provenance, remainingChars, round,
 
         <div className="flex flex-col sm:flex-row gap-3">
           <Button type="submit" variant="primary" size="lg" disabled={!canSubmit} isLoading={busy} iconPosition="end" icon={<ArrowRight className="w-4 h-4" />} className="sm:flex-1">
-            Kirim jawaban dan susun ulang
+            {t.submit}
           </Button>
           <Button type="button" variant="secondary" size="lg" onClick={onSkip} disabled={busy} icon={<SkipForward className="w-4 h-4" />}>
-            Lewati
+            {t.skip}
           </Button>
           <Button type="button" variant="outline" size="lg" onClick={onBack} disabled={busy} icon={<ArrowLeft className="w-4 h-4" />}>
-            Ubah cerita
+            {t.back}
           </Button>
         </div>
       </form>

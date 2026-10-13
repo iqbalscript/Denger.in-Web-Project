@@ -17,6 +17,9 @@ import { initAnonymousSession, saveDailyCheckin, getTodayCheckin } from '@/lib/s
 import { awardLangkah } from '@/lib/gamification';
 import { getLocalDateString } from '@/lib/calendar';
 import type { MoodScore } from '@dengarin/types';
+import { useLanguage, useText } from '@/i18n';
+import { topicPillarText } from '@/i18n/config';
+import { landingText } from '@/i18n/pages/landing';
 
 // Bento cells get distinct flat surfaces from the landing palette (cream + cobalt + lime, PRD §5.2).
 const PILLAR_SURFACES = [
@@ -25,30 +28,9 @@ const PILLAR_SURFACES = [
   { tile: 'bg-[#E6ECFF]', icon: 'bg-white', tagline: 'text-[#2B51E6]', body: 'text-[#4A453E]', rule: 'border-[#BAC9FE]' },
 ];
 
-const AGE_GROUPS = [
-  {
-    range: '15-17 tahun',
-    title: 'Remaja & pelajar',
-    body: 'Bahasa yang ramah untuk remaja, plus perlindungan khusus dan rujukan TePSA Kemensos/KPAI bila kamu butuh.',
-  },
-  {
-    range: '18-29 tahun',
-    title: 'Dewasa muda',
-    body: 'Skripsi, awal karier, krisis seperempat abad, dan belajar mandiri. Wajar kalau terasa berat.',
-  },
-  {
-    range: '30-49 tahun',
-    title: 'Dewasa & keluarga',
-    body: 'Generasi sandwich, tanggung jawab menafkahi, dan lelah bekerja. Kamu boleh merasa capek.',
-  },
-  {
-    range: '50+ tahun',
-    title: 'Senior & lansia',
-    body: 'Teks yang lebih besar dan mudah dibaca, tampilan yang tenang, dan tanpa terburu-buru.',
-  },
-];
-
 export default function LandingPage() {
+  const t = useText(landingText);
+  const { lang } = useLanguage();
   const [selectedQuickMood, setSelectedQuickMood] = useState<MoodScore | null>(null);
   const [moodSavedNotice, setMoodSavedNotice] = useState(false);
 
@@ -60,11 +42,11 @@ export default function LandingPage() {
   }, []);
 
   const moodOptions: Array<{ id: MoodScore; label: string; color: string }> = [
-    { id: 'sangat_baik', label: 'Bertenaga', color: '#B8F34A' },
-    { id: 'baik', label: 'Cukup Baik', color: '#C7D3FF' },
-    { id: 'netral', label: 'Biasa Saja', color: '#FFD84D' },
-    { id: 'berat', label: 'Berat', color: '#FF8A3D' },
-    { id: 'kewalahan', label: 'Kewalahan', color: '#FF5252' },
+    { id: 'sangat_baik', label: t.moods.sangat_baik, color: '#B8F34A' },
+    { id: 'baik', label: t.moods.baik, color: '#C7D3FF' },
+    { id: 'netral', label: t.moods.netral, color: '#FFD84D' },
+    { id: 'berat', label: t.moods.berat, color: '#FF8A3D' },
+    { id: 'kewalahan', label: t.moods.kewalahan, color: '#FF5252' },
   ];
 
   const handleQuickMoodClick = (mood: MoodScore) => {
@@ -106,18 +88,18 @@ export default function LandingPage() {
             <div className="lg:col-span-7 space-y-6 text-left">
               <div className="animate-reveal-up inline-flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-[#B8F34A] border-2 border-[#151515] text-[#151515] text-sm font-bold shadow-[2px_2px_0px_#151515]">
                 <ShieldCheck className="w-4 h-4 text-[#151515]" aria-hidden="true" />
-                <span>100% anonim, tanpa akun</span>
+                <span>{t.badge}</span>
               </div>
 
               {/* Display Headline per PRD-DESIGN.md */}
               <h1 id="judul-utama" className="animate-reveal-up [animation-delay:80ms] text-[2rem] sm:text-5xl lg:text-[4rem] font-bold text-[#151515] tracking-[-0.03em] leading-[1.05]">
-                Gak harus <br />
-                beres semuanya <br />
-                <span className="text-[#2B51E6] underline decoration-[#B8F34A] decoration-4 underline-offset-4">hari ini.</span>
+                {t.heroLine1} <br />
+                {t.heroLine2} <br />
+                <span className="text-[#2B51E6] underline decoration-[#B8F34A] decoration-4 underline-offset-4">{t.heroLine3}</span>
               </h1>
 
               <p className="animate-reveal-up [animation-delay:160ms] text-lg sm:text-xl text-[#4A453E] max-w-[34rem] font-medium leading-[1.45]">
-                Kalau hari ini terasa berat, kamu tidak sendirian. Rehat sebentar, bercerita tanpa dihakimi, lalu melangkah pelan-pelan.
+                {t.heroBody}
               </p>
 
               {/* Primary Call to Action Buttons (no entrance animation: holds the emergency-help button) */}
@@ -131,7 +113,7 @@ export default function LandingPage() {
                   iconPosition="end"
                   className="text-[#151515] font-bold flex-1 sm:flex-initial"
                 >
-                  Mulai tanpa akun
+                  {t.start}
                 </Button>
 
                 <Button
@@ -142,7 +124,7 @@ export default function LandingPage() {
                   icon={<PhoneCall className="w-4 h-4 text-[#B3261E]" />}
                   className="font-bold flex-1 sm:flex-initial"
                 >
-                  Bantuan darurat
+                  {t.emergency}
                 </Button>
               </div>
             </div>
@@ -154,12 +136,12 @@ export default function LandingPage() {
               <div className="bezel-core p-4 sm:p-5 bg-white space-y-3 text-left" role="group" aria-labelledby="label-mood-cepat">
                 <span id="label-mood-cepat" className="text-base font-bold text-[#151515] flex items-start gap-1.5">
                   <Sparkles className="w-4 h-4 mt-1 text-[#3357EE] shrink-0" aria-hidden="true" />
-                  Apa kabar hatimu hari ini? Ketuk salah satu.
+                  {t.moodQuestion}
                 </span>
                 <p role="status" aria-live="polite" className="min-h-[1.5rem] text-sm font-bold text-[#151515]">
                   {moodSavedNotice && (
                     <span className="inline-flex items-center gap-1 bg-[#B8F34A] px-2 py-0.5 rounded-[2px] border border-[#151515]">
-                      <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> Tersimpan di perangkat ini
+                      <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> {t.moodSaved}
                     </span>
                   )}
                 </p>
@@ -192,7 +174,7 @@ export default function LandingPage() {
                 </div>
                 <p className="flex items-center gap-1.5 text-sm text-[#59544D]">
                   <Lock className="w-4 h-4 text-[#2B51E6] shrink-0" aria-hidden="true" />
-                  Pilihanmu hanya tersimpan di perangkat ini.
+                  {t.moodPrivacy}
                 </p>
               </div>
               </div>
@@ -206,10 +188,10 @@ export default function LandingPage() {
         <PageContainer size="default">
           <Reveal className="max-w-2xl space-y-3 mb-10 sm:mb-12">
             <h2 id="judul-pilar" className="text-[1.75rem] sm:text-4xl font-bold text-[#151515] tracking-[-0.02em] leading-[1.15]">
-              Tiga hal yang sering terasa berat
+              {t.pillarsTitle}
             </h2>
             <p className="text-base text-[#59544D] leading-relaxed max-w-[65ch]">
-              Beban-beban ini nyata, dan kamu tidak perlu memikulnya dalam diam.
+              {t.pillarsBody}
             </p>
           </Reveal>
 
@@ -219,6 +201,7 @@ export default function LandingPage() {
               const Icon = pillar.id === 'finance' ? Coins : pillar.id === 'trauma' ? HeartHandshake : ShieldCheck;
               const isLead = index === 0;
               const surface = PILLAR_SURFACES[index % PILLAR_SURFACES.length];
+              const text = topicPillarText(pillar.id, lang);
               return (
                 <Reveal
                   key={pillar.id}
@@ -245,19 +228,19 @@ export default function LandingPage() {
                             : 'text-xl tracking-[-0.01em] leading-[1.25]'
                         }`}
                       >
-                        {pillar.label}
+                        {text.label}
                       </h3>
                       <p className={`text-base font-semibold leading-snug ${surface.tagline}`}>
-                        {pillar.tagline}
+                        {text.tagline}
                       </p>
                     </div>
                     <p className={`leading-relaxed ${surface.body} ${isLead ? 'text-base sm:text-lg max-w-[32rem]' : 'text-base'}`}>
-                      {pillar.description}
+                      {text.description}
                     </p>
                   </div>
 
                   <div className={`pt-4 border-t flex items-center justify-between text-sm font-semibold text-[#151515] ${surface.rule}`}>
-                    <span>{pillar.isSensitive ? 'Boleh dilewati kapan saja' : 'Misi mandiri harian'}</span>
+                    <span>{pillar.isSensitive ? t.pillarSkippable : t.pillarMission}</span>
                   </div>
                 </Reveal>
               );
@@ -271,15 +254,15 @@ export default function LandingPage() {
         <PageContainer size="default">
           <Reveal className="max-w-2xl space-y-3 mb-10 sm:mb-12">
             <h2 id="judul-usia" className="text-[1.75rem] sm:text-4xl font-bold text-[#151515] tracking-[-0.02em] leading-[1.15]">
-              Untuk siapa pun, di usia berapa pun
+              {t.agesTitle}
             </h2>
             <p className="text-base text-[#59544D] leading-relaxed">
-              Bahasa dan pertanyaan kami sesuaikan supaya terasa dekat dan nyaman untukmu.
+              {t.agesBody}
             </p>
           </Reveal>
 
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10 text-left">
-            {AGE_GROUPS.map((group, index) => (
+            {t.ages.map((group, index) => (
               <Reveal as="li" key={group.range} delay={index * 80} className="border-t-2 border-[#151515] pt-4 space-y-2">
                 <span className="block text-sm font-bold text-[#2B51E6] tabular-nums">
                   {group.range}
@@ -299,13 +282,10 @@ export default function LandingPage() {
           <div className="bezel-core bg-[#FFEBEB] p-6 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-left">
             <div className="space-y-3 max-w-2xl">
               <h2 id="judul-krisis" className="text-2xl sm:text-[1.75rem] font-bold text-[#151515] tracking-[-0.01em] leading-[1.2]">
-                Kalau terasa terlalu berat, bantuan manusia langsung ada
+                {t.crisisTitle}
               </h2>
               <p className="text-base sm:text-base text-[#4A453E] leading-relaxed">
-                Kalau tulisanmu menunjukkan kamu sedang dalam bahaya atau ingin melukai diri, kami langsung
-                menghentikan alur biasa dan menampilkan kontak bantuan: Healing119 dari Kemenkes (119 ext 8) dan
-                LISA Helpline. Deteksinya memakai aturan tetap, bukan AI, jadi tidak ada yang menunda bantuan untukmu.
-                Kamu penting, dan kamu tidak harus melewatinya sendirian.
+                {t.crisisBody}
               </p>
             </div>
 
@@ -318,7 +298,7 @@ export default function LandingPage() {
                 icon={<PhoneCall className="w-4 h-4" />}
                 className="w-full sm:w-auto"
               >
-                Bantuan darurat
+                {t.emergency}
               </Button>
             </div>
           </div>

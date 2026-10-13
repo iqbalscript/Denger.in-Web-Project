@@ -35,24 +35,31 @@ import { ConsentPending } from '@/components/ConsentPending';
 import { awardLangkah, loadGamificationState } from '@/lib/gamification';
 import { getLocalDateOfTimestamp, getLocalDateString, getLocalWeekId } from '@/lib/calendar';
 import type { DailyCheckin, MoodScore, WeeklyReportSummary, CelebrationData } from '@dengarin/types';
+import { useLanguage, useText } from '@/i18n';
+import { reportText } from '@/i18n/pages/report';
 
-const MOOD_META: Record<MoodScore, { label: string; icon: React.ReactNode; color: string; score: number }> = {
-  sangat_baik: { label: 'Sangat Baik', icon: <Smile className="w-4 h-4 text-ink" aria-hidden="true" />, color: 'bg-lime text-ink border-2 border-ink shadow-hard-sm', score: 5 },
-  baik: { label: 'Baik', icon: <Smile className="w-4 h-4 text-white" aria-hidden="true" />, color: 'bg-cobalt text-white border-2 border-ink shadow-hard-sm', score: 4 },
-  netral: { label: 'Netral', icon: <Meh className="w-4 h-4 text-ink" aria-hidden="true" />, color: 'bg-yellow text-ink border-2 border-ink shadow-hard-sm', score: 3 },
-  berat: { label: 'Cukup Berat', icon: <Frown className="w-4 h-4 text-ink" aria-hidden="true" />, color: 'bg-tangerine text-ink border-2 border-ink shadow-hard-sm', score: 2 },
-  kewalahan: { label: 'Kewalahan', icon: <Frown className="w-4 h-4 text-white" aria-hidden="true" />, color: 'bg-[#D32F2F] text-white border-2 border-ink shadow-hard-sm', score: 1 }
+// Label suasana hati diambil dari kamus (sama dengan halaman check-in).
+const MOOD_META: Record<MoodScore, { icon: React.ReactNode; color: string; score: number }> = {
+  sangat_baik: { icon: <Smile className="w-4 h-4 text-ink" aria-hidden="true" />, color: 'bg-lime text-ink border-2 border-ink shadow-hard-sm', score: 5 },
+  baik: { icon: <Smile className="w-4 h-4 text-white" aria-hidden="true" />, color: 'bg-cobalt text-white border-2 border-ink shadow-hard-sm', score: 4 },
+  netral: { icon: <Meh className="w-4 h-4 text-ink" aria-hidden="true" />, color: 'bg-yellow text-ink border-2 border-ink shadow-hard-sm', score: 3 },
+  berat: { icon: <Frown className="w-4 h-4 text-ink" aria-hidden="true" />, color: 'bg-tangerine text-ink border-2 border-ink shadow-hard-sm', score: 2 },
+  kewalahan: { icon: <Frown className="w-4 h-4 text-white" aria-hidden="true" />, color: 'bg-[#D32F2F] text-white border-2 border-ink shadow-hard-sm', score: 1 }
 };
 
 interface DaySlot {
   dateStr: string;
-  dayLabel: string;
+  /** 0 = Minggu ... 6 = Sabtu; labelnya dibentuk saat render sesuai bahasa. */
+  weekday: number;
+  dayOfMonth: number;
   checkin?: DailyCheckin;
 }
 
 export default function ReportPage() {
   const { ready, session } = useConsentGuard();
   const crisis = useCrisisGuard(session?.ageBracket);
+  const t = useText(reportText);
+  const { locale } = useLanguage();
   const [checkins, setCheckins] = useState<DailyCheckin[]>([]);
   const [journalCount, setJournalCount] = useState(0);
   const [currentDay, setCurrentDay] = useState(1);
@@ -103,15 +110,13 @@ export default function ReportPage() {
     // 2. Generate 7-day slot array
     const slots: DaySlot[] = [];
     const today = new Date();
-    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const dateStr = getLocalDateString(d);
-      const dayLabel = `${dayNames[d.getDay()]} (${d.getDate()})`;
       const match = localCheckins.find((c) => getLocalDateOfTimestamp(c.timestamp) === dateStr);
-      slots.push({ dateStr, dayLabel, checkin: match });
+      slots.push({ dateStr, weekday: d.getDay(), dayOfMonth: d.getDate(), checkin: match });
     }
     setLast7Days(slots);
 
@@ -122,7 +127,7 @@ export default function ReportPage() {
         const completedMissions = Array.from({ length: session?.currentDay || 1 }).map((_, i) => ({
           day: i + 1,
           domain: session?.primaryDomain || 'general',
-          title: `Misi Hari ke-${i + 1}`,
+          title: t.dayN(i + 1),
           instruction: '',
           durationMinutes: 5,
           completed: true
@@ -173,20 +178,23 @@ export default function ReportPage() {
 
   const handleCopySummary = () => {
     if (!summary) return;
-    const text = `--- LAPORAN MINGGUAN DENGAR.IN ---
-Tanggal: ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}
-Konsistensi Check-in: ${activeDaysCount} dari 7 hari (${consistencyPercent}%)
-Misi Selesai: Hari ke-${currentDay}
-Catatan Jurnal: ${journalCount} refleksi
-Kecenderungan Suasana: ${summary.dominantMood}
-Pengamatan: ${summary.keyObservation}
-Catatan: ${summary.encouragementNote}
-----------------------------------`;
+    const text = t.export({
+      date: new Date().toLocaleDateString(locale, { dateStyle: 'full' }),
+      activeDays: activeDaysCount,
+      percent: consistencyPercent,
+      day: currentDay,
+      journals: journalCount,
+      mood: summary.dominantMood,
+      observation: summary.keyObservation,
+      note: summary.encouragementNote,
+    });
 
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const dayLabel = (slot: DaySlot) => `${t.dayNames[slot.weekday]} (${slot.dayOfMonth})`;
 
   if (!ready) return <ConsentPending />;
 
@@ -200,7 +208,7 @@ Catatan: ${summary.encouragementNote}
             size="sm"
             icon={<ArrowLeft className="w-4 h-4" />}
           >
-            Kembali ke beranda
+            {t.backHome}
           </Button>
 
           <Button
@@ -210,7 +218,7 @@ Catatan: ${summary.encouragementNote}
             onClick={handleCopySummary}
             disabled={!summary}
           >
-            {copied ? 'Tersalin' : 'Salin laporan'}
+            {copied ? t.copied : t.copy}
           </Button>
         </div>
 
@@ -218,13 +226,13 @@ Catatan: ${summary.encouragementNote}
         <div className="space-y-4 max-w-2xl animate-reveal-up [animation-delay:80ms]">
           <Badge variant="calm" size="md">
             <BarChart3 className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
-            Laporan mingguan
+            {t.badge}
           </Badge>
           <h1 className="text-[2.25rem] sm:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
-            Rangkuman &amp; refleksi <span className="tabular-nums">7</span> hari
+            {t.titleA} <span className="tabular-nums">7</span> {t.titleB}
           </h1>
           <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed max-w-xl">
-            Rangkuman berkala membantu melihat progres nyata langkah-langkah kecilmu, membuktikan bahwa setiap jeda dan refleksi memiliki arti.
+            {t.intro}
           </p>
         </div>
 
@@ -233,32 +241,32 @@ Catatan: ${summary.encouragementNote}
         <div className="lg:col-span-4 lg:order-2 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4 animate-reveal-up [animation-delay:240ms]">
           <div className="bg-white border border-[#D8D3C9] rounded-lg p-5 space-y-3 text-left">
             <div className="flex items-center justify-between text-sm text-[#59544D] font-bold">
-              <span>Keteraturan check-in</span>
+              <span>{t.consistency}</span>
               <Calendar className="w-4 h-4 text-cobalt" aria-hidden="true" />
             </div>
-            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">{activeDaysCount} dari 7 hari</p>
-            <ProgressBar value={consistencyPercent} max={100} label="Keteraturan check-in" className="[&>div:first-child]:sr-only" />
-            <span className="text-sm text-[#2B51E6] font-semibold block tabular-nums">{consistencyPercent}% hari aktif</span>
+            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">{t.daysOfSeven(activeDaysCount)}</p>
+            <ProgressBar value={consistencyPercent} max={100} label={t.consistency} className="[&>div:first-child]:sr-only" />
+            <span className="text-sm text-[#2B51E6] font-semibold block tabular-nums">{t.activePercent(consistencyPercent)}</span>
           </div>
 
           <div className="bg-white border border-[#D8D3C9] rounded-lg p-5 space-y-3 text-left">
             <div className="flex items-center justify-between text-sm text-[#59544D] font-bold">
-              <span>Misi harian</span>
+              <span>{t.dailyMission}</span>
               <Target className="w-4 h-4 text-cobalt" aria-hidden="true" />
             </div>
-            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">Hari ke-{currentDay}</p>
-            <ProgressBar value={Math.min(100, Math.round((currentDay / 14) * 100))} max={100} label="Kemajuan misi 14 hari" className="[&>div:first-child]:sr-only" />
-            <span className="text-sm text-[#2B51E6] font-semibold block tabular-nums">dari 14 hari rencana</span>
+            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">{t.dayN(currentDay)}</p>
+            <ProgressBar value={Math.min(100, Math.round((currentDay / 14) * 100))} max={100} label={t.missionProgress} className="[&>div:first-child]:sr-only" />
+            <span className="text-sm text-[#2B51E6] font-semibold block tabular-nums">{t.ofPlan}</span>
           </div>
 
           <div className="bg-white border border-[#D8D3C9] rounded-lg p-5 space-y-3 text-left">
             <div className="flex items-center justify-between text-sm text-[#59544D] font-bold">
-              <span>Catatan jurnal</span>
+              <span>{t.journalEntries}</span>
               <BookOpen className="w-4 h-4 text-cobalt" aria-hidden="true" />
             </div>
-            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">{journalCount} catatan</p>
-            <ProgressBar value={Math.min(100, journalCount * 25)} max={100} label="Jumlah catatan jurnal" className="[&>div:first-child]:sr-only" />
-            <span className="text-sm text-[#2B51E6] font-semibold block tabular-nums">Tersimpan di perangkat ini</span>
+            <p className="text-[1.75rem] font-bold text-ink tracking-[-0.02em] leading-none tabular-nums">{t.journalCount(journalCount)}</p>
+            <ProgressBar value={Math.min(100, journalCount * 25)} max={100} label={t.journalCountLabel} className="[&>div:first-child]:sr-only" />
+            <span className="text-sm text-[#2B51E6] font-semibold block tabular-nums">{t.storedLocally}</span>
           </div>
         </div>
 
@@ -267,15 +275,17 @@ Catatan: ${summary.encouragementNote}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
             <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-cobalt" aria-hidden="true" />
-              <span>Tren suasana hati 7 hari terakhir</span>
+              <span>{t.trendTitle}</span>
             </h2>
-            <span className="text-sm text-[#59544D] font-bold">Dari check-in harian</span>
+            <span className="text-sm text-[#59544D] font-bold">{t.trendSource}</span>
           </div>
 
           <div className="grid grid-cols-7 gap-2 pt-2">
             {last7Days.map((slot, idx) => {
               const checkin = slot.checkin;
               const meta = checkin ? MOOD_META[checkin.mood] : null;
+              const moodName = checkin ? t.moods[checkin.mood] ?? checkin.mood : '';
+              const label = dayLabel(slot);
               const heightPercent = meta ? meta.score * 20 : 10;
 
               return (
@@ -283,13 +293,13 @@ Catatan: ${summary.encouragementNote}
                   <div
                     className="h-36 sm:h-44 w-full bg-paper rounded-md flex flex-col justify-end p-1.5 border border-[#D8D3C9] relative group"
                     role="img"
-                    aria-label={checkin ? `${slot.dayLabel}: ${meta?.label}, energi ${checkin.energyLevel} dari 10` : `${slot.dayLabel}: belum ada check-in`}
+                    aria-label={checkin ? t.dayAria(label, moodName, checkin.energyLevel) : t.dayAriaEmpty(label)}
                   >
                     {checkin ? (
                       <div
                         style={{ height: `${heightPercent}%` }}
                         className={`w-full rounded flex items-center justify-center ${meta?.color || 'bg-cobalt'}`}
-                        title={`${slot.dayLabel}: ${meta?.label} (Energi: ${checkin.energyLevel}/10)`}
+                        title={t.dayTitle(label, moodName, checkin.energyLevel)}
                       >
                         {meta?.icon}
                       </div>
@@ -299,7 +309,7 @@ Catatan: ${summary.encouragementNote}
                   </div>
 
                   <span className="text-sm text-ink font-semibold" aria-hidden="true">
-                    {slot.dayLabel.split(' ')[0]}
+                    {t.dayNames[slot.weekday]}
                   </span>
                 </div>
               );
@@ -308,13 +318,13 @@ Catatan: ${summary.encouragementNote}
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-3 border-t border-[#D8D3C9] text-sm text-[#59544D] font-semibold">
             <span className="flex items-center gap-1.5">
-              <Smile className="w-4 h-4 text-cobalt" aria-hidden="true" /> Batang tinggi = tenang
+              <Smile className="w-4 h-4 text-cobalt" aria-hidden="true" /> {t.legendHigh}
             </span>
             <span className="flex items-center gap-1.5">
-              <Meh className="w-4 h-4 text-ink" aria-hidden="true" /> Sedang = biasa saja
+              <Meh className="w-4 h-4 text-ink" aria-hidden="true" /> {t.legendMid}
             </span>
             <span className="flex items-center gap-1.5">
-              <Frown className="w-4 h-4 text-[#B3261E]" aria-hidden="true" /> Pendek = butuh perhatian
+              <Frown className="w-4 h-4 text-[#B3261E]" aria-hidden="true" /> {t.legendLow}
             </span>
           </div>
         </div>
@@ -327,7 +337,7 @@ Catatan: ${summary.encouragementNote}
           <Reveal delay={70} className="lg:col-span-5 lg:order-2 bg-white border border-[#D8D3C9] rounded-lg p-6 sm:p-7 space-y-4 text-left">
             <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <Zap className="w-4 h-4 text-cobalt" aria-hidden="true" />
-              <span>Yang paling sering terasa berat</span>
+              <span>{t.stressorsTitle}</span>
             </h2>
             <div className="flex flex-wrap gap-2 pt-1">
               {topStressors.map(([tag, count]) => (
@@ -337,7 +347,7 @@ Catatan: ${summary.encouragementNote}
                 >
                   <span>{tag}</span>
                   <span className="text-sm bg-yellow border border-ink px-1.5 py-0.5 rounded font-bold tabular-nums">
-                    {count} kali
+                    {t.times(count)}
                   </span>
                 </div>
               ))}
@@ -352,7 +362,7 @@ Catatan: ${summary.encouragementNote}
         >
           <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-cobalt" aria-hidden="true" />
-            <span>Yang kami lihat dari minggumu</span>
+            <span>{t.observationTitle}</span>
           </h2>
 
           {loading ? (
@@ -364,28 +374,27 @@ Catatan: ${summary.encouragementNote}
           ) : (
             <div className="space-y-3">
               <p className="text-base text-ink leading-relaxed">
-                {summary?.keyObservation ||
-                  'Minggu ini kamu terus berusaha memberi ruang jeda untuk pikiran dan tubuhmu, dan itu layak dihargai.'}
+                {summary?.keyObservation || t.observationFallback}
               </p>
               <p className="text-base sm:text-base text-ink leading-relaxed font-medium bg-[#FFF4CC] p-4 rounded-md border-l-4 border-yellow">
-                <Sprout className="inline w-4 h-4 mr-1 align-[-3px] text-[#151515]" aria-hidden="true" /><strong className="font-bold">Pesan untukmu:</strong> {summary?.encouragementNote}
+                <Sprout className="inline w-4 h-4 mr-1 align-[-3px] text-[#151515]" aria-hidden="true" /><strong className="font-bold">{t.noteForYou}</strong> {summary?.encouragementNote}
               </p>
             </div>
           )}
         </Reveal>
         </div>
 
-        {/* Weekly Reflection Action — explicit reflection action per Section 1 */}
+        {/* Weekly Reflection Action: explicit reflection action per Section 1 */}
         {!loading && !reflectionMarked && (
           <Reveal className="max-w-3xl bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-5 shadow-hard-sm text-left">
             <div className="space-y-1">
               <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex flex-wrap items-center gap-2">
                 <BookOpen className="w-4 h-4 text-cobalt" aria-hidden="true" />
-                <span>Refleksi mingguan</span>
-                <span className="text-sm font-bold bg-yellow border border-ink px-1.5 py-0.5 rounded tabular-nums">+20 Langkah</span>
+                <span>{t.reflectionTitle}</span>
+                <span className="text-sm font-bold bg-yellow border border-ink px-1.5 py-0.5 rounded tabular-nums">{t.reflectionReward}</span>
               </h2>
               <p id="petunjuk-refleksi" className="text-base text-[#59544D] leading-relaxed">
-                Apa satu hal yang paling kamu sadari atau pelajari tentang dinamika emosimu selama sepekan terakhir?
+                {t.reflectionQuestion}
               </p>
             </div>
 
@@ -418,26 +427,26 @@ Catatan: ${summary.encouragementNote}
                   crisis.checkText(text);
                 }}
                 rows={3}
-                aria-label="Catatan refleksi mingguan"
+                aria-label={t.reflectionAria}
                 aria-describedby="petunjuk-refleksi hitungan-refleksi"
-                placeholder="Tuliskan catatan refleksimu di sini (minimal 20 karakter)..."
+                placeholder={t.reflectionPlaceholder}
               />
               {crisis.cardVisible && (
                 <InlineCrisisCard
                   contacts={crisis.contacts}
                   onAcknowledge={crisis.acknowledge}
-                  blockedNote="Refleksimu tetap ada di sini dan belum kami simpan."
+                  blockedNote={t.reflectionBlocked}
                 />
               )}
               {crisis.isCrisis && <CrisisBlockedNote id="refleksi-krisis-catatan" />}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <span id="hitungan-refleksi" className="text-sm text-[#59544D] font-semibold tabular-nums" aria-live="polite">
                   {weeklyReflectionText.trim().length < 20 ? (
-                    `${weeklyReflectionText.trim().length}/20 karakter minimal`
+                    t.charCount(weeklyReflectionText.trim().length)
                   ) : (
                     <span className="inline-flex items-center gap-1">
                       <Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />
-                      Cukup, terima kasih sudah menulis
+                      {t.charEnough}
                     </span>
                   )}
                 </span>
@@ -451,7 +460,7 @@ Catatan: ${summary.encouragementNote}
                   icon={<ArrowRight className="w-4 h-4" />}
                   className="w-full sm:w-auto"
                 >
-                  Simpan refleksi mingguan
+                  {t.saveReflection}
                 </Button>
               </div>
             </form>
@@ -462,7 +471,7 @@ Catatan: ${summary.encouragementNote}
           <div role="status" className="animate-reveal-up max-w-3xl bg-lime border-2 border-ink rounded-lg p-5 sm:p-6 shadow-hard-sm text-left space-y-2">
             <div className="flex items-center gap-2 text-base font-bold text-ink">
               <Check className="w-4 h-4" aria-hidden="true" />
-              <span>Refleksi minggu ini telah tersimpan</span>
+              <span>{t.reflectionSaved}</span>
             </div>
             {savedWeeklyReflection && (
               <p className="text-base text-ink italic bg-white p-3 rounded border border-ink">
@@ -470,7 +479,7 @@ Catatan: ${summary.encouragementNote}
               </p>
             )}
             <p className="text-base text-ink">
-              Terima kasih sudah meluangkan waktu untuk melihat kembali minggumu.
+              {t.reflectionThanks}
             </p>
           </div>
         )}
@@ -479,10 +488,10 @@ Catatan: ${summary.encouragementNote}
         <Reveal className="rounded-lg border-2 border-ink bg-lime p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-hard text-left">
           <div className="space-y-1.5 max-w-md">
             <span className="text-sm font-bold text-ink">
-              Fokus minggu depan
+              {t.nextFocusLabel}
             </span>
             <p className="text-base sm:text-lg font-bold text-ink leading-[1.35]">
-              Lanjutkan misi harian 5 menit, dan coba latihan napas pelan saat stres muncul.
+              {t.nextFocus}
             </p>
           </div>
 
@@ -494,7 +503,7 @@ Catatan: ${summary.encouragementNote}
             icon={<ArrowRight className="w-4 h-4" />}
             className="shrink-0 w-full sm:w-auto"
           >
-            Lanjut ke hari ini
+            {t.continueToday}
           </Button>
         </Reveal>
       </div>

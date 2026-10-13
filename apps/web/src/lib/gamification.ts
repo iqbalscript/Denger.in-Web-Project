@@ -34,12 +34,14 @@ export const LEVEL_THRESHOLDS: LevelDefinition[] = [
 ];
 
 export const BADGE_DEFINITIONS: BadgeDefinition[] = [
-  { id: 'langkah-pertama', name: 'Langkah Pertama', description: 'Melakukan aksi pertama di Dengar.in' },
+  // Nama level dan lencana Indonesia adalah data tersimpan dan dipakai tes;
+  // teks Inggris dipetakan per id di i18n/pages/gamification.ts.
+  { id: 'langkah-pertama', name: 'Langkah Pertama', description: 'Melakukan hal pertama di Dengar.in' },
   { id: 'berani-jujur',    name: 'Berani Jujur',    description: 'Menulis jurnal untuk pertama kali' },
   { id: 'kasih-ruang',     name: 'Kasih Ruang',     description: 'Menyelesaikan misi dengan refleksi' },
   { id: 'balik-lagi',      name: 'Balik Lagi',      description: 'Aktif di 3 hari berbeda' },
   { id: 'pelan-pelan',     name: 'Pelan-Pelan',     description: 'Aktif di 7 hari berbeda' },
-  { id: 'kenal-ritme',     name: 'Kenal Ritme',     description: 'Menyelesaikan Weekly Quest pertama' },
+  { id: 'kenal-ritme',     name: 'Kenal Ritme',     description: 'Menyelesaikan target mingguan pertama' },
   { id: 'tetap-tumbuh',    name: 'Tetap Tumbuh',    description: 'Mencapai level Jaga Ritme' },
   { id: 'banyak-cara',     name: 'Banyak Cara',     description: 'Check-in, misi, dan jurnal dalam satu hari' },
 ];
@@ -372,7 +374,10 @@ export function awardLangkah(
 
 export interface RitmeDay {
   date: string;
+  /** Singkatan hari Indonesia (bawaan). UI memakai `weekday` untuk bahasa lain. */
   dayLabel: string;
+  /** 0 = Minggu ... 6 = Sabtu, mengikuti Date#getDay(). */
+  weekday: number;
   active: boolean;
 }
 
@@ -398,6 +403,7 @@ export function getRitme(reference?: Date): RitmeDay[] {
     days.push({
       date: dateStr,
       dayLabel: dayNames[d.getDay()],
+      weekday: d.getDay(),
       active: activeDates.has(dateStr),
     });
   }

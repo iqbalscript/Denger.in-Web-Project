@@ -1,0 +1,101 @@
+import type { TextBundle } from '../language';
+
+const id = {
+  back: 'Kembali ke beranda',
+  badge: 'Salinan dan pemulihan',
+  title: 'Kunci pemulihan sesi pribadimu',
+  intro:
+    'Dengar.in tidak menyimpan email atau nomor HP. Simpan 12 bagian kunci ini untuk membuat salinan dan memulihkan semua progresmu sendiri.',
+  keyTitle: '12 bagian kunci rahasia',
+  keyOnlyYou: 'Hanya kamu yang memegang kunci ini',
+  keyListAria: '12 bagian kunci pemulihan',
+  copy: 'Salin 12 bagian kunci',
+  copied: 'Tersalin',
+  copiedNotice: 'Kunci sudah disalin. ',
+  doNotShare: 'Jangan bagikan kunci ini kepada siapa pun.',
+  backupAria: 'Salinan cloud terenkripsi',
+  backupTitle: 'Simpan salinan ke cloud (terenkripsi, hanya kamu yang bisa buka)',
+  backupBody:
+    'Data check-in dan jurnalmu dienkripsi dengan AES-GCM 256-bit langsung di browser sebelum dikirim. Server tidak pernah punya kunci untuk membukanya.',
+  backupButton: 'Simpan salinan sekarang',
+  backupLoading: 'Mengamankan...',
+  backupSuccessNewKey:
+    'Salinan baru berhasil dibuat. Kunci pemulihan sudah diperbarui; salin dan simpan 12 bagian baru yang tampil di atas.',
+  backupSuccess:
+    'Data sesi, check-in, dan jurnal berhasil dienkripsi dan disimpan ke cloud (hanya kamu yang bisa membukanya).',
+  backupReadFailed: 'Gagal membaca versi salinan di cloud.',
+  backupSendFailed: 'Gagal mengirim salinan ke server.',
+  backupError: 'Terjadi kesalahan saat mengenkripsi dan menyimpan salinan.',
+  lastBackup: 'Terakhir disalin:',
+  restoreAria: 'Pulihkan sesi',
+  restoreTitle: 'Pulihkan sesi di perangkat baru',
+  restoreHint: 'Masukkan 12 bagian kunci (atau 12 kata lama) untuk membuka salinan di cloud.',
+  restorePlaceholder: 'Ketik 12 bagian kunci, dipisahkan spasi',
+  restoreInputAria: '12 bagian kunci pemulihan',
+  restoreFormat: 'Format kunci belum pas: harus 12 bagian, dipisahkan spasi.',
+  restoreReadFailed: 'Gagal membaca salinan di cloud.',
+  restoreSuccess: 'Semua riwayat check-in, jurnal, dan sesi berhasil dipulihkan dari cloud. Pindah ke Beranda...',
+  restoreLocal: 'Sesi dipulihkan di perangkat ini saja (tidak ada salinan cloud untuk kunci ini). Pindah ke Beranda...',
+  restoreError: 'Gagal memulihkan sesi. Pastikan kunci pemulihannya benar.',
+  restoreButton: 'Pulihkan sesi',
+  restoreLoading: 'Sedang memulihkan...',
+  wipeTitle: 'Hapus semua data di perangkat ini',
+  wipeBody:
+    'Menghapus semua data anonim yang tersimpan di browser ini: jurnal, riwayat check-in, refleksi misi, dan catatan salinan. Salinan di cloud dan kunci yang sudah kamu salin tidak ikut terhapus.',
+  wipeButton: 'Hapus permanen',
+  wipeConfirmTitle: 'Yakin ingin menghapus semua data di perangkat ini?',
+  wipeConfirmBody: 'Ini tidak bisa dibatalkan. Setelah dihapus, kamu pindah ke halaman depan.',
+  wipeYes: 'Ya, hapus semua',
+  wipeNo: 'Batal, jangan hapus',
+};
+
+const en: typeof id = {
+  back: 'Back to home',
+  badge: 'Backup copy and recovery',
+  title: 'The recovery key for your private session',
+  intro:
+    'Dengar.in does not store an email or phone number. Keep these 12 key parts to save a copy and restore all your progress on your own.',
+  keyTitle: '12 secret key parts',
+  keyOnlyYou: 'Only you hold this key',
+  keyListAria: '12-part recovery key',
+  copy: 'Copy the 12 key parts',
+  copied: 'Copied',
+  copiedNotice: 'Key copied. ',
+  doNotShare: 'Do not share this key with anyone.',
+  backupAria: 'Encrypted cloud copy',
+  backupTitle: 'Save a copy to the cloud (encrypted, only you can open it)',
+  backupBody:
+    'Your check-in and journal data is encrypted with AES-GCM 256-bit right in your browser before it is sent. The server never has the key to open it.',
+  backupButton: 'Save a copy now',
+  backupLoading: 'Securing...',
+  backupSuccessNewKey:
+    'A new copy was saved. Your recovery key has been renewed; copy and keep the 12 new parts shown above.',
+  backupSuccess:
+    'Your session, check-ins, and journal were encrypted and saved to the cloud (only you can open them).',
+  backupReadFailed: 'Could not read the copy version in the cloud.',
+  backupSendFailed: 'Could not send the copy to the server.',
+  backupError: 'Something went wrong while encrypting and saving the copy.',
+  lastBackup: 'Last copied:',
+  restoreAria: 'Restore session',
+  restoreTitle: 'Restore your session on a new device',
+  restoreHint: 'Enter the 12 key parts (or your old 12 words) to open the copy in the cloud.',
+  restorePlaceholder: 'Type the 12 key parts, separated by spaces',
+  restoreInputAria: '12-part recovery key',
+  restoreFormat: 'The key format is not right yet: it must be 12 parts, separated by spaces.',
+  restoreReadFailed: 'Could not read the copy in the cloud.',
+  restoreSuccess: 'All your check-ins, journal, and session were restored from the cloud. Going to Home...',
+  restoreLocal: 'Session restored on this device only (no cloud copy found for this key). Going to Home...',
+  restoreError: 'Could not restore the session. Make sure the recovery key is correct.',
+  restoreButton: 'Restore session',
+  restoreLoading: 'Restoring...',
+  wipeTitle: 'Delete all data on this device',
+  wipeBody:
+    'Deletes all anonymous data stored in this browser: journal, check-in history, mission reflections, and backup notes. The cloud copy and the key you already copied are not deleted.',
+  wipeButton: 'Delete permanently',
+  wipeConfirmTitle: 'Delete all data on this device?',
+  wipeConfirmBody: 'This cannot be undone. After deleting, you go to the front page.',
+  wipeYes: 'Yes, delete everything',
+  wipeNo: 'Cancel, keep my data',
+};
+
+export const recoveryText: TextBundle<typeof id> = { id, en };

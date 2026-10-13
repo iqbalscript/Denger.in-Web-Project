@@ -1,0 +1,151 @@
+import type { TextBundle } from '../language';
+
+/** Teks yang tertanam di komponen components/ui (bukan props dari halaman). */
+
+const id = {
+  moods: {
+    kewalahan: 'Kewalahan',
+    berat: 'Berat',
+    netral: 'Netral',
+    baik: 'Baik',
+    sangat_baik: 'Sangat baik',
+  } as Record<string, string>,
+  moodSelector: {
+    aria: 'Pilih suasana hati',
+    options: [
+      { value: 1, label: 'Kewalahan', subtext: 'Sangat berat' },
+      { value: 2, label: 'Berat', subtext: 'Cemas atau lelah' },
+      { value: 3, label: 'Netral', subtext: 'Biasa saja' },
+      { value: 4, label: 'Baik', subtext: 'Cukup tenang' },
+      { value: 5, label: 'Sangat baik', subtext: 'Bertenaga' },
+    ],
+  },
+  missionCard: {
+    difficulty: 'Tingkat',
+    difficulties: { ringan: 'ringan', sedang: 'sedang', bertahap: 'bertahap' },
+    completed: 'Selesai',
+    inProgress: 'Sedang berjalan',
+    recommended: 'Disarankan',
+    steps: (done: number, total: number) => `${done} / ${total} langkah selesai`,
+    review: 'Lihat lagi',
+    continue: 'Lanjutkan',
+    start: 'Mulai',
+  },
+  celebration: {
+    langkah: (n: number) => `+${n} langkah`,
+    levelUp: (name: string) => `Naik level: ${name}`,
+    newBadges: (names: string) => `Lencana baru: ${names}`,
+    questDone: 'Target minggu ini selesai.',
+    footer: 'Kecil, tapi tetap dihitung.',
+  },
+  progress: { aria: 'Kemajuan' },
+  helpButton: {
+    compact: 'Bantuan darurat',
+    outline: 'Buka bantuan darurat',
+    full: 'Butuh bantuan sekarang? Tekan di sini',
+  },
+  timeline: {
+    title: 'Garis waktu kondisimu',
+    lastDays: (n: number) => `${n} hari terakhir`,
+    moodPerDay: 'Suasana hati per hari',
+    empty: (n: number) => `Belum ada check-in di ${n} hari terakhir. Gak apa-apa, mulai dari satu check-in kecil saja.`,
+    summary: (days: number, checkins: number, missions: number, journals: number, active: number) =>
+      `Garis waktu ${days} hari terakhir: ${checkins} check-in, ${missions} misi, ${journals} jurnal, ${active} hari aktif.`,
+    point: (date: string, mood: string) => `${date}: suasana hati ${mood} dari 5`,
+    checkins: 'Check-in',
+    missions: 'Misi',
+    journals: 'Jurnal',
+    activeDays: 'Hari aktif',
+    note: 'Hari yang kosong itu wajar. Data ini hanya ada di perangkat ini.',
+  },
+  privacy: {
+    close: 'Tutup peringatan',
+    title: 'Jaga privasimu',
+    subtitle: 'Tiga hal yang perlu diingat sebelum bercerita',
+    introA: 'Dengar.in adalah ruang',
+    introAnon: 'anonim',
+    introB: '. Supaya kamu tetap aman:',
+    rule1Strong: 'Jangan tulis nama asli',
+    rule1: ', baik namamu, teman, keluarga, guru, dosen, atau siapa pun.',
+    rule2Strong: 'Jangan sebut alamat, nama sekolah/kampus/kantor, atau nomor telepon.',
+    rule3Strong: 'Cukup ceritakan perasaanmu.',
+    rule3: ' Fokus pada apa yang kamu rasakan, bukan siapa dan di mana.',
+    footer: 'Ini untuk melindungi identitasmu dan orang-orang di sekitarmu. Ceritamu tetap bisa disampaikan tanpa menyebut siapa dan di mana.',
+    confirm: 'Saya mengerti, lanjutkan',
+  },
+};
+
+const en: typeof id = {
+  moods: {
+    kewalahan: 'Overwhelmed',
+    berat: 'Heavy',
+    netral: 'Neutral',
+    baik: 'Good',
+    sangat_baik: 'Very good',
+  },
+  moodSelector: {
+    aria: 'Choose your mood',
+    options: [
+      { value: 1, label: 'Overwhelmed', subtext: 'Very heavy' },
+      { value: 2, label: 'Heavy', subtext: 'Anxious or tired' },
+      { value: 3, label: 'Neutral', subtext: 'Just okay' },
+      { value: 4, label: 'Good', subtext: 'Fairly calm' },
+      { value: 5, label: 'Very good', subtext: 'Energised' },
+    ],
+  },
+  missionCard: {
+    difficulty: 'Level',
+    difficulties: { ringan: 'light', sedang: 'medium', bertahap: 'gradual' },
+    completed: 'Done',
+    inProgress: 'In progress',
+    recommended: 'Suggested',
+    steps: (done, total) => `${done} / ${total} steps done`,
+    review: 'Look again',
+    continue: 'Continue',
+    start: 'Start',
+  },
+  celebration: {
+    langkah: (n) => `+${n} steps`,
+    levelUp: (name) => `Level up: ${name}`,
+    newBadges: (names) => `New badge: ${names}`,
+    questDone: 'This week\'s target is done.',
+    footer: 'Small, but it still counts.',
+  },
+  progress: { aria: 'Progress' },
+  helpButton: {
+    compact: 'Emergency help',
+    outline: 'Open emergency help',
+    full: 'Need help right now? Tap here',
+  },
+  timeline: {
+    title: 'Your well-being timeline',
+    lastDays: (n) => `Last ${n} days`,
+    moodPerDay: 'Mood per day',
+    empty: (n) => `No check-ins in the last ${n} days. That is okay, start with one small check-in.`,
+    summary: (days, checkins, missions, journals, active) =>
+      `Timeline of the last ${days} days: ${checkins} check-ins, ${missions} missions, ${journals} journal entries, ${active} active days.`,
+    point: (date, mood) => `${date}: mood ${mood} out of 5`,
+    checkins: 'Check-ins',
+    missions: 'Missions',
+    journals: 'Journal',
+    activeDays: 'Active days',
+    note: 'Empty days are normal. This data only lives on this device.',
+  },
+  privacy: {
+    close: 'Close warning',
+    title: 'Protect your privacy',
+    subtitle: 'Three things to remember before you share',
+    introA: 'Dengar.in is an',
+    introAnon: 'anonymous',
+    introB: ' space. To stay safe:',
+    rule1Strong: 'Do not write real names',
+    rule1: ', not yours, your friends\', family, teachers, lecturers, or anyone else\'s.',
+    rule2Strong: 'Do not mention addresses, school/campus/office names, or phone numbers.',
+    rule3Strong: 'Just share how you feel.',
+    rule3: ' Focus on what you feel, not who or where.',
+    footer: 'This protects you and the people around you. You can still tell your story without saying who or where.',
+    confirm: 'I understand, continue',
+  },
+};
+
+export const uiText: TextBundle<typeof id> = { id, en };

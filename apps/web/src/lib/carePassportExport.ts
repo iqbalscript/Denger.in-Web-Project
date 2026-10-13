@@ -1,4 +1,6 @@
 import type { CarePassport, EvidenceField } from '@dengarin/types';
+import { LOCALE_TAG, type Language } from '../i18n/language.ts';
+import { carePassportText } from '../i18n/pages/carePassport.ts';
 
 /**
  * LOCAL EXPORT OF AN APPROVED CARE PASSPORT (AMD-11 slice of AMD-10)
@@ -10,6 +12,9 @@ import type { CarePassport, EvidenceField } from '@dengarin/types';
  * professional will ask. Source quotes, model/provider ids, warnings and dropped-claim counters are
  * deliberately left out; a professional needs the user's statements, not the
  * machinery behind them. Nothing here sends data anywhere.
+ *
+ * `lang` only changes the fixed headings and labels; the user's own text and
+ * the disclaimer are written exactly as approved.
  */
 
 export type CarePassportExportFormat = 'md' | 'txt';
@@ -20,40 +25,42 @@ export interface CarePassportExportOptions {
   generatedAt?: Date;
   /** Honest one-liner about how the draft was produced, e.g. "Disusun dengan bantuan AI di AMD". */
   provenanceLabel?: string;
+  /** Interface language for headings and labels; defaults to Indonesian. */
+  lang?: Language;
 }
 
-export const EXPORT_SECTION_LABELS = {
-  concerns: 'Hal utama yang ingin dibicarakan',
-  dailyImpact: 'Pengaruhnya pada aktivitas sehari-hari',
-  duration: 'Sejak kapan dirasakan',
-  relevantContext: 'Konteks lain yang relevan',
-  questionsForProfessional: 'Pertanyaan untuk profesional',
-  unknowns: 'Belum diketahui / belum diceritakan',
-} as const;
+/** Indonesian section labels (kept for callers and tests that expect the default). */
+export const EXPORT_SECTION_LABELS = carePassportText.id.exportFile.sections;
+
+/** Section labels in the given interface language. */
+export function exportSectionLabels(lang: Language = 'id'): typeof EXPORT_SECTION_LABELS {
+  return carePassportText[lang].exportFile.sections;
+}
 
 /** "(jurnal, 24 September 2026)": the dated source behind a fact, when it came from a local entry. */
-function datedSourceSuffix(field: EvidenceField): string {
+function datedSourceSuffix(field: EvidenceField, lang: Language): string {
   const ref = field.sourceRef;
   if (!ref || (ref.kind !== 'journal' && ref.kind !== 'checkin') || !ref.date) return '';
   const [y, m, d] = ref.date.split('-').map(Number);
   if (!y || !m || !d) return '';
-  const when = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(y, m - 1, d));
-  return ` (${ref.kind === 'journal' ? 'jurnal' : 'check-in'}, ${when})`;
+  const when = new Intl.DateTimeFormat(LOCALE_TAG[lang], { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(y, m - 1, d));
+  const text = carePassportText[lang].exportFile;
+  return ` (${ref.kind === 'journal' ? text.journal : text.checkin}, ${when})`;
 }
 
-function presentValues(fields: EvidenceField[]): string[] {
+function presentValues(fields: EvidenceField[], lang: Language): string[] {
   return fields
-    .map((f) => (typeof f.value === 'string' && f.value.trim() ? `${f.value.trim()}${datedSourceSuffix(f)}` : ''))
+    .map((f) => (typeof f.value === 'string' && f.value.trim() ? `${f.value.trim()}${datedSourceSuffix(f, lang)}` : ''))
     .filter((v) => v.length > 0);
 }
 
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeZone: 'Asia/Jakarta' }).format(date);
+function formatDate(date: Date, lang: Language): string {
+  return new Intl.DateTimeFormat(LOCALE_TAG[lang], { dateStyle: 'long', timeZone: 'Asia/Jakarta' }).format(date);
 }
 
-export function carePassportExportFileName(format: CarePassportExportFormat, date = new Date()): string {
+export function carePassportExportFileName(format: CarePassportExportFormat, date = new Date(), lang: Language = 'id'): string {
   const stamp = date.toISOString().slice(0, 10);
-  return `catatan-konsultasi-${stamp}.${format}`;
+  return `${carePassportText[lang].exportFile.fileStem}-${stamp}.${format}`;
 }
 
 /**
@@ -67,48 +74,51 @@ export function buildCarePassportExport(
   if (passport.reviewStatus !== 'user_approved') return null;
   const md = options.format === 'md';
   const date = options.generatedAt ?? new Date();
+  const lang = options.lang ?? 'id';
+  const text = carePassportText[lang].exportFile;
+  const labels = text.sections;
 
-  const h1 = (text: string) => (md ? `# ${text}` : text.toUpperCase());
-  const h2 = (text: string) => (md ? `## ${text}` : `${text}`);
-  const bullet = (text: string) => (md ? `- ${text}` : `- ${text}`);
-  const quoteBlock = (text: string) => (md ? `> ${text}` : text);
+  const h1 = (value: string) => (md ? `# ${value}` : value.toUpperCase());
+  const h2 = (value: string) => (md ? `## ${value}` : `${value}`);
+  const bullet = (value: string) => (md ? `- ${value}` : `- ${value}`);
+  const quoteBlock = (value: string) => (md ? `> ${value}` : value);
 
   const lines: string[] = [];
-  lines.push(h1('Catatan Persiapan Konsultasi'));
-  lines.push(`Disusun ${formatDate(date)}. Ditinjau dan disetujui sendiri oleh penulisnya.`);
+  lines.push(h1(text.title));
+  lines.push(text.generated(formatDate(date, lang)));
   if (options.provenanceLabel) lines.push(options.provenanceLabel);
   lines.push('');
 
   const sections: Array<[string, string[]]> = [
-    [EXPORT_SECTION_LABELS.concerns, presentValues(passport.concerns)],
-    [EXPORT_SECTION_LABELS.dailyImpact, presentValues(passport.dailyImpact)],
-    [EXPORT_SECTION_LABELS.duration, presentValues([passport.duration])],
-    [EXPORT_SECTION_LABELS.relevantContext, presentValues(passport.relevantContext)],
+    [labels.concerns, presentValues(passport.concerns, lang)],
+    [labels.dailyImpact, presentValues(passport.dailyImpact, lang)],
+    [labels.duration, presentValues([passport.duration], lang)],
+    [labels.relevantContext, presentValues(passport.relevantContext, lang)],
   ];
   for (const [label, values] of sections) {
     lines.push(h2(label));
     if (values.length === 0) {
-      lines.push('Belum diisi.');
+      lines.push(text.empty);
     } else {
       for (const value of values) lines.push(bullet(value));
     }
     lines.push('');
   }
 
-  lines.push(h2(EXPORT_SECTION_LABELS.questionsForProfessional));
+  lines.push(h2(labels.questionsForProfessional));
   const questions = passport.questionsForProfessional.map((q) => q.trim()).filter(Boolean);
-  if (questions.length === 0) lines.push('Belum ada pertanyaan yang dicatat.');
+  if (questions.length === 0) lines.push(text.noQuestions);
   else questions.forEach((q, i) => lines.push(`${i + 1}. ${q}`));
   lines.push('');
 
   const unknowns = passport.unknowns.map((u) => u.trim()).filter(Boolean);
   if (unknowns.length > 0) {
-    lines.push(h2(EXPORT_SECTION_LABELS.unknowns));
+    lines.push(h2(labels.unknowns));
     for (const u of unknowns) lines.push(bullet(u));
     lines.push('');
   }
 
-  lines.push(h2('Catatan penting'));
+  lines.push(h2(text.important));
   lines.push(quoteBlock(passport.disclaimer));
   lines.push('');
 

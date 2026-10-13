@@ -13,7 +13,19 @@ import { CLINICAL_DISCLAIMER } from '@dengarin/config';
 export interface PromptContext {
   ageBracket?: AgeBracket;
   domain?: InterventionDomain;
+  /**
+   * Bahasa balasan yang diminta ('id' bawaan). Hanya mengubah bahasa teks di
+   * properti message/reason/prompt; skema aksi, disclaimer (tetap Indonesia,
+   * dicocokkan validator), dan semua larangan tidak berubah.
+   */
+  lang?: 'id' | 'en';
 }
+
+const ENGLISH_REPLY_RULES = [
+  'LANGUAGE: the person is using Dengar.in in English. Write the "message", "reason" and "prompt" properties in natural, warm, plain English (short sentences, "you", no clinical jargon, 30-80 words).',
+  'Even in English, keep the exact same JSON schema, the same whitelisted actions, every forbidden-behaviour rule above, and copy the "disclaimer" property verbatim in Indonesian exactly as given. Indonesian emergency numbers stay as they are (e.g. "Healing119: 119 ext 8").',
+  'If the person writes in Indonesian while using the English interface, reply in the language they wrote in.'
+];
 
 const WHITELISTED_ACTION_SCHEMAS = `
 Format balasan HARUS berupa SATU objek JSON valid (JSON Mode). Pilih salah satu aksi yang paling tepat sesuai kebutuhan pengguna saat ini:
@@ -112,6 +124,9 @@ export function buildChatSystemPrompt(context: PromptContext = {}): string {
   }
   if (context.ageBracket) {
     lines.push(`Kelompok usia pengguna: ${context.ageBracket}.`);
+  }
+  if (context.lang === 'en') {
+    lines.push(...ENGLISH_REPLY_RULES);
   }
 
   return lines.join('\n');

@@ -1,17 +1,21 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { PhoneCall, BookOpenText, CalendarCheck, MessageSquareText, PenLine } from 'lucide-react';
 import type { CarePassportProvenance, CarePassportSegmentKind, EvidenceField, EvidenceRef } from '@dengarin/types';
-import { evidenceRefLabel, type PiiFinding } from '@dengarin/validator';
+import type { PiiFinding } from '@dengarin/validator';
+import { LOCALE_TAG, pickText, useLanguage, useText, type Language } from '@/i18n';
+import { carePassportText } from '@/i18n/pages/carePassport';
 
 export const MUTED = 'text-[#59544D]';
 
-export const SEGMENT_KIND_LABELS: Record<CarePassportSegmentKind, string> = {
-  intake: 'Ceritamu hari ini',
-  journal: 'Jurnal',
-  checkin: 'Check-in',
-  clarification: 'Jawabanmu',
-};
+/** Kamus Catatan Konsultasi sesuai bahasa aktif. */
+export function usePassportText() {
+  return useText(carePassportText);
+}
+
+export const SEGMENT_KIND_LABELS: Record<CarePassportSegmentKind, string> = carePassportText.id.shared.segmentKinds;
 
 const SEGMENT_ICONS: Record<CarePassportSegmentKind, React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>> = {
   intake: PenLine,
@@ -21,8 +25,16 @@ const SEGMENT_ICONS: Record<CarePassportSegmentKind, React.ComponentType<{ class
 };
 
 /** "Jurnal • 24 Sep", "Check-in • 2 Okt", "Ceritamu hari ini": the dated source behind one fact. */
-export function sourceLabel(ref: Pick<EvidenceRef, 'kind' | 'date'> | undefined): string {
-  return evidenceRefLabel(ref ? { segmentId: '', kind: ref.kind, date: ref.date } : undefined);
+export function sourceLabel(ref: Pick<EvidenceRef, 'kind' | 'date'> | undefined, lang: Language = 'id'): string {
+  const labels = pickText(carePassportText, lang).shared.segmentKinds;
+  const kind: CarePassportSegmentKind = ref?.kind ?? 'intake';
+  if (kind === 'intake' || kind === 'clarification') return labels[kind];
+  const base = labels[kind];
+  if (!ref?.date) return base;
+  const [y, m, d] = ref.date.split('-').map(Number);
+  if (!y || !m || !d) return base;
+  const formatted = new Intl.DateTimeFormat(LOCALE_TAG[lang], { day: 'numeric', month: 'short' }).format(new Date(y, m - 1, d));
+  return `${base} • ${formatted}`;
 }
 
 /**
@@ -30,13 +42,14 @@ export function sourceLabel(ref: Pick<EvidenceRef, 'kind' | 'date'> | undefined)
  * out from the story; the label is read in full by screen readers.
  */
 export function SourceChip({ sourceRef, className = '' }: { sourceRef?: Pick<EvidenceRef, 'kind' | 'date'>; className?: string }) {
+  const { lang } = useLanguage();
   const kind: CarePassportSegmentKind = sourceRef?.kind ?? 'intake';
   const Icon = SEGMENT_ICONS[kind];
   const dated = kind === 'journal' || kind === 'checkin';
   return (
     <Tag tone={dated ? 'cobalt' : 'white'} className={className}>
       <Icon className="w-3 h-3" aria-hidden={true} />
-      <span>{sourceLabel(sourceRef)}</span>
+      <span>{sourceLabel(sourceRef, lang)}</span>
     </Tag>
   );
 }
@@ -46,13 +59,14 @@ export function SourceChip({ sourceRef, className = '' }: { sourceRef?: Pick<Evi
  * animate-reveal-up wrapper on purpose (docs/CAREBRIDGE_SAFETY_POLICY.md §8).
  */
 export function UrgentHelpLink({ className = '' }: { className?: string }) {
+  const t = usePassportText();
   return (
     <Link
       href="/crisis"
       className={`inline-flex items-center gap-2 min-h-[48px] px-4 py-2 rounded-[4px] border-2 border-[#151515] bg-white text-[#151515] font-bold text-base shadow-[2px_2px_0px_#151515] hover:bg-[#FFEBEB] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${className}`}
     >
       <PhoneCall className="w-5 h-5 text-[#B3261E] shrink-0" aria-hidden="true" />
-      <span>Butuh bantuan sekarang?</span>
+      <span>{t.shared.urgentHelp}</span>
     </Link>
   );
 }
@@ -124,31 +138,28 @@ export function Tag({
  * rules-only path says so plainly.
  */
 export function ProvenanceTag({ provenance }: { provenance: CarePassportProvenance }) {
-  if (provenance.isAmd) return <Tag tone="cobalt">Diproses di AMD</Tag>;
-  if (!provenance.isFallback) return <Tag tone="white">AI non-AMD: {provenance.providerId}</Tag>;
-  return <Tag tone="paper">Tanpa AI</Tag>;
+  const t = usePassportText().shared;
+  if (provenance.isAmd) return <Tag tone="cobalt">{t.provenanceAmd}</Tag>;
+  if (!provenance.isFallback) return <Tag tone="white">{t.provenanceOther(provenance.providerId)}</Tag>;
+  return <Tag tone="paper">{t.provenanceNone}</Tag>;
 }
 
-export function provenanceLabel(provenance: CarePassportProvenance): string {
-  if (provenance.isAmd) return 'Draf awal disusun dengan bantuan AI yang diproses di AMD, lalu ditinjau oleh penulisnya.';
-  if (!provenance.isFallback) return `Draf awal disusun dengan bantuan AI (${provenance.providerId}), lalu ditinjau oleh penulisnya.`;
-  return 'Ditulis sendiri tanpa bantuan AI.';
+export function provenanceLabel(provenance: CarePassportProvenance, lang: Language = 'id'): string {
+  const t = pickText(carePassportText, lang).shared;
+  if (provenance.isAmd) return t.provenanceLabelAmd;
+  if (!provenance.isFallback) return t.provenanceLabelOther(provenance.providerId);
+  return t.provenanceLabelNone;
 }
 
 export function findingKey(f: Pick<PiiFinding, 'kind' | 'start' | 'end'>): string {
   return `${f.kind}:${f.start}:${f.end}`;
 }
 
-export const PII_KIND_LABELS: Record<PiiFinding['kind'], string> = {
-  email: 'Alamat email',
-  phone: 'Nomor telepon',
-  nik: 'NIK',
-  url: 'Tautan',
-  handle: 'Akun media sosial',
-  card: 'Nomor kartu',
-  address_hint: 'Alamat',
-  person_name_hint: 'Nama orang',
-};
+export const PII_KIND_LABELS: Record<PiiFinding['kind'], string> = carePassportText.id.shared.pii;
+
+export function piiKindLabel(kind: PiiFinding['kind'], lang: Language): string {
+  return pickText(carePassportText, lang).shared.pii[kind] ?? PII_KIND_LABELS[kind];
+}
 
 function normalise(value: string): string {
   return value.toLowerCase().replace(/\s+/g, ' ').replace(/[.,;:!?"'()]/g, '').trim();

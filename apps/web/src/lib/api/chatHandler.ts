@@ -12,7 +12,8 @@ import {
   writeAiCache as defaultWriteAiCache,
 } from './aiCache.ts';
 import { toPublicWarnings } from './publicWarnings.ts';
-import { validatedActionDisplayText } from '../voiceRoom.ts';
+import { validatedActionDisplayText as displayTextForLanguage } from '../voiceRoom.ts';
+import { isLanguage, type Language } from '../../i18n/language.ts';
 
 /**
  * /api/chat HANDLER (framework-free, unit-tested with node:test; audit M9).
@@ -49,6 +50,12 @@ export interface ChatRequestBody {
    * safety or provider pipeline.
    */
   noStore?: boolean;
+  /**
+   * UI language ('id' default). Changes only the reply language asked of the
+   * model, the fixed wording of support/crisis copy, and the cache key. The
+   * crisis gate, validator, quota and rate limits are identical for both.
+   */
+  lang?: Language;
 }
 
 export interface RoomAudio {
@@ -97,27 +104,37 @@ export type ChatHandlerOutcome =
 
 export const CHAT_INVALID = 'Permintaan tidak valid atau terlalu besar.';
 export const CHAT_BUSY = 'Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.';
+export const CHAT_INVALID_EN = 'The request is invalid or too large.';
+export const CHAT_BUSY_EN = 'It is a bit busy right now. Take a breath and try again in a moment.';
+
+/** Untrusted body field: anything other than 'en' is treated as Indonesian. */
+export function requestLanguage(body: unknown): Language {
+  const lang = (body as { lang?: unknown } | null)?.lang;
+  return isLanguage(lang) ? lang : 'id';
+}
 
 export async function handleChatRequest(rawBody: unknown, deps: ChatHandlerDeps): Promise<ChatHandlerOutcome> {
-  if (!chatInputWithinLimits(rawBody)) return { ok: false, status: 413, error: CHAT_INVALID };
+  const lang = requestLanguage(rawBody);
+  const busyText = lang === 'en' ? CHAT_BUSY_EN : CHAT_BUSY;
+  if (!chatInputWithinLimits(rawBody)) return { ok: false, status: 413, error: lang === 'en' ? CHAT_INVALID_EN : CHAT_INVALID };
   const body = rawBody as ChatRequestBody;
-  const screened = screenChatContext(body?.message, body?.history, body?.ageBracket);
+  const screened = screenChatContext(body?.message, body?.history, body?.ageBracket, lang);
   if (screened.error) return { ok: false, status: 400, error: screened.error };
   if (screened.evaluation) return { ok: true, data: { crisis: true, evaluation: screened.evaluation } };
   if (!body || typeof body.message !== 'string' || body.message.trim().length === 0) {
-    return { ok: false, status: 400, error: 'Properti "message" wajib diisi.' };
+    return { ok: false, status: 400, error: lang === 'en' ? 'The "message" field is required.' : 'Properti "message" wajib diisi.' };
   }
 
   // Preserve local crisis guidance even when the shared anonymous AI quota is exhausted.
-  if (await deps.isRateLimited()) return { ok: false, status: 429, error: CHAT_BUSY };
+  if (await deps.isRateLimited()) return { ok: false, status: 429, error: busyText };
 
-  const { cleared, evaluation } = runCrisisGate(body.message, body.ageBracket);
+  const { cleared, evaluation } = runCrisisGate(body.message, body.ageBracket, lang);
   if (!cleared) {
     return { ok: true, data: { crisis: true, evaluation } };
   }
 
   // H3: deterministic, from the rule engine only (message first, then history).
-  const supportPathway = buildSupportPathway(evaluation) ?? buildSupportPathway(screened.highDistress) ?? undefined;
+  const supportPathway = buildSupportPathway(evaluation, lang) ?? buildSupportPathway(screened.highDistress, lang) ?? undefined;
 
   // BATAS KEAMANAN: cache dibaca SETELAH crisis gate, tidak pernah sebelumnya.
   // H6: cache balasan AI mati kecuali AI_RESPONSE_CACHE=true, dan tidak pernah
@@ -127,7 +144,8 @@ export async function handleChatRequest(rawBody: unknown, deps: ChatHandlerDeps)
     message: body.message,
     history: screened.history,
     ageBracket: body.ageBracket,
-    domain: body.domain
+    domain: body.domain,
+    lang
   }) : null;
   const readAiCache = deps.cache?.read ?? defaultReadAiCache;
   const writeAiCache = deps.cache?.write ?? defaultWriteAiCache;
@@ -153,14 +171,15 @@ export async function handleChatRequest(rawBody: unknown, deps: ChatHandlerDeps)
 
   const runOrchestrator = deps.runOrchestrator ?? defaultRunOrchestrator;
   const release = await deps.acquireSlot();
-  if (!release) return { ok: false, status: 429, error: CHAT_BUSY };
+  if (!release) return { ok: false, status: 429, error: busyText };
   let result: OrchestratorResult;
   try {
     result = await runOrchestrator({
       message: body.message,
       history: screened.history,
       ageBracket: body.ageBracket,
-      domain: body.domain
+      domain: body.domain,
+      lang
     }, { turnBudgetMs: deps.turnBudgetMs ?? CHAT_TURN_BUDGET_MS });
   } finally { release(); }
 
@@ -173,6 +192,9 @@ export async function handleChatRequest(rawBody: unknown, deps: ChatHandlerDeps)
   const wantsRoomTts = body.voiceMode === 'ruang-ngobrol' && body.noStore === true;
   let roomAudio: RoomAudio | undefined;
   if (wantsRoomTts && deps.synthesizeRoomAudio) {
+    // Same audited boundary (validated action -> display text); the UI language
+    // only picks the fixed lead-in wording for non-chat actions.
+    const validatedActionDisplayText = (action: ValidatedAIAction) => displayTextForLanguage(action, lang);
     const displayText = validatedActionDisplayText(result.action);
     if (displayText) roomAudio = await deps.synthesizeRoomAudio(displayText);
   }

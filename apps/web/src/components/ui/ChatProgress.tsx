@@ -6,6 +6,7 @@ import {
   CHAT_PROGRESS_TOTAL_STEPS,
   chatProgressStageAt,
 } from '@/lib/chatProgress';
+import { useLanguage } from '@/i18n/store';
 
 /**
  * Menggantikan indikator "mengetik" yang statis. Setiap kali label berganti,
@@ -14,6 +15,7 @@ import {
  */
 export function ChatProgress() {
   const [elapsed, setElapsed] = useState(0);
+  const { lang } = useLanguage();
 
   useEffect(() => {
     const started = Date.now();
@@ -23,7 +25,7 @@ export function ChatProgress() {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const stage = chatProgressStageAt(elapsed);
+  const stage = chatProgressStageAt(elapsed, lang);
 
   return (
     <div className="flex items-start gap-3 pl-2" role="status" aria-live="polite">

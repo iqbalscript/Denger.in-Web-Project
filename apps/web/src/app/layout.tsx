@@ -5,6 +5,8 @@ import './globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ACCESSIBILITY_INIT_SCRIPT } from '@/components/ui/AccessibilityMenu';
+import { LANGUAGE_INIT_SCRIPT } from '@/i18n/language';
+import { SkipLink } from '@/components/SkipLink';
 
 // Self-hosted at build time by next/font, so it satisfies the `font-src 'self'` CSP.
 const spaceGrotesk = Space_Grotesk({
@@ -45,18 +47,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    // lang="id" adalah nilai server (halaman tetap statis dan bisa di-cache).
+    // Bila cookie dengarin-lang=en, LANGUAGE_INIT_SCRIPT mengganti atributnya
+    // sebelum render pertama, dan store i18n menjaganya saat bahasa diganti.
     <html lang="id" className={spaceGrotesk.variable} suppressHydrationWarning>
       <head>
-        {/* Terapkan pilihan Akses cepat sebelum halaman tampil (tanpa kedipan). */}
-        <script dangerouslySetInnerHTML={{ __html: ACCESSIBILITY_INIT_SCRIPT }} />
+        {/* Terapkan pilihan bahasa dan Akses cepat sebelum halaman tampil (tanpa kedipan). */}
+        <script dangerouslySetInnerHTML={{ __html: LANGUAGE_INIT_SCRIPT + ACCESSIBILITY_INIT_SCRIPT }} />
       </head>
       <body className="min-h-[100dvh] flex flex-col bg-[#FFF8EF] text-[#151515] font-sans selection:bg-[#B8F34A] selection:text-[#151515]">
-        <a
-          href="#konten-utama"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-5 focus:py-3 focus:bg-[#B8F34A] focus:text-[#151515] focus:font-bold focus:text-base focus:border-2 focus:border-[#151515] focus:rounded-[4px] focus:shadow-[3px_3px_0px_#151515]"
-        >
-          Langsung ke konten utama
-        </a>
+        <SkipLink />
         <Navbar />
         <main id="konten-utama" tabIndex={-1} className="flex-1 pb-24 lg:pb-0 focus:outline-none">
           {children}

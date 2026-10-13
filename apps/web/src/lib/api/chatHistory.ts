@@ -1,6 +1,7 @@
 import { evaluateCrisisInput } from '@dengarin/crisis-engine';
 import type { AgeBracket, CrisisEvaluationResult } from '@dengarin/types';
 import { CHAT_MAX_HISTORY_COUNT, CHAT_MAX_HISTORY_ENTRY } from './requestLimits.ts';
+import type { Language } from '../../i18n/language.ts';
 
 export interface ScreenedChatContext {
   error?: string;
@@ -14,7 +15,7 @@ export interface ScreenedChatContext {
   history?: Array<{ sender: 'user'; text: string }>;
 }
 
-export function screenChatContext(message: unknown, history: unknown, ageBracket?: AgeBracket): ScreenedChatContext {
+export function screenChatContext(message: unknown, history: unknown, ageBracket?: AgeBracket, lang: Language = 'id'): ScreenedChatContext {
   // Limits come from requestLimits.ts (single source of truth, audit L1).
   if (history !== undefined && (!Array.isArray(history) || history.length > CHAT_MAX_HISTORY_COUNT)) {
     return { error: 'Riwayat percakapan tidak valid.' };
@@ -36,7 +37,7 @@ export function screenChatContext(message: unknown, history: unknown, ageBracket
   let highDistress: CrisisEvaluationResult | undefined;
   for (const text of [...texts, message]) {
     if (typeof text === 'string') {
-      const evaluation = evaluateCrisisInput(text, ageBracket);
+      const evaluation = evaluateCrisisInput(text, ageBracket, lang);
       if (evaluation.isCrisis) return { evaluation, history: accepted };
       if (evaluation.severity === 'high') highDistress = evaluation;
     }

@@ -31,10 +31,15 @@ import type {
   NonDiagnosticSeverityLevel,
 } from '@dengarin/types';
 import { PageContainer, ContentColumn, Button, ProgressBar, Textarea, Badge } from '@/components/ui';
+import { useLanguage, useText } from '@/i18n';
+import { localizedAdaptiveQuestion } from '@/i18n/config';
+import { assessmentText } from '@/i18n/pages/assessment';
 
 export default function AssessmentPage() {
   const router = useRouter();
   const { ready, session } = useConsentGuard();
+  const { lang } = useLanguage();
+  const t = useText(assessmentText);
 
   // Determine user's topic
   const topicPillar = session?.topicPillar || 'general';
@@ -72,7 +77,8 @@ export default function AssessmentPage() {
   const totalQuestions = questionSequenceIds.length;
   const isReviewPhase = currentStepIndex >= totalQuestions;
   const currentQuestionId = questionSequenceIds[currentStepIndex];
-  const currentQ = questionCatalog.find((q) => q.id === currentQuestionId) as AdaptiveAssessmentQuestion | undefined;
+  const catalogQ = questionCatalog.find((q) => q.id === currentQuestionId) as AdaptiveAssessmentQuestion | undefined;
+  const currentQ = catalogQ ? localizedAdaptiveQuestion(catalogQ, lang) : undefined;
   const currentAnswer = currentQ ? answers[currentQ.id] : undefined;
 
   // Check for existing saved draft upon mounting
@@ -156,22 +162,10 @@ export default function AssessmentPage() {
     const totalScore = Object.values(answers).reduce((acc, val) => acc + val, 0);
     const severity: NonDiagnosticSeverityLevel = evaluateSeverityLevel(totalScore);
 
-    let summaryFeedback = '';
-    let supportSpaces: string[] = [];
-
-    if (severity === 'MILD') {
-      summaryFeedback =
-        'Terima kasih sudah meluangkan waktu untuk jujur pada dirimu. Beban pikiranmu saat ini terasa ringan dan masih bisa kamu kelola. Misi harian yang singkat dan jurnal bisa membantu menjaga ritme dan ketenanganmu.';
-      supportSpaces = ['Misi Harian Mandiri (3-7 Menit)', 'Jurnal Privat Lokal', 'Ruang Cerita Anonim'];
-    } else if (severity === 'MODERATE') {
-      summaryFeedback =
-        'Terima kasih sudah bercerita. Sepertinya belakangan ini kamu memikul tekanan yang cukup menguras tenaga, dan itu wajar dirasakan. Latihan menenangkan diri, jurnal, dan ruang cerita bisa menemanimu. Berbicara dengan profesional juga pilihan yang baik kalau kamu mau.';
-      supportSpaces = ['Panduan Mengelola Emosi', 'Jurnal Privat Refleksi', 'Ruang Cerita Anonim', 'Opsi Konsultasi Psikolog'];
-    } else {
-      summaryFeedback =
-        'Terima kasih sudah berani jujur. Sepertinya beban yang kamu rasakan sedang sangat berat, dan kamu tidak perlu menanggungnya sendirian. Kami menyarankan menghubungi tenaga profesional atau saluran bantuan, dan kami tetap ada menemanimu di sini.';
-      supportSpaces = ['Bantuan Profesional Segera', 'Hotline Gratis Kemenkes (119 ext 8)', 'Layanan Pemulihan Trauma'];
-    }
+    // Teks tersimpan mengikuti bahasa saat ini; halaman hasil merender ulang
+    // dari severityLevel sehingga ganti bahasa tetap benar.
+    const summaryFeedback = t.summary[severity];
+    const supportSpaces = [...t.spaces[severity]];
 
     const domain = session?.primaryDomain || 'general';
 
@@ -202,8 +196,8 @@ export default function AssessmentPage() {
             <div className="flex items-start gap-2.5">
               <BookmarkCheck className="w-5 h-5 text-ink shrink-0 mt-0.5" aria-hidden="true" />
               <div className="text-base space-y-0.5">
-                <span className="font-bold block text-ink text-lg">Jawaban tersimpan ditemukan</span>
-                <span className="text-[#4A453E]">Kamu punya jawaban yang tersimpan dari sebelumnya. Mau lanjut dari sana?</span>
+                <span className="font-bold block text-ink text-lg">{t.draftFound}</span>
+                <span className="text-[#4A453E]">{t.draftFoundBody}</span>
               </div>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -212,14 +206,14 @@ export default function AssessmentPage() {
                 onClick={handleResumeDraft}
                 className="flex-1 sm:flex-initial min-h-[48px] px-4 py-2 rounded-[4px] bg-cobalt text-white font-bold text-base border-2 border-ink shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
               >
-                Lanjutkan jawaban
+                {t.resumeDraft}
               </button>
               <button
                 type="button"
                 onClick={handleDiscardDraft}
                 className="min-h-[48px] px-4 py-2 rounded-[4px] bg-white border-2 border-ink text-ink font-bold text-base shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
               >
-                Mulai dari awal
+                {t.discardDraft}
               </button>
             </div>
           </div>
@@ -230,13 +224,11 @@ export default function AssessmentPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm font-bold text-ink">
             <span className="flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-cobalt" aria-hidden="true" />
-              Cek kondisi (bukan diagnosis)
+              {t.header}
             </span>
             <div className="flex flex-wrap items-center gap-3">
               <span className="bg-yellow px-2.5 py-1 border border-ink rounded-[4px] tabular-nums" aria-live="polite">
-                {isReviewPhase
-                  ? 'Catatan opsional'
-                  : `Pertanyaan ${currentStepIndex + 1} dari ${totalQuestions}`}
+                {isReviewPhase ? t.optionalNote : t.questionOf(currentStepIndex + 1, totalQuestions)}
               </span>
               <button
                 type="button"
@@ -244,14 +236,14 @@ export default function AssessmentPage() {
                 className="inline-flex items-center gap-1.5 min-h-[44px] px-3 py-1 rounded-[4px] border-2 border-ink bg-white text-ink font-bold text-sm shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
               >
                 <Pause className="w-4 h-4 text-cobalt" aria-hidden="true" />
-                <span>Simpan dan lanjut nanti</span>
+                <span>{t.saveAndPause}</span>
               </button>
             </div>
           </div>
           <ProgressBar
             value={Math.min(currentStepIndex + (isReviewPhase ? 1 : 0), totalQuestions + 1)}
             max={totalQuestions + 1}
-            label={isReviewPhase ? 'Catatan opsional' : `Pertanyaan ${currentStepIndex + 1} dari ${totalQuestions}`}
+            label={isReviewPhase ? t.optionalNote : t.questionOf(currentStepIndex + 1, totalQuestions)}
             className="[&>div:first-child]:sr-only"
           />
         </div>
@@ -263,11 +255,11 @@ export default function AssessmentPage() {
             <div className="space-y-3 animate-reveal-up">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-[#2B51E6] tabular-nums">
-                  Pertanyaan {currentStepIndex + 1}
+                  {t.questionNumber(currentStepIndex + 1)}
                 </span>
                 {currentQ.sensitive && (
                   <span className="text-sm font-bold text-ink bg-[#FFEBEB] px-2 py-0.5 rounded-[4px] border border-coral">
-                    Pertanyaan sensitif, boleh dilewati
+                    {t.sensitiveBadge}
                   </span>
                 )}
               </div>
@@ -316,7 +308,7 @@ export default function AssessmentPage() {
                   className="inline-flex items-center gap-1.5 text-base font-semibold text-ink underline decoration-[#D8D3C9] decoration-2 underline-offset-4 hover:decoration-ink transition-colors duration-120 min-h-[44px] py-2 px-2 text-left rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt"
                 >
                   <SkipForward className="w-5 h-5 text-cobalt shrink-0" aria-hidden="true" />
-                  <span>Lewati pertanyaan ini. Kamu tidak harus menjawabnya.</span>
+                  <span>{t.skipQuestion}</span>
                 </button>
               </div>
             )}
@@ -328,14 +320,13 @@ export default function AssessmentPage() {
           <div className="space-y-6">
             <div className="space-y-2 animate-reveal-up">
               <Badge variant="calm" size="md">
-                Langkah terakhir
+                {t.lastStep}
               </Badge>
               <h1 className="text-2xl sm:text-3xl lg:text-[2.25rem] font-bold text-ink tracking-[-0.02em] leading-[1.2]">
-                Ada keluh kesah lain yang ingin dituliskan?
+                {t.noteTitle}
               </h1>
               <p className="text-base text-[#4A453E] leading-relaxed">
-                Kalau ada hal lain yang ingin kamu ceritakan, tulis saja di sini. Boleh dikosongkan,
-                dan tulisanmu hanya tersimpan di peramban perangkatmu.
+                {t.noteBody}
               </p>
             </div>
 
@@ -344,14 +335,12 @@ export default function AssessmentPage() {
                 value={freeTextNote}
                 onChange={handleFreeTextChange}
                 rows={4}
-                aria-label="Catatan opsional"
-                placeholder="Contoh: 'Tugas menumpuk dan takut mengecewakan keluarga', 'Cemas memikirkan tagihan bulan depan'..."
+                aria-label={t.noteLabel}
+                placeholder={t.notePlaceholder}
               />
               <div className="p-3 sm:p-4 rounded-md bg-[#FFF1C2] border-l-4 border-yellow flex items-start gap-2.5 text-base text-[#4A453E]">
                 <AlertTriangle className="w-5 h-5 text-ink shrink-0 mt-0.5" aria-hidden="true" />
-                <span>
-                  Tulisanmu diperiksa oleh pemeriksa krisis berbasis aturan tetap, 100% tanpa AI, demi keselamatanmu.
-                </span>
+                <span>{t.noteSafety}</span>
               </div>
             </div>
 
@@ -359,7 +348,7 @@ export default function AssessmentPage() {
               <InlineCrisisCard
                 contacts={crisis.contacts}
                 onAcknowledge={crisis.acknowledge}
-                blockedNote="Tulisanmu tetap ada di sini dan asesmen belum kami selesaikan."
+                blockedNote={t.crisisBlocked}
               />
             )}
             {crisis.isCrisis && <CrisisBlockedNote id="asesmen-krisis-catatan" />}
@@ -369,7 +358,7 @@ export default function AssessmentPage() {
         {/* Bottom Navigation */}
         <div className="pt-5 space-y-3 border-t border-[#D8D3C9]">
           {!isReviewPhase && currentAnswer === undefined && (
-            <p className="text-base text-[#59544D]" aria-live="polite">Pilih satu jawaban dulu, lalu tombol Lanjut akan aktif.</p>
+            <p className="text-base text-[#59544D]" aria-live="polite">{t.pickFirst}</p>
           )}
           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
             {currentStepIndex > 0 ? (
@@ -379,7 +368,7 @@ export default function AssessmentPage() {
                 onClick={handlePrev}
                 icon={<ArrowLeft className="w-4 h-4" />}
               >
-                Kembali
+                {t.back}
               </Button>
             ) : (
               <div />
@@ -394,7 +383,7 @@ export default function AssessmentPage() {
                 iconPosition="end"
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                Lanjut
+                {t.next}
               </Button>
             ) : (
               <Button
@@ -407,7 +396,7 @@ export default function AssessmentPage() {
                 iconPosition="end"
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                {isSubmitting ? 'Menyusun saran...' : 'Selesai, lihat saran'}
+                {isSubmitting ? t.submitting : t.submit}
               </Button>
             )}
           </div>
@@ -416,7 +405,7 @@ export default function AssessmentPage() {
         {/* Non-Diagnostic Disclaimer */}
         <div className="pt-2 text-center text-base text-[#59544D] flex items-center justify-center gap-1.5">
           <ShieldCheck className="w-5 h-5 text-cobalt shrink-0" aria-hidden="true" />
-          <span>Hasil ini hanya untuk mengarahkan ke dukungan yang cocok, bukan label medis atau diagnosis.</span>
+          <span>{t.disclaimer}</span>
         </div>
 
         {/* Pause & Resume Modal */}
@@ -434,11 +423,10 @@ export default function AssessmentPage() {
               </div>
               <div className="space-y-1.5">
                 <h2 id="judul-draf-tersimpan" className="font-bold text-xl text-ink tracking-[-0.01em] leading-[1.25]">
-                  Jawabanmu sudah disimpan
+                  {t.pausedTitle}
                 </h2>
                 <p className="text-base text-[#4A453E] leading-relaxed">
-                  Jawabanmu tersimpan di perangkat ini. Kamu boleh menutup halaman ini atau kembali ke
-                  beranda, lalu melanjutkan kapan saja saat kamu siap.
+                  {t.pausedBody}
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
@@ -448,7 +436,7 @@ export default function AssessmentPage() {
                   fullWidth
                   onClick={() => setShowPauseModal(false)}
                 >
-                  Lanjut menjawab
+                  {t.continueAnswering}
                 </Button>
                 <Button
                   variant="outline"
@@ -456,7 +444,7 @@ export default function AssessmentPage() {
                   fullWidth
                   onClick={() => router.push('/dashboard')}
                 >
-                  Ke beranda
+                  {t.toHome}
                 </Button>
               </div>
             </div>

@@ -18,10 +18,15 @@ import type { AgeBracket, InterventionDomain, TopicPillarId } from '@dengarin/ty
 import { PRD_AGE_BRACKET_CONFIGS, TOPIC_PILLARS, DOMAIN_CONFIGS } from '@dengarin/config';
 import { updateUserContext } from '@/lib/storage';
 import { ContentColumn, PageContainer, Button, ProgressBar, Badge } from '@/components/ui';
+import { useLanguage, useText } from '@/i18n';
+import { ageBracketRationale, ageBracketText, domainText, topicPillarText } from '@/i18n/config';
+import { onboardingText } from '@/i18n/pages/onboarding';
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { ready } = useConsentGuard();
+  const { lang } = useLanguage();
+  const t = useText(onboardingText);
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedAge, setSelectedAge] = useState<AgeBracket | null>(null);
   const [selectedPillar, setSelectedPillar] = useState<TopicPillarId | null>(null);
@@ -68,12 +73,12 @@ export default function OnboardingPage() {
         {/* Top: Progress Indicator */}
         <div className="space-y-2 text-left">
           <div className="flex items-center justify-between gap-3 text-sm font-bold text-ink">
-            <span>Kenalan dulu, sebentar saja</span>
+            <span>{t.header}</span>
             <span className="bg-yellow px-2.5 py-1 border-2 border-ink rounded-[4px] tabular-nums" aria-live="polite">
-              Langkah {step} dari 2
+              {t.stepOf(step, 2)}
             </span>
           </div>
-          <ProgressBar value={step} max={2} label={`Langkah ${step} dari 2`} className="[&>div:first-child]:sr-only" />
+          <ProgressBar value={step} max={2} label={t.stepOf(step, 2)} className="[&>div:first-child]:sr-only" />
         </div>
 
         {/* STEP 1: AGE SELECTION */}
@@ -81,25 +86,23 @@ export default function OnboardingPage() {
           <div key="langkah-1" className="space-y-6 text-left">
             <div className="space-y-2 animate-reveal-up">
               <Badge variant="calm" size="md">
-                Langkah 1: usia
+                {t.step1Badge}
               </Badge>
               <h1 id="judul-langkah" className="text-[1.75rem] sm:text-4xl lg:text-[2.5rem] font-bold text-ink tracking-[-0.02em] leading-[1.15]">
-                Kamu di rentang usia berapa?
+                {t.step1Title}
               </h1>
               <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed">
-                Pilih yang paling sesuai, supaya bahasa kami terasa pas untukmu.
+                {t.step1Lede}
               </p>
             </div>
 
             {/* Explanatory Callout */}
             <div className="animate-reveal-up [animation-delay:80ms] p-4 sm:p-5 rounded-md bg-[#FFF1C2] border-l-4 border-yellow flex items-start gap-3 text-[#4A453E]">
               <div className="space-y-1">
-                <span className="font-bold text-ink block text-base">Kenapa kami bertanya usia?</span>
+                <span className="font-bold text-ink block text-base">{t.whyAgeTitle}</span>
                 <p className="leading-relaxed text-base">
-                  Usia membantu Dengar.in menyesuaikan kosakata, nada bicara, serta perlindungan
-                  khusus (seperti hotline anak untuk usia 15-17). Kami{' '}
-                  <strong className="text-ink font-bold">tidak pernah</strong> meminta nama,
-                  tanggal lahir, KTP, ataupun data pribadi lainnya.
+                  {t.whyAgeA}{' '}
+                  <strong className="text-ink font-bold">{t.whyAgeNever}</strong> {t.whyAgeB}
                 </p>
               </div>
             </div>
@@ -108,6 +111,7 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1" role="radiogroup" aria-labelledby="judul-langkah">
               {ageList.map((opt, index) => {
                 const isSelected = selectedAge === opt.id;
+                const ageText = ageBracketText(opt.id, lang);
                 return (
                   <div key={opt.id} className="animate-reveal-up flex" style={{ animationDelay: `${160 + index * 40}ms` }}>
                   <button
@@ -123,23 +127,23 @@ export default function OnboardingPage() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-bold text-lg sm:text-xl text-ink tracking-[-0.01em] tabular-nums">
-                        {opt.label}
+                        {ageText.label}
                       </span>
                       {isSelected && <CheckCircle2 className="w-6 h-6 text-cobalt shrink-0" aria-hidden="true" />}
                       {!isSelected && opt.highProtection && (
                         <span className="inline-flex items-center gap-1 text-sm font-bold px-2 py-0.5 bg-cobalt text-white border border-ink rounded-[4px]">
                           <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
-                          Remaja
+                          {t.teen}
                         </span>
                       )}
                       {!isSelected && opt.accessibilityMode && (
                         <span className="inline-flex items-center text-sm font-bold px-2 py-0.5 bg-lime text-ink border border-ink rounded-[4px]">
-                          Teks besar
+                          {t.largeText}
                         </span>
                       )}
                     </div>
-                    <p className="text-base text-[#4A453E] mt-1 leading-relaxed">{opt.subtext}</p>
-                    <p className="text-sm text-[#2B51E6] mt-2 font-semibold">{opt.rationale}</p>
+                    <p className="text-base text-[#4A453E] mt-1 leading-relaxed">{ageText.subtext}</p>
+                    <p className="text-sm text-[#2B51E6] mt-2 font-semibold">{ageBracketRationale(opt.id, lang)}</p>
                   </button>
                   </div>
                 );
@@ -153,25 +157,26 @@ export default function OnboardingPage() {
           <div key="langkah-2" className="space-y-6 text-left">
             <div className="space-y-2 animate-reveal-up">
               <Badge variant="calm" size="md">
-                Langkah 2: topik
+                {t.step2Badge}
               </Badge>
               <h1 id="judul-langkah" className="text-[1.75rem] sm:text-4xl lg:text-[2.5rem] font-bold text-ink tracking-[-0.02em] leading-[1.15]">
-                Apa yang paling terasa berat saat ini?
+                {t.step2Title}
               </h1>
               <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed">
-                Tidak ada jawaban yang salah. Pertanyaan berikutnya akan menyesuaikan dengan pilihanmu.
+                {t.step2Lede}
               </p>
             </div>
 
             {/* 3 Primary Pillars */}
             <div className="space-y-3 pt-1 animate-reveal-up [animation-delay:80ms]">
               <span id="label-pilar" className="text-base font-bold text-ink block">
-                Pilih satu yang paling dekat denganmu
+                {t.pickPillar}
               </span>
 
               <div className="grid grid-cols-1 gap-3.5" role="radiogroup" aria-labelledby="label-pilar">
                 {pillarList.map((pillar, index) => {
                   const isSelected = selectedPillar === pillar.id;
+                  const pillarText = topicPillarText(pillar.id, lang);
                   const Icon = pillar.id === 'finance' ? Coins : pillar.id === 'trauma' ? HeartHandshake : Shield;
                   const iconBg = pillar.id === 'finance' ? 'bg-yellow text-ink' : pillar.id === 'trauma' ? 'bg-tangerine text-ink' : 'bg-[#D32F2F] text-white';
 
@@ -200,19 +205,19 @@ export default function OnboardingPage() {
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center justify-between gap-2">
                           <h2 className="font-bold text-lg text-ink tracking-[-0.01em] leading-[1.25]">
-                            {pillar.label}
+                            {pillarText.label}
                           </h2>
                           {isSelected && <CheckCircle2 className="w-5 h-5 text-cobalt shrink-0" aria-hidden="true" />}
                         </div>
                         <p className="text-base font-semibold text-[#2B51E6]">
-                          {pillar.tagline}
+                          {pillarText.tagline}
                         </p>
                         <p className="text-base text-[#4A453E] leading-relaxed pt-0.5">
-                          {pillar.description}
+                          {pillarText.description}
                         </p>
                         {pillar.isSensitive && (
                           <span className="inline-block mt-1.5 text-sm font-bold text-ink bg-yellow px-2 py-0.5 rounded-[4px] border border-ink">
-                            Pertanyaan sensitif boleh kamu lewati
+                            {t.sensitiveSkip}
                           </span>
                         )}
                       </div>
@@ -232,14 +237,15 @@ export default function OnboardingPage() {
                 aria-controls="topik-lain"
                 className="flex items-center gap-1.5 text-base font-semibold text-ink underline decoration-[#D8D3C9] decoration-2 underline-offset-4 hover:text-cobalt hover:decoration-cobalt transition-colors duration-120 py-2 min-h-[44px] text-left rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt"
               >
-                <span>{showAllDomains ? 'Sembunyikan topik lain' : 'Atau lihat topik lain (sekolah, kampus, pekerjaan, dan lainnya)'}</span>
+                <span>{showAllDomains ? t.hideDomains : t.showDomains}</span>
                 <ChevronDown className={`w-4 h-4 shrink-0 transition-transform duration-400 ease-spring ${showAllDomains ? 'rotate-180' : ''}`} aria-hidden="true" />
               </button>
 
               {showAllDomains && (
-                <div id="topik-lain" className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3" role="radiogroup" aria-label="Topik lain">
-                  {Object.entries(DOMAIN_CONFIGS).map(([key, dom], index) => {
+                <div id="topik-lain" className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3" role="radiogroup" aria-label={t.otherTopics}>
+                  {Object.keys(DOMAIN_CONFIGS).map((key, index) => {
                     const domainKey = key as InterventionDomain;
+                    const dom = domainText(domainKey, lang);
                     const isSelected = selectedSubDomain === domainKey;
                     return (
                       <div key={domainKey} className="animate-reveal-up flex" style={{ animationDelay: `${index * 30}ms` }}>
@@ -275,7 +281,7 @@ export default function OnboardingPage() {
         <div className="pt-5 space-y-3 border-t border-[#D8D3C9]">
           {!canProceed && (
             <p className="text-base text-[#59544D]" aria-live="polite">
-              {step === 1 ? 'Pilih satu rentang usia dulu, lalu tombol Lanjut akan aktif.' : 'Pilih satu topik dulu, lalu tombol Lanjut akan aktif.'}
+              {step === 1 ? t.pickAgeFirst : t.pickTopicFirst}
             </p>
           )}
           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -286,7 +292,7 @@ export default function OnboardingPage() {
                 onClick={handleBack}
                 icon={<ArrowLeft className="w-4 h-4" />}
               >
-                Kembali
+                {t.back}
               </Button>
             ) : (
               <div />
@@ -300,7 +306,7 @@ export default function OnboardingPage() {
               iconPosition="end"
               icon={<ArrowRight className="w-4 h-4" />}
             >
-              {step === 2 ? 'Lanjut ke pertanyaan' : 'Lanjut pilih topik'}
+              {step === 2 ? t.nextToQuestions : t.nextToTopic}
             </Button>
           </div>
         </div>

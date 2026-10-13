@@ -6,10 +6,11 @@ import { Check, Pencil, Trash2, Plus, Undo2, HeartHandshake, X, RotateCcw } from
 import type { CarePassport, CarePassportResult, EvidenceField } from '@dengarin/types';
 import { computeCompleteness } from '@dengarin/validator';
 import { Button } from '@/components/ui';
-import { EXPORT_SECTION_LABELS } from '@/lib/carePassportExport';
+import { useLanguage } from '@/i18n';
+import { EXPORT_SECTION_LABELS, exportSectionLabels } from '@/lib/carePassportExport';
 import { ExportActions } from './ExportActions';
 import { OpeningLines, openingLinesExportText, type OpeningLinesSelection } from './OpeningLines';
-import { MUTED, ProvenanceTag, SectionCard, SourceChip, StepHeading, Tag, UrgentHelpLink, isParaphrase, provenanceLabel, sourceLabel } from './shared';
+import { MUTED, ProvenanceTag, SectionCard, SourceChip, StepHeading, Tag, UrgentHelpLink, isParaphrase, provenanceLabel, sourceLabel, usePassportText } from './shared';
 
 type ListSection = 'concerns' | 'dailyImpact' | 'relevantContext';
 
@@ -23,6 +24,10 @@ export interface PassportReviewProps {
   roundsExhausted?: boolean;
 }
 
+/**
+ * The server writes `unknowns` with the Indonesian section labels, so clearing
+ * an unknown always matches on the Indonesian label regardless of UI language.
+ */
 const UNKNOWN_BY_SECTION: Record<ListSection | 'duration', string> = {
   concerns: EXPORT_SECTION_LABELS.concerns,
   dailyImpact: EXPORT_SECTION_LABELS.dailyImpact,
@@ -45,6 +50,9 @@ const INLINE_INPUT =
  * added facts become `user_confirmed`; approval flips reviewStatus.
  */
 export function PassportReview({ result, passport: initial, onRestart, onApprove, roundsExhausted = false }: PassportReviewProps) {
+  const t = usePassportText().review;
+  const { lang } = useLanguage();
+  const labels = exportSectionLabels(lang);
   const [draft, setDraft] = useState<CarePassport>(initial);
   const approved = draft.reviewStatus === 'user_approved';
   const [openingLines, setOpeningLines] = useState<OpeningLinesSelection | null>(null);
@@ -94,24 +102,20 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <StepHeading
-          step="Langkah 4 dari 4"
-          title={approved ? 'Catatan ini sudah kamu setujui.' : 'Tinjau, koreksi, lalu setujui.'}
-          lede="Setiap poin di bawah mengutip ceritamu sendiri. Kalau ada yang kurang pas, ubah atau hapus. Kalau sudah benar, tandai. Tidak ada yang final sebelum kamu menyetujuinya."
-        />
+        <StepHeading step={t.step} title={approved ? t.titleApproved : t.titlePending} lede={t.lede} />
         <UrgentHelpLink className="shrink-0" />
       </div>
 
       {humanSupport && (
-        <SectionCard as="aside" tone="cobalt" elevation="medium" className="space-y-2" aria-label="Saran berbicara dengan profesional">
+        <SectionCard as="aside" tone="cobalt" elevation="medium" className="space-y-2" aria-label={t.humanAria}>
           <div className="flex items-center gap-2">
             <HeartHandshake className="w-5 h-5 text-[#3357EE]" aria-hidden="true" />
-            <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">Sepertinya ini layak dibicarakan dengan seseorang yang terlatih.</h2>
+            <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">{t.humanTitle}</h2>
           </div>
           <p className={`text-base leading-relaxed ${MUTED}`}>
-            Ini bukan penilaian dan bukan diagnosis, hanya saran. Catatan di bawah tetap milikmu dan bisa kamu bawa saat bertemu profesional.{' '}
+            {t.humanBody}{' '}
             <Link href="/resources" className="font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#3357EE]">
-              Lihat pilihan layanan dan bantuan
+              {t.humanLink}
             </Link>
             .
           </p>
@@ -120,69 +124,59 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
 
       <div className="flex flex-wrap items-center gap-2 animate-reveal-up [animation-delay:80ms]">
         <ProvenanceTag provenance={result.provenance} />
-        {approved ? <Tag tone="lime">Disetujui</Tag> : <Tag tone={pending > 0 ? 'yellow' : 'paper'}>{pending > 0 ? `${pending} perlu dicek` : 'Siap disetujui'}</Tag>}
-        {result.droppedClaims > 0 && (
-          <span className={`text-sm ${MUTED}`}>
-            {result.droppedClaims} klaim tanpa kutipan dibuang otomatis.
-          </span>
-        )}
+        {approved ? <Tag tone="lime">{t.approved}</Tag> : <Tag tone={pending > 0 ? 'yellow' : 'paper'}>{pending > 0 ? t.pending(pending) : t.ready}</Tag>}
+        {result.droppedClaims > 0 && <span className={`text-sm ${MUTED}`}>{t.dropped(result.droppedClaims)}</span>}
       </div>
 
       <SectionCard as="div" tone="white" elevation="low" className="space-y-1 animate-reveal-up [animation-delay:100ms]" aria-live="polite">
-        <p className="text-base font-bold text-[#151515]">
-          Kelengkapan: {completeness.known} dari {completeness.total} hal{completeness.total > 3 ? '' : ' utama'} diketahui.
-        </p>
+        <p className="text-base font-bold text-[#151515]">{t.completeness(completeness.known, completeness.total)}</p>
         <p className={`text-base leading-relaxed ${MUTED}`}>
-          {datedSources > 0
-            ? `${datedSources} entri bertanggal dari perangkatmu ikut menjadi bukti. Setiap poin di bawah menyebut sumbernya.`
-            : 'Ini hitungan, bukan skor. Yang belum diketahui ditulis apa adanya; kamu bisa menambahkannya sendiri.'}
-          {roundsExhausted && ' Pertanyaan lanjutan sudah habis, jadi catatan ditampilkan apa adanya.'}
+          {datedSources > 0 ? t.datedSources(datedSources) : t.countNote}
+          {roundsExhausted && t.roundsExhausted}
         </p>
       </SectionCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         <div className="lg:col-span-8 space-y-6 animate-reveal-up [animation-delay:140ms]">
           {(['concerns', 'dailyImpact'] as ListSection[]).map((section) => (
-            <ListCard key={section} title={UNKNOWN_BY_SECTION[section]} items={draft[section]} locked={approved} {...listHandlers(section)} />
+            <ListCard key={section} title={labels[section]} items={draft[section]} locked={approved} {...listHandlers(section)} />
           ))}
           <DurationCard field={draft.duration} locked={approved} {...durationHandlers} />
-          <ListCard title={UNKNOWN_BY_SECTION.relevantContext} items={draft.relevantContext} locked={approved} {...listHandlers('relevantContext')} />
+          <ListCard title={labels.relevantContext} items={draft.relevantContext} locked={approved} {...listHandlers('relevantContext')} />
           <QuestionsCard questions={draft.questionsForProfessional} locked={approved} onChange={setQuestions} />
         </div>
 
         <div className="lg:col-span-4 space-y-6 animate-reveal-up [animation-delay:220ms]">
           <SectionCard as="div" tone="paper" elevation="low" className="space-y-3">
-            <h2 className="text-base font-bold text-[#151515]">Belum diketahui</h2>
+            <h2 className="text-base font-bold text-[#151515]">{t.unknownTitle}</h2>
             {draft.unknowns.length === 0 ? (
-              <p className={`text-base leading-relaxed ${MUTED}`}>Tidak ada yang tertinggal. Kalau ada yang ingin ditambah, pakai tombol tambah di tiap bagian.</p>
+              <p className={`text-base leading-relaxed ${MUTED}`}>{t.unknownEmpty}</p>
             ) : (
               <ul className="space-y-2">
                 {draft.unknowns.map((u) => (
                   <li key={u} className="flex items-start justify-between gap-2 text-base leading-relaxed text-[#151515]">
-                    <span>{u}</span>
+                    <span lang="id">{u}</span>
                     {!approved && (
                       <button
                         type="button"
                         onClick={() => dismissUnknown(u)}
                         className="shrink-0 inline-flex items-center gap-1 min-h-[44px] px-2.5 rounded-[4px] border-2 border-[#151515] bg-white text-sm font-bold hover:bg-[#FFF8EF] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
-                        aria-label={`Abaikan: ${u}`}
+                        aria-label={t.dismissAria(u)}
                       >
                         <X className="w-4 h-4" aria-hidden="true" />
-                        <span>Abaikan</span>
+                        <span>{t.dismiss}</span>
                       </button>
                     )}
                   </li>
                 ))}
               </ul>
             )}
-            <p className={`text-sm leading-relaxed border-t border-[#D8D3C9] pt-3 ${MUTED}`}>
-              Tidak harus diisi sekarang. Profesional biasanya menanyakannya langsung.
-            </p>
+            <p className={`text-sm leading-relaxed border-t border-[#D8D3C9] pt-3 ${MUTED}`}>{t.unknownNote}</p>
           </SectionCard>
 
           <SectionCard as="div" elevation="low" className="space-y-2">
-            <h2 className="text-base font-bold text-[#151515]">Catatan penting</h2>
-            <p className={`text-base leading-relaxed ${MUTED}`}>{draft.disclaimer}</p>
+            <h2 className="text-base font-bold text-[#151515]">{t.importantTitle}</h2>
+            <p className={`text-base leading-relaxed ${MUTED}`} lang="id">{draft.disclaimer}</p>
           </SectionCard>
 
           {approved ? (
@@ -191,43 +185,39 @@ export function PassportReview({ result, passport: initial, onRestart, onApprove
               <OpeningLines passport={draft} aiConsent onLinesChange={setOpeningLines} />
               <ExportActions
                 passport={draft}
-                provenanceLabel={provenanceLabel(result.provenance)}
-                appendix={(format) => (openingLines ? openingLinesExportText(openingLines, format) : '')}
+                provenanceLabel={provenanceLabel(result.provenance, lang)}
+                appendix={(format) => (openingLines ? openingLinesExportText(openingLines, format, lang) : '')}
               />
               <Button variant="outline" size="md" onClick={reopen} icon={<Undo2 className="w-4 h-4" />} fullWidth>
-                Ubah lagi
+                {t.editAgain}
               </Button>
             </>
           ) : (
             <SectionCard as="div" elevation="high" className="space-y-3">
-              <h2 className="text-base font-bold text-[#151515]">Setujui catatan</h2>
-              <p className={`text-base leading-relaxed ${MUTED}`}>
-                {pending > 0
-                  ? `Masih ada ${pending} poin bertanda "perlu dicek". Tandai benar, ubah, atau hapus dulu.`
-                  : 'Semua poin sudah kamu periksa. Setelah disetujui, catatan bisa diunduh ke perangkatmu.'}
-              </p>
+              <h2 className="text-base font-bold text-[#151515]">{t.approveTitle}</h2>
+              <p className={`text-base leading-relaxed ${MUTED}`}>{pending > 0 ? t.approvePending(pending) : t.approveReady}</p>
               <Button variant="primary" size="lg" fullWidth disabled={pending > 0} onClick={approve} icon={<Check className="w-4 h-4" />}>
-                Saya setuju dengan catatan ini
+                {t.approveButton}
               </Button>
             </SectionCard>
           )}
 
           {confirmRestart ? (
-            <div role="group" aria-label="Konfirmasi mulai dari awal" className="p-4 rounded-[6px] bg-[#FFEBEB] border-2 border-[#151515] space-y-3">
-              <p className="text-base font-bold text-[#151515] leading-snug">Hapus catatan ini dan mulai dari awal?</p>
-              <p className={`text-base leading-relaxed ${MUTED}`}>Draf yang belum kamu unduh akan hilang.</p>
+            <div role="group" aria-label={t.confirmAria} className="p-4 rounded-[6px] bg-[#FFEBEB] border-2 border-[#151515] space-y-3">
+              <p className="text-base font-bold text-[#151515] leading-snug">{t.confirmTitle}</p>
+              <p className={`text-base leading-relaxed ${MUTED}`}>{t.confirmBody}</p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button variant="crisis" size="sm" onClick={onRestart} icon={<RotateCcw className="w-4 h-4" />}>
-                  Ya, mulai dari awal
+                  {t.confirmYes}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => setConfirmRestart(false)}>
-                  Batal
+                  {t.cancel}
                 </Button>
               </div>
             </div>
           ) : (
             <button type="button" onClick={() => setConfirmRestart(true)} className={`inline-flex items-center min-h-[44px] text-base font-bold underline underline-offset-4 decoration-2 hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] ${MUTED}`}>
-              Mulai dari awal dan hapus catatan ini
+              {t.restart}
             </button>
           )}
         </div>
@@ -251,6 +241,8 @@ function EvidenceItem({
   onEdit: (value: string) => void;
   onRemove: () => void;
 }) {
+  const t = usePassportText().review;
+  const { lang } = useLanguage();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(field.value ?? '');
   const paraphrase = isParaphrase(field);
@@ -266,14 +258,14 @@ function EvidenceItem({
     <li className={`space-y-2 border-t border-[#D8D3C9] pt-4 first:border-t-0 first:pt-0 ${field.needsReview && !locked ? 'pl-3 border-l-4 border-l-[#FFD84D]' : ''}`}>
       <div className="flex flex-wrap items-center gap-1.5">
         {field.source === 'user_input' && <SourceChip sourceRef={field.sourceRef} />}
-        {field.needsReview && !locked && <Tag tone="yellow">{paraphrase ? 'Periksa: parafrase' : 'Perlu dicek'}</Tag>}
-        {field.source === 'user_confirmed' && <Tag tone="lime">Kamu konfirmasi</Tag>}
+        {field.needsReview && !locked && <Tag tone="yellow">{paraphrase ? t.paraphraseTag : t.needsCheck}</Tag>}
+        {field.source === 'user_confirmed' && <Tag tone="lime">{t.confirmedTag}</Tag>}
       </div>
 
       {editing ? (
         <div className="space-y-2">
           <label className="sr-only" htmlFor={`edit-${field.sourceQuote ?? field.value ?? 'x'}`}>
-            Ubah poin
+            {t.editPoint}
           </label>
           <textarea
             id={`edit-${field.sourceQuote ?? field.value ?? 'x'}`}
@@ -285,10 +277,10 @@ function EvidenceItem({
           />
           <div className="flex gap-2">
             <Button variant="primary" size="sm" onClick={save} disabled={!value.trim()}>
-              Simpan
+              {t.save}
             </Button>
             <Button variant="outline" size="sm" onClick={() => { setEditing(false); setValue(field.value ?? ''); }}>
-              Batal
+              {t.cancel}
             </Button>
           </div>
         </div>
@@ -299,10 +291,10 @@ function EvidenceItem({
       {field.sourceQuote && field.source === 'user_input' && (
         <blockquote className={`text-base leading-relaxed border-l-2 border-[#3357EE] pl-3 ${MUTED}`}>
           <span className="block text-sm font-bold text-[#2B51E6]">
-            {field.sourceRef && field.sourceRef.kind !== 'intake' ? `Dari ${sourceLabel(field.sourceRef)}` : 'Dari ceritamu'}
+            {field.sourceRef && field.sourceRef.kind !== 'intake' ? t.fromSource(sourceLabel(field.sourceRef, lang)) : t.fromStory}
           </span>
           &ldquo;{field.sourceQuote}&rdquo;
-          {paraphrase && <span className="block text-sm mt-1">Kalimat di atas dirapikan oleh AI. Yang asli adalah kutipan ini.</span>}
+          {paraphrase && <span className="block text-sm mt-1">{t.paraphraseNote}</span>}
         </blockquote>
       )}
 
@@ -310,14 +302,14 @@ function EvidenceItem({
         <div className="flex flex-wrap gap-2 pt-1">
           {field.needsReview && (
             <Button variant="secondary" size="sm" onClick={onConfirm} icon={<Check className="w-3.5 h-3.5" />}>
-              Benar
+              {t.correct}
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={() => setEditing(true)} icon={<Pencil className="w-3.5 h-3.5" />}>
-            Ubah
+            {t.edit}
           </Button>
-          <Button variant="ghost" size="sm" onClick={onRemove} icon={<Trash2 className="w-3.5 h-3.5" />} aria-label={`Hapus: ${field.value ?? ''}`}>
-            Hapus
+          <Button variant="ghost" size="sm" onClick={onRemove} icon={<Trash2 className="w-3.5 h-3.5" />} aria-label={t.removeAria(field.value ?? '')}>
+            {t.remove}
           </Button>
         </div>
       )}
@@ -326,13 +318,14 @@ function EvidenceItem({
 }
 
 function AddRow({ label, onAdd }: { label: string; onAdd: (value: string) => void }) {
+  const t = usePassportText().review;
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const inputId = React.useId();
   if (!open) {
     return (
       <Button variant="outline" size="sm" onClick={() => setOpen(true)} icon={<Plus className="w-3.5 h-3.5" />}>
-        Tambah
+        {t.add}
       </Button>
     );
   }
@@ -351,10 +344,10 @@ function AddRow({ label, onAdd }: { label: string; onAdd: (value: string) => voi
       <textarea id={inputId} value={value} onChange={(e) => setValue(e.target.value)} rows={2} className={INLINE_INPUT} autoFocus />
       <div className="flex gap-2">
         <Button variant="primary" size="sm" onClick={submit} disabled={!value.trim()}>
-          Simpan
+          {t.save}
         </Button>
         <Button variant="outline" size="sm" onClick={() => { setOpen(false); setValue(''); }}>
-          Batal
+          {t.cancel}
         </Button>
       </div>
     </div>
@@ -378,11 +371,12 @@ function ListCard({
   remove: (i: number) => void;
   add: (value: string) => void;
 }) {
+  const t = usePassportText().review;
   return (
     <SectionCard className="space-y-4">
       <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">{title}</h2>
       {items.length === 0 ? (
-        <p className={`text-base leading-relaxed ${MUTED}`}>Belum ada. Tidak masalah kalau memang tidak ada yang ingin ditulis.</p>
+        <p className={`text-base leading-relaxed ${MUTED}`}>{t.emptyList}</p>
       ) : (
         <ul className="space-y-4">
           {items.map((field, i) => (
@@ -397,7 +391,7 @@ function ListCard({
           ))}
         </ul>
       )}
-      {!locked && <AddRow label="Poin baru" onAdd={add} />}
+      {!locked && <AddRow label={t.newPoint} onAdd={add} />}
     </SectionCard>
   );
 }
@@ -415,22 +409,26 @@ function DurationCard({
   edit: (value: string) => void;
   remove: () => void;
 }) {
+  const t = usePassportText().review;
+  const { lang } = useLanguage();
   return (
     <SectionCard className="space-y-4">
-      <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">{UNKNOWN_BY_SECTION.duration}</h2>
+      <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">{exportSectionLabels(lang).duration}</h2>
       {field.value ? (
         <ul>
           <EvidenceItem field={field} locked={locked} onConfirm={confirm} onEdit={edit} onRemove={remove} />
         </ul>
       ) : (
-        <p className={`text-base leading-relaxed ${MUTED}`}>Belum disebutkan di ceritamu.</p>
+        <p className={`text-base leading-relaxed ${MUTED}`}>{t.notMentioned}</p>
       )}
-      {!locked && !field.value && <AddRow label="Sejak kapan" onAdd={edit} />}
+      {!locked && !field.value && <AddRow label={t.sinceWhen} onAdd={edit} />}
     </SectionCard>
   );
 }
 
 function QuestionsCard({ questions, locked, onChange }: { questions: string[]; locked: boolean; onChange: (q: string[]) => void }) {
+  const t = usePassportText().review;
+  const { lang } = useLanguage();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [value, setValue] = useState('');
 
@@ -444,21 +442,21 @@ function QuestionsCard({ questions, locked, onChange }: { questions: string[]; l
   return (
     <SectionCard className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">{EXPORT_SECTION_LABELS.questionsForProfessional}</h2>
-        <p className={`text-sm leading-relaxed ${MUTED}`}>Usulan pertanyaan. Ganti dengan kata-katamu sendiri kalau perlu.</p>
+        <h2 className="text-lg font-bold text-[#151515] leading-[1.25]">{exportSectionLabels(lang).questionsForProfessional}</h2>
+        <p className={`text-sm leading-relaxed ${MUTED}`}>{t.questionsHint}</p>
       </div>
       {questions.length === 0 ? (
-        <p className={`text-base leading-relaxed ${MUTED}`}>Belum ada pertanyaan.</p>
+        <p className={`text-base leading-relaxed ${MUTED}`}>{t.noQuestions}</p>
       ) : (
         <ol className="space-y-3 list-decimal pl-5">
           {questions.map((q, i) => (
             <li key={`${i}-${q}`} className="text-base text-[#151515] leading-[1.45] space-y-2">
               {editingIndex === i ? (
                 <div className="space-y-2">
-                  <textarea value={value} onChange={(e) => setValue(e.target.value)} rows={2} className={INLINE_INPUT} aria-label="Ubah pertanyaan" autoFocus />
+                  <textarea value={value} onChange={(e) => setValue(e.target.value)} rows={2} className={INLINE_INPUT} aria-label={t.editQuestion} autoFocus />
                   <div className="flex gap-2">
-                    <Button variant="primary" size="sm" onClick={saveEdit} disabled={!value.trim()}>Simpan</Button>
-                    <Button variant="outline" size="sm" onClick={() => setEditingIndex(null)}>Batal</Button>
+                    <Button variant="primary" size="sm" onClick={saveEdit} disabled={!value.trim()}>{t.save}</Button>
+                    <Button variant="outline" size="sm" onClick={() => setEditingIndex(null)}>{t.cancel}</Button>
                   </div>
                 </div>
               ) : (
@@ -466,8 +464,8 @@ function QuestionsCard({ questions, locked, onChange }: { questions: string[]; l
                   <span className="font-medium">{q}</span>
                   {!locked && (
                     <span className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => startEdit(i)} icon={<Pencil className="w-3.5 h-3.5" />}>Ubah</Button>
-                      <Button variant="ghost" size="sm" onClick={() => onChange(questions.filter((_, idx) => idx !== i))} icon={<Trash2 className="w-3.5 h-3.5" />}>Hapus</Button>
+                      <Button variant="outline" size="sm" onClick={() => startEdit(i)} icon={<Pencil className="w-3.5 h-3.5" />}>{t.edit}</Button>
+                      <Button variant="ghost" size="sm" onClick={() => onChange(questions.filter((_, idx) => idx !== i))} icon={<Trash2 className="w-3.5 h-3.5" />}>{t.remove}</Button>
                     </span>
                   )}
                 </>
@@ -476,7 +474,7 @@ function QuestionsCard({ questions, locked, onChange }: { questions: string[]; l
           ))}
         </ol>
       )}
-      {!locked && <AddRow label="Pertanyaan baru" onAdd={(q) => onChange([...questions, q])} />}
+      {!locked && <AddRow label={t.newQuestion} onAdd={(q) => onChange([...questions, q])} />}
     </SectionCard>
   );
 }

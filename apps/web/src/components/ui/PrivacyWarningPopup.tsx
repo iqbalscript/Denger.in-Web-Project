@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertTriangle, ShieldAlert, X, CheckCircle2, Heart } from 'lucide-react';
+import { useText } from '@/i18n/store';
+import { uiText } from '@/i18n/pages/ui';
 
 const STORAGE_KEY = 'dengarin_privacy_warning_dismissed';
 
 export function PrivacyWarningPopup() {
+  const t = useText(uiText).privacy;
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -111,7 +114,7 @@ export function PrivacyWarningPopup() {
             type="button"
             onClick={handleDismiss}
             className="absolute top-4 right-4 inline-flex items-center justify-center w-11 h-11 rounded-[4px] border-2 border-[#151515] bg-white hover:bg-[#FFF8EF] shadow-[2px_2px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#151515] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] transition-all duration-120 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
-            aria-label="Tutup peringatan"
+            aria-label={t.close}
           >
             <X className="w-5 h-5 text-[#151515]" aria-hidden="true" />
           </button>
@@ -127,10 +130,10 @@ export function PrivacyWarningPopup() {
                   id="privacy-warning-title"
                   className="text-xl sm:text-2xl font-bold text-[#151515] tracking-[-0.01em] leading-[1.2]"
                 >
-                  Jaga privasimu
+                  {t.title}
                 </h2>
                 <p className="text-sm font-bold text-[#A3480B]">
-                  Tiga hal yang perlu diingat sebelum bercerita
+                  {t.subtitle}
                 </p>
               </div>
             </div>
@@ -141,7 +144,7 @@ export function PrivacyWarningPopup() {
               className="space-y-3 text-base text-[#151515] leading-relaxed font-medium"
             >
               <p>
-                Dengar.in adalah ruang <strong className="font-bold">anonim</strong>. Supaya kamu tetap aman:
+                {t.introA} <strong className="font-bold">{t.introAnon}</strong>{t.introB}
               </p>
 
               {/* Warning list */}
@@ -149,27 +152,27 @@ export function PrivacyWarningPopup() {
                 <li className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px]">
                   <AlertTriangle className="w-5 h-5 text-[#B3261E] shrink-0 mt-0.5" aria-hidden="true" />
                   <p className="text-base leading-relaxed">
-                    <strong className="font-bold">Jangan tulis nama asli</strong>, baik namamu, teman, keluarga, guru, dosen, atau siapa pun.
+                    <strong className="font-bold">{t.rule1Strong}</strong>{t.rule1}
                   </p>
                 </li>
 
                 <li className="flex items-start gap-2.5 p-3 bg-[#FFEBEB] border-2 border-[#151515] rounded-[4px]">
                   <AlertTriangle className="w-5 h-5 text-[#B3261E] shrink-0 mt-0.5" aria-hidden="true" />
                   <p className="text-base leading-relaxed">
-                    <strong className="font-bold">Jangan sebut alamat, nama sekolah/kampus/kantor, atau nomor telepon.</strong>
+                    <strong className="font-bold">{t.rule2Strong}</strong>
                   </p>
                 </li>
 
                 <li className="flex items-start gap-2.5 p-3 bg-[#F1FCDD] border-2 border-[#151515] rounded-[4px]">
                   <CheckCircle2 className="w-5 h-5 text-[#151515] shrink-0 mt-0.5" aria-hidden="true" />
                   <p className="text-base leading-relaxed">
-                    <strong className="font-bold">Cukup ceritakan perasaanmu.</strong> Fokus pada apa yang kamu rasakan, bukan siapa dan di mana.
+                    <strong className="font-bold">{t.rule3Strong}</strong>{t.rule3}
                   </p>
                 </li>
               </ul>
 
               <p className="text-sm text-[#59544D] leading-relaxed">
-                Ini untuk melindungi identitasmu dan orang-orang di sekitarmu. Ceritamu tetap bisa disampaikan tanpa menyebut siapa dan di mana.{' '}
+                {t.footer}{' '}
                 <Heart className="inline w-4 h-4 text-[#FF8A3D] align-[-2px]" fill="currentColor" aria-hidden="true" />
               </p>
             </div>
@@ -181,7 +184,7 @@ export function PrivacyWarningPopup() {
               onClick={handleDismiss}
               className="w-full min-h-[52px] py-3 px-4 bg-[#3357EE] text-white border-2 border-[#151515] rounded-[4px] font-bold text-base shadow-[3px_3px_0px_#151515] hover:shadow-[4px_4px_0px_#151515] hover:-translate-x-[1px] hover:-translate-y-[1px] active:shadow-[1px_1px_0px_#151515] active:translate-x-[2px] active:translate-y-[2px] transition-all duration-120 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 cursor-pointer"
             >
-              Saya mengerti, lanjutkan
+              {t.confirm}
             </button>
           </div>
         </div>

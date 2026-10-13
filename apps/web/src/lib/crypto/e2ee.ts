@@ -187,6 +187,6 @@ export async function decryptSessionData<T>(encryptedBlob: string, mnemonic: str
     const jsonStr = decoder.decode(decryptedBuffer);
     return JSON.parse(jsonStr) as T;
   } catch {
-    throw new Error('Gagal mendekripsi data. Kunci pemulihan salah atau data telah rusak.');
+    throw new Error('Data tidak bisa dibuka. Kunci pemulihan salah atau datanya rusak.');
   }
 }

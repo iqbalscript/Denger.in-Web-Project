@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import type { CelebrationData } from '@dengarin/types';
-import { LEVEL_THRESHOLDS, BADGE_DEFINITIONS } from '@/lib/gamification';
+import { LEVEL_THRESHOLDS } from '@/lib/gamification';
+import { useLanguage, useText } from '@/i18n/store';
+import { uiText } from '@/i18n/pages/ui';
+import { badgeText, levelName } from '@/i18n/pages/gamification';
 
 interface CelebrationToastProps {
   celebration: CelebrationData | null;
@@ -12,7 +15,7 @@ interface CelebrationToastProps {
 /**
  * Micro-celebration toast for Langkah awards.
  *
- * Design: brutalist card — bg-lime, border-2 border-ink, shadow-hard-sm.
+ * Design: brutalist card, bg-lime, border-2 border-ink, shadow-hard-sm.
  * Position: fixed bottom-right (above mobile dock).
  * Duration: 3.5s visible, respects prefers-reduced-motion.
  * Accessibility: role="status", aria-live="polite".
@@ -23,6 +26,8 @@ interface CelebrationToastProps {
 export function CelebrationToast({ celebration, onDismiss }: CelebrationToastProps) {
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const { lang } = useLanguage();
+  const t = useText(uiText).celebration;
 
   useEffect(() => {
     if (!celebration) return;
@@ -44,22 +49,19 @@ export function CelebrationToast({ celebration, onDismiss }: CelebrationToastPro
   if (!visible || !celebration) return null;
 
   const lines: string[] = [];
-  lines.push(`+${celebration.langkahAwarded} Langkah`);
+  lines.push(t.langkah(celebration.langkahAwarded));
 
   if (celebration.levelUp !== undefined) {
-    const levelName = LEVEL_THRESHOLDS[celebration.levelUp]?.name ?? '';
-    lines.push(`Naik level: ${levelName}`);
+    lines.push(t.levelUp(levelName(celebration.levelUp, lang, LEVEL_THRESHOLDS[celebration.levelUp]?.name ?? '')));
   }
 
   if (celebration.newBadges && celebration.newBadges.length > 0) {
-    const badgeNames = celebration.newBadges
-      .map(id => BADGE_DEFINITIONS.find(b => b.id === id)?.name ?? id)
-      .join(', ');
-    lines.push(`Lencana baru: ${badgeNames}`);
+    const badgeNames = celebration.newBadges.map((id) => badgeText(id, lang).name).join(', ');
+    lines.push(t.newBadges(badgeNames));
   }
 
   if (celebration.questCompleted) {
-    lines.push('Target minggu ini selesai.');
+    lines.push(t.questDone);
   }
 
   return (
@@ -85,9 +87,7 @@ export function CelebrationToast({ celebration, onDismiss }: CelebrationToastPro
           {line}
         </p>
       ))}
-      <p className="text-sm text-[#151515] font-medium pt-0.5">
-        Kecil, tapi tetap dihitung.
-      </p>
+      <p className="text-sm text-[#151515] font-medium pt-0.5">{t.footer}</p>
     </div>
   );
 }

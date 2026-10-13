@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 // Halaman ini komponen klien, jadi judul tab dan deskripsinya ditetapkan di sini.
 export const metadata: Metadata = {
   title: 'Hasil asesmen',
-  description: 'Rangkuman non-diagnostik dari jawabanmu dan jalur pendampingan yang disarankan.',
+  description: 'Rangkuman jawabanmu, bukan diagnosis, dan langkah lanjutan yang disarankan.',
 };
 
 export default function Layout({ children }: { children: ReactNode }) {

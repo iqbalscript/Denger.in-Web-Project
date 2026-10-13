@@ -1,6 +1,10 @@
+'use client';
+
 import React from 'react';
 import { MOOD_ICONS_BY_VALUE } from './MoodIcon';
 import type { WellbeingTimeline as TimelineData } from '@/lib/wellbeingTimeline';
+import { useText } from '@/i18n/store';
+import { uiText } from '@/i18n/pages/ui';
 
 const MOOD_COLOR: Record<number, string> = { 5: '#B8F34A', 4: '#3357EE', 3: '#FFD84D', 2: '#FF8A3D', 1: '#FF5252' };
 
@@ -15,9 +19,10 @@ interface WellbeingTimelineProps {
 
 /**
  * Personal Well-being Timeline: mood dots over the last N days plus four totals.
- * Days without a check-in stay empty (no dot) — a gap is fine, not a failure.
+ * Days without a check-in stay empty (no dot): a gap is fine, not a failure.
  */
 export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelineProps) {
+  const t = useText(uiText).timeline;
   const { days, totals } = timeline;
   const step = days.length > 1 ? (WIDTH - PAD.left - PAD.right) / (days.length - 1) : 0;
   const x = (index: number) => PAD.left + index * step;
@@ -33,27 +38,27 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
     return { from: previous, to: point, gap: point.index - previous.index > 1 };
   });
 
-  const summary = `Timeline ${days.length} hari terakhir: ${totals.checkins} check-in, ${totals.missions} misi, ${totals.journals} jurnal, ${totals.activeDays} hari aktif.`;
+  const summary = t.summary(days.length, totals.checkins, totals.missions, totals.journals, totals.activeDays);
 
   const stats: Array<{ label: string; value: number }> = [
-    { label: 'Check-in', value: totals.checkins },
-    { label: 'Misi', value: totals.missions },
-    { label: 'Jurnal', value: totals.journals },
-    { label: 'Hari aktif', value: totals.activeDays },
+    { label: t.checkins, value: totals.checkins },
+    { label: t.missions, value: totals.missions },
+    { label: t.journals, value: totals.journals },
+    { label: t.activeDays, value: totals.activeDays },
   ];
 
   return (
     <div className={`bg-white border-2 border-ink rounded-[8px] p-6 space-y-5 shadow-hard-sm text-left ${className}`}>
       <div className="border-b border-[#D8D3C9] pb-3 space-y-0.5">
-        <h2 className="text-xl font-bold tracking-[-0.01em] leading-[1.25] text-ink">Garis waktu kondisimu</h2>
-        <p className="text-sm text-[#59544D] font-medium tabular-nums">{days.length} hari terakhir</p>
+        <h2 className="text-xl font-bold tracking-[-0.01em] leading-[1.25] text-ink">{t.title}</h2>
+        <p className="text-sm text-[#59544D] font-medium tabular-nums">{t.lastDays(days.length)}</p>
       </div>
 
       <div className="space-y-1">
-        <span className="text-sm font-bold text-[#59544D]">Suasana hati per hari</span>
+        <span className="text-sm font-bold text-[#59544D]">{t.moodPerDay}</span>
         {points.length === 0 ? (
           <p className="text-sm text-[#59544D] py-8 text-center max-w-[32ch] mx-auto leading-relaxed">
-            Belum ada check-in di {days.length} hari terakhir. Gak apa-apa, mulai dari satu check-in kecil aja.
+            {t.empty(days.length)}
           </p>
         ) : (
           <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} className="w-full h-auto">
@@ -80,7 +85,7 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
             ))}
             {points.map((point) => (
               <circle key={point.date} cx={x(point.index)} cy={y(point.mood)} r="5" fill={MOOD_COLOR[rounded(point.mood)]} stroke="#151515" strokeWidth="2">
-                <title>{`${point.date}: mood ${point.mood.toFixed(1)}/5`}</title>
+                <title>{t.point(point.date, point.mood.toFixed(1))}</title>
               </circle>
             ))}
             {days.map((day, index) => (
@@ -105,9 +110,7 @@ export function WellbeingTimeline({ timeline, className = '' }: WellbeingTimelin
         ))}
       </dl>
 
-      <p className="text-sm text-[#59544D]">
-        Hari yang kosong itu normal. Data ini cuma ada di perangkatmu.
-      </p>
+      <p className="text-sm text-[#59544D]">{t.note}</p>
     </div>
   );
 }

@@ -1,4 +1,8 @@
+'use client';
+
 import React from 'react';
+import { useText } from '@/i18n/store';
+import { uiText } from '@/i18n/pages/ui';
 
 export interface ProgressBarProps {
   value: number; // 0 - 100
@@ -17,6 +21,7 @@ export function ProgressBar({
   className = '',
   variant = 'calm',
 }: ProgressBarProps) {
+  const t = useText(uiText).progress;
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
 
   const variantColors = {
@@ -39,7 +44,7 @@ export function ProgressBar({
         aria-valuenow={Math.round(percentage)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={label || 'Kemajuan proses'}
+        aria-label={label || t.aria}
         aria-valuetext={stepIndicator}
       >
         <div

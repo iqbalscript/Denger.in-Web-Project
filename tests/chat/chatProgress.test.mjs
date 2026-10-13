@@ -8,13 +8,13 @@ describe('Chat progress semantik', () => {
     assert.equal(chatProgressStageAt(0).step, 1);
   });
 
-  it('berjalan berurutan: memahami -> menyiapkan -> memeriksa keamanan', () => {
+  it('berjalan berurutan: memahami -> menyiapkan -> mengecek keamanan', () => {
     assert.equal(chatProgressStageAt(2_499).label, 'Memahami ceritamu...');
-    assert.equal(chatProgressStageAt(2_500).label, 'Menyiapkan respons...');
-    assert.equal(chatProgressStageAt(6_999).label, 'Menyiapkan respons...');
-    assert.equal(chatProgressStageAt(7_000).label, 'Memeriksa keamanan respons...');
+    assert.equal(chatProgressStageAt(2_500).label, 'Menyiapkan balasan...');
+    assert.equal(chatProgressStageAt(6_999).label, 'Menyiapkan balasan...');
+    assert.equal(chatProgressStageAt(7_000).label, 'Mengecek keamanan balasan...');
     assert.deepEqual([1, 2, 3].map((n) => CHAT_PROGRESS_STAGES.find((s) => s.step === n)?.label), [
-      'Memahami ceritamu...', 'Menyiapkan respons...', 'Memeriksa keamanan respons...',
+      'Memahami ceritamu...', 'Menyiapkan balasan...', 'Mengecek keamanan balasan...',
     ]);
   });
 

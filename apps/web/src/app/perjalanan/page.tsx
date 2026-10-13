@@ -35,9 +35,14 @@ import { loadWellbeingTimeline, type WellbeingTimeline as TimelineData } from '@
 import { PageContainer, Button, WellbeingTimeline, Reveal } from '@/components/ui';
 import { useConsentGuard } from '@/lib/useConsentGuard';
 import { ConsentPending } from '@/components/ConsentPending';
+import { useLanguage, useText } from '@/i18n';
+import { perjalananText } from '@/i18n/pages/perjalanan';
+import { badgeText, levelName, weekdayLabel } from '@/i18n/pages/gamification';
 
 export default function PerjalananPage() {
   const { ready } = useConsentGuard();
+  const { lang } = useLanguage();
+  const t = useText(perjalananText);
   const [gamState, setGamState] = useState<GamificationStateV1 | null>(null);
   const [timeline, setTimeline] = useState<TimelineData | null>(null);
 
@@ -74,19 +79,19 @@ export default function PerjalananPage() {
             size="sm"
             icon={<ArrowLeft className="w-4 h-4" />}
           >
-            Kembali ke beranda
+            {t.back}
           </Button>
 
           <div className="space-y-4 animate-reveal-up [animation-delay:80ms]">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-cobalt text-white border-2 border-ink text-sm font-bold shadow-hard-sm">
               <Footprints className="w-4 h-4" aria-hidden="true" />
-              Perjalanan kecil
+              {t.eyebrow}
             </div>
             <h1 className="text-[2.25rem] sm:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
-              Setiap langkah berarti
+              {t.title}
             </h1>
             <p className="text-base sm:text-lg text-[#4A453E] max-w-xl leading-relaxed">
-              Langkah kecilmu tercatat di sini. Bukan tentang jadi sempurna, ini tentang tetap berjalan. Tiap check-in, misi, atau jurnal memberimu Langkah, yaitu poin kecil sebagai tanda kamu merawat diri.
+              {t.intro}
             </p>
           </div>
         </div>
@@ -97,11 +102,11 @@ export default function PerjalananPage() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="space-y-0.5">
               <span className="text-[2.5rem] sm:text-5xl font-bold text-ink tracking-[-0.03em] leading-none tabular-nums">{gamState.totalLangkah}</span>
-              <p className="text-sm text-[#59544D] font-bold pt-1">Total Langkah</p>
+              <p className="text-sm text-[#59544D] font-bold pt-1">{t.totalLangkah}</p>
             </div>
             <div className="text-right space-y-0.5">
               <span className="text-sm font-bold text-white bg-cobalt px-2.5 py-1 rounded border-2 border-ink inline-block">
-                Level {gamState.currentLevel}: {levelInfo.name}
+                {t.level(gamState.currentLevel, levelName(gamState.currentLevel, lang, levelInfo.name))}
               </span>
             </div>
           </div>
@@ -117,22 +122,22 @@ export default function PerjalananPage() {
                   aria-valuenow={gamState.totalLangkah}
                   aria-valuemin={LEVEL_THRESHOLDS[gamState.currentLevel].threshold}
                   aria-valuemax={levelInfo.nextThreshold}
-                  aria-label={`Progress ke level berikutnya`}
+                  aria-label={t.progressAria}
                 />
               </div>
               <div className="flex justify-between gap-2 text-sm text-[#59544D] font-semibold tabular-nums">
-                <span>Mulai {LEVEL_THRESHOLDS[gamState.currentLevel].threshold}</span>
-                <span>{levelInfo.nextThreshold} Langkah untuk level {LEVEL_THRESHOLDS[gamState.currentLevel + 1]?.name}</span>
+                <span>{t.from(LEVEL_THRESHOLDS[gamState.currentLevel].threshold)}</span>
+                <span>{t.toNext(levelInfo.nextThreshold, levelName(gamState.currentLevel + 1, lang, LEVEL_THRESHOLDS[gamState.currentLevel + 1]?.name ?? ''))}</span>
               </div>
             </div>
           ) : (
             <p className="text-base text-[#2B51E6] font-bold">
-              <Sparkles className="inline w-4 h-4 mr-1 align-[-2px]" aria-hidden="true" />Level tertinggi tercapai
+              <Sparkles className="inline w-4 h-4 mr-1 align-[-2px]" aria-hidden="true" />{t.maxLevel}
             </p>
           )}
 
           {/* Level Milestones */}
-          <ol className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-4 border-t border-[#D8D3C9]" aria-label="Tingkatan level">
+          <ol className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-4 border-t border-[#D8D3C9]" aria-label={t.levelsAria}>
             {LEVEL_THRESHOLDS.map((lvl, i) => (
               <li
                 key={i}
@@ -142,8 +147,8 @@ export default function PerjalananPage() {
                     : 'bg-paper text-[#6B665E] border border-[#D8D3C9]'
                 }`}
               >
-                <span className="text-sm font-bold block">{lvl.name}</span>
-                <span className="text-sm font-medium tabular-nums">{lvl.threshold} Langkah</span>
+                <span className="text-sm font-bold block">{levelName(i, lang, lvl.name)}</span>
+                <span className="text-sm font-medium tabular-nums">{t.langkah(lvl.threshold)}</span>
               </li>
             ))}
           </ol>
@@ -155,9 +160,9 @@ export default function PerjalananPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
             <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <Calendar className="w-4 h-4 text-cobalt" aria-hidden="true" />
-              Hari aktif (7 hari terakhir)
+              {t.activeTitle}
             </h2>
-            <span className="text-base font-bold text-[#2B51E6] tabular-nums">{activeCount} dari 7 hari aktif</span>
+            <span className="text-base font-bold text-[#2B51E6] tabular-nums">{t.activeCount(activeCount)}</span>
           </div>
 
           <div className="grid grid-cols-7 gap-2">
@@ -169,13 +174,13 @@ export default function PerjalananPage() {
                       ? 'bg-lime text-ink border-2 border-ink'
                       : 'bg-paper text-[#6B665E] border border-[#D8D3C9]'
                   }`}
-                  title={`${day.dayLabel} ${day.date}${day.active ? ' (aktif)' : ''}`}
+                  title={`${weekdayLabel(day.weekday, lang)} ${day.date}${day.active ? ` (${t.dayActive})` : ''}`}
                   role="img"
-                  aria-label={`${day.dayLabel} ${day.date}: ${day.active ? 'aktif' : 'tidak aktif'}`}
+                  aria-label={`${weekdayLabel(day.weekday, lang)} ${day.date}: ${day.active ? t.dayActive : t.dayInactive}`}
                 >
                   <span aria-hidden="true">{day.active ? '●' : '○'}</span>
                 </div>
-                <span className="text-sm font-semibold text-[#59544D]" aria-hidden="true">{day.dayLabel}</span>
+                <span className="text-sm font-semibold text-[#59544D]" aria-hidden="true">{weekdayLabel(day.weekday, lang)}</span>
               </div>
             ))}
           </div>
@@ -187,45 +192,45 @@ export default function PerjalananPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
             <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <Target className="w-4 h-4 text-cobalt" aria-hidden="true" />
-              Target minggu ini
+              {t.weeklyTarget}
             </h2>
             <span className="text-sm font-bold bg-yellow px-2 py-0.5 rounded border border-ink tabular-nums">
-              +{WEEKLY_QUEST_REWARD} Langkah
+              {t.reward(WEEKLY_QUEST_REWARD)}
             </span>
           </div>
 
           {gamState.completedQuestWeekIds.includes(gamState.activeQuestWeekId) ? (
             <div className="bg-lime border-2 border-ink rounded p-4 text-center shadow-hard-sm">
               <p className="text-base font-bold text-ink">
-                <Check className="inline w-5 h-5 mr-1 align-[-4px]" strokeWidth={3} aria-hidden="true" />Target minggu ini selesai. Kamu hebat.
+                <Check className="inline w-5 h-5 mr-1 align-[-4px]" strokeWidth={3} aria-hidden="true" />{t.questDone}
               </p>
             </div>
           ) : (
             <div className="space-y-2">
               <QuestRow
-                label="Check-in"
+                label={t.questCheckin}
                 current={gamState.questProgress.checkinDays}
                 target={WEEKLY_QUEST_REQUIREMENTS.checkinDays}
-                suffix="hari"
+                suffix={t.questCheckinSuffix}
               />
               <QuestRow
-                label="Misi"
+                label={t.questMission}
                 current={gamState.questProgress.missionsCompleted}
                 target={WEEKLY_QUEST_REQUIREMENTS.missionsCompleted}
-                suffix="selesai"
+                suffix={t.questMissionSuffix}
               />
               <QuestRow
-                label="Jurnal"
+                label={t.questJournal}
                 current={gamState.questProgress.journalEntries}
                 target={WEEKLY_QUEST_REQUIREMENTS.journalEntries}
-                suffix="ditulis"
+                suffix={t.questJournalSuffix}
               />
             </div>
           )}
 
           {gamState.completedQuestWeekIds.length > 0 && (
             <p className="text-base text-[#59544D] font-medium pt-3 border-t border-[#D8D3C9] tabular-nums">
-              Target mingguan yang sudah selesai: {gamState.completedQuestWeekIds.length} minggu
+              {t.questHistory(gamState.completedQuestWeekIds.length)}
             </p>
           )}
         </Reveal>
@@ -244,7 +249,7 @@ export default function PerjalananPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
             <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <Award className="w-4 h-4 text-cobalt" aria-hidden="true" />
-              Lencana kamu
+              {t.badgesTitle}
             </h2>
             <span className="text-base font-bold text-[#59544D] tabular-nums">
               {gamState.unlockedBadgeIds.length}/{BADGE_DEFINITIONS.length}
@@ -254,12 +259,13 @@ export default function PerjalananPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" role="list">
             {BADGE_DEFINITIONS.map((badge, index) => {
               const unlocked = gamState.unlockedBadgeIds.includes(badge.id);
+              const text = badgeText(badge.id, lang);
               return (
                 <Reveal
                   key={badge.id}
                   delay={Math.min(index, 5) * 70}
                   role="listitem"
-                  aria-label={`${badge.name}: ${unlocked ? 'Terbuka' : 'Terkunci'}. ${badge.description}`}
+                  aria-label={t.badgeAria(text.name, unlocked ? t.unlocked : t.locked, text.description)}
                   className={`p-3 rounded text-center space-y-1.5 ${
                     unlocked
                       ? 'bg-yellow text-ink border-2 border-ink shadow-hard-sm'
@@ -274,15 +280,15 @@ export default function PerjalananPage() {
                     )}
                   </div>
                   <p className="text-base font-bold leading-tight">
-                    {badge.name}
+                    {text.name}
                   </p>
                   <span className={`text-sm font-bold px-1.5 py-0.5 rounded border inline-block ${
                     unlocked ? 'bg-lime text-ink border-ink' : 'bg-white text-[#6B665E] border-[#D8D3C9]'
                   }`} aria-hidden="true">
-                    {unlocked ? 'Terbuka' : 'Terkunci'}
+                    {unlocked ? t.unlocked : t.locked}
                   </span>
                   <p className="text-sm leading-snug" aria-hidden="true">
-                    {badge.description}
+                    {text.description}
                   </p>
                 </Reveal>
               );
@@ -290,20 +296,20 @@ export default function PerjalananPage() {
           </div>
         </Reveal>
 
-        {/* Langkah Reference (informational only — does not expose cap) */}
+        {/* Langkah Reference (informational only, does not expose cap) */}
         <Reveal className="border-t-2 border-ink pt-6 space-y-4 text-left">
           <h2 className="text-lg font-bold text-ink leading-[1.25] flex items-center gap-2">
             <Trophy className="w-4 h-4 text-cobalt" aria-hidden="true" />
-            Cara mengumpulkan Langkah
+            {t.howTitle}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-base text-ink tabular-nums">
             {[
-              { Icon: Sun, label: 'Check-in harian', amount: LANGKAH_AMOUNTS.daily_checkin },
-              { Icon: Zap, label: 'Misi selesai', amount: LANGKAH_AMOUNTS.mission_complete },
-              { Icon: PenLine, label: 'Jurnal', amount: LANGKAH_AMOUNTS.journal_entry },
-              { Icon: MessageCircle, label: 'Refleksi misi', amount: LANGKAH_AMOUNTS.mission_reflection },
-              { Icon: ClipboardList, label: 'Refleksi mingguan', amount: LANGKAH_AMOUNTS.weekly_reflection },
-              { Icon: Trophy, label: 'Target mingguan', amount: WEEKLY_QUEST_REWARD },
+              { Icon: Sun, label: t.how.checkin, amount: LANGKAH_AMOUNTS.daily_checkin },
+              { Icon: Zap, label: t.how.mission, amount: LANGKAH_AMOUNTS.mission_complete },
+              { Icon: PenLine, label: t.how.journal, amount: LANGKAH_AMOUNTS.journal_entry },
+              { Icon: MessageCircle, label: t.how.reflection, amount: LANGKAH_AMOUNTS.mission_reflection },
+              { Icon: ClipboardList, label: t.how.weekly, amount: LANGKAH_AMOUNTS.weekly_reflection },
+              { Icon: Trophy, label: t.how.quest, amount: WEEKLY_QUEST_REWARD },
             ].map(({ Icon, label, amount }) => (
               <span key={label} className="flex items-center gap-2">
                 <Icon className="w-4 h-4 shrink-0 text-cobalt" aria-hidden="true" />
@@ -322,7 +328,7 @@ export default function PerjalananPage() {
             iconPosition="end"
             icon={<ArrowRight className="w-4 h-4" />}
           >
-            Kembali ke beranda
+            {t.back}
           </Button>
         </div>
       </div>

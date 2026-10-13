@@ -14,7 +14,7 @@ import type {
  * It executes entirely synchronously in memory with zero network latency.
  */
 
-// Normalized pattern definitions for Indonesian clinical & colloquial distress
+// Normalized pattern definitions for Indonesian and English clinical & colloquial distress
 interface PatternRule {
   id: string;
   pattern: RegExp;
@@ -91,6 +91,47 @@ const CRISIS_RULES: PatternRule[] = [
   {
     id: 'severe-exhaustion-pain',
     pattern: /\b(sakit\s*banget\s*jiwaku|hancur\s*lebur|g(a|ak|k)\s*kuat\s*lagi\s*nanggung\s*hidup|teror\s*pinjol\s*bikin\s*gila)\b/i,
+    category: 'extreme_hopelessness',
+    severity: 'high'
+  },
+
+  // ENGLISH COVERAGE (UI language EN). These rules run for EVERY input, in
+  // addition to the Indonesian catalog above, so a mixed-language message is
+  // screened by both. Equivalent coverage: explicit suicidal ideation, death
+  // wish, self-harm, lethal means/plan, farewell notes, high distress.
+  {
+    id: 'en-explicit-suicide',
+    pattern: /\b(?:kill(?:ing)?\s*myself|suicid(?:e|al)|take\s*my\s*(?:own\s*)?life|end(?:ing)?\s*my\s*(?:own\s*)?life|end\s*it\s*all|unalive\s*myself|off\s*myself|\bkms)\b/i,
+    category: 'suicide',
+    severity: 'crisis'
+  },
+  {
+    id: 'en-death-wish',
+    pattern: /\b(?:(?:want|wanna|wish|wished|wanted|hope|hoping)\s*(?:to\s*)?(?:be\s*)?(?:die|dead|to\s*die)|wish\s*i\s*(?:was|were|had)\s*(?:dead|never\s*born)|better\s*off\s*dead|rather\s*be\s*dead|(?:don'?t|do\s*not)\s*(?:want|wanna)\s*to\s*(?:live|be\s*alive|exist|wake\s*up)(?:\s*anymore)?|no\s*reason\s*to\s*(?:live|go\s*on|keep\s*going)|can'?t\s*go\s*on\s*(?:living|anymore)|ready\s*to\s*die)\b/i,
+    category: 'suicide',
+    severity: 'crisis'
+  },
+  {
+    id: 'en-self-harm',
+    pattern: /\b(?:(?:hurt(?:ing)?|harm(?:ing)?|cut(?:ting)?|burn(?:ing)?|injur(?:e|ing)|punish(?:ing)?)\s*myself|self[\s-]*harm(?:ing)?|self[\s-]*injur(?:y|ing)|slit(?:ting)?\s*my\s*wrists?|cut(?:ting)?\s*my\s*(?:wrists?|arms?|veins?|thighs?))\b/i,
+    category: 'self_harm',
+    severity: 'crisis'
+  },
+  {
+    id: 'en-lethal-means',
+    pattern: /\b(?:hang(?:ing)?\s*myself|(?:take|took|taking)\s*(?:an\s*)?overdose|overdos(?:e|ing)\s*(?:on\s*)?(?:pills|meds|medication|myself)|od\s*on\s*(?:pills|meds)|jump(?:ing)?\s*(?:off|from)\s*(?:a|the|this)?\s*(?:bridge|building|roof|window|balcony|cliff)|drink(?:ing)?\s*(?:bleach|poison)|swallow(?:ing)?\s*(?:all\s*)?(?:the|my)?\s*pills|shoot(?:ing)?\s*myself|drown(?:ing)?\s*myself|step(?:ping)?\s*in\s*front\s*of\s*(?:a|the)\s*(?:train|truck|car|bus))\b/i,
+    category: 'self_harm',
+    severity: 'crisis'
+  },
+  {
+    id: 'en-farewell-note',
+    pattern: /\b(?:goodbye\s*(?:everyone|forever|world|all)|this\s*is\s*(?:my\s*)?(?:goodbye|last\s*message|final\s*message|suicide\s*note)|(?:writing|wrote|written)\s*(?:my\s*)?(?:suicide|goodbye)\s*(?:note|letter)|(?:world|everyone|everybody|they)\s*(?:is|are|would\s*be|will\s*be)\s*better\s*(?:off\s*)?without\s*me|(?:want|wanna|wish|hope|like)\s*to\s*(?:sleep\s*forever|disappear\s*forever|never\s*wake\s*up|not\s*wake\s*up))\b/i,
+    category: 'extreme_hopelessness',
+    severity: 'crisis'
+  },
+  {
+    id: 'en-severe-distress',
+    pattern: /\b(?:can'?t\s*(?:take|handle|do|bear)\s*(?:this|it|life)\s*anymore|(?:i|i'?ve)\s*give(?:n)?\s*up\s*on\s*(?:life|everything|living)|nothing\s*matters\s*anymore|(?:i|i'?m|i\s*am|i\s*feel)\s*(?:completely\s*|totally\s*)?hopeless|no\s*way\s*out|i\s*hate\s*my\s*life|life\s*is\s*(?:pointless|not\s*worth\s*(?:it|living)))\b/i,
     category: 'extreme_hopelessness',
     severity: 'high'
   }
@@ -180,6 +221,7 @@ export function normalizeIndonesianText(rawText: string): string {
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[\u200b-\u200d\ufeff]/g, '')
+    .replace(/[\u2018\u2019\u02bc\u2032]/g, "'") // curly apostrophes (English contractions)
     .replace(/[\u0300-\u036f]/g, ''); // strip accents
 
   // Common leetspeak substitutions
@@ -203,17 +245,26 @@ export function normalizeIndonesianText(rawText: string): string {
  * Pure Deterministic Evaluation Function
  * Evaluates raw text against the curated Indonesian crisis rule catalog.
  */
+/** UI language for the intervention copy only; detection is language-independent. */
+export type CrisisCopyLanguage = 'id' | 'en';
+
 export function evaluateCrisisInput(
   rawText: string,
-  ageBracket: AgeBracket = '18-24'
+  ageBracket: AgeBracket = '18-24',
+  lang: CrisisCopyLanguage = 'id'
 ): CrisisEvaluationResult {
   const normalized = normalizeIndonesianText(rawText);
   // Only wholly explicit denial or clearly framed third-person discussion is
   // exempt. Mixed or ambiguous statements still take the safer crisis path.
-  const hasFirstPerson = /\b(?:aku|saya|gue|gw|diriku|hidupku)\b/i.test(normalized);
+  const hasFirstPerson = /\b(?:aku|saya|gue|gw|diriku|hidupku|i|i'm|im|me|my|myself)\b/i.test(normalized);
+  const trimmed = normalized.trim();
   const contextualDiscussion =
-    /^(?:aku|saya)\s+(?:tidak|ga|gak)\s+(?:mau|ingin|akan)\s+(?:bunuh\s*diri|mati)\s*[.!]?$/i.test(normalized.trim()) ||
-    (!hasFirstPerson && /^(?:dalam\s+(?:film|berita|pelajaran|artikel)\s+(?:itu\s+)?|di\s+(?:film|berita)\s+(?:itu\s+)?)(?:tokoh|dia|mereka)\b[^.!?]*(?:bunuh\s*diri|mau\s*mati)[^.!?]*[.!]?$/i.test(normalized.trim()));
+    /^(?:aku|saya)\s+(?:tidak|ga|gak)\s+(?:mau|ingin|akan)\s+(?:bunuh\s*diri|mati)\s*[.!]?$/i.test(trimmed) ||
+    (!hasFirstPerson && /^(?:dalam\s+(?:film|berita|pelajaran|artikel)\s+(?:itu\s+)?|di\s+(?:film|berita)\s+(?:itu\s+)?)(?:tokoh|dia|mereka)\b[^.!?]*(?:bunuh\s*diri|mau\s*mati)[^.!?]*[.!]?$/i.test(trimmed)) ||
+    // English: only a whole-sentence explicit denial, or a clearly third-person
+    // story with no first-person pronoun, is exempt (mirrors the Indonesian rule).
+    /^(?:i|i'm|i\s*am)\s+(?:do\s*not|don't|dont|am\s*not|not)\s+(?:going\s*to\s*|gonna\s*)?(?:want(?:ing)?\s*to\s*|wanna\s*)?(?:kill\s*myself|die|commit\s*suicide|hurt\s*myself)\s*[.!]?$/i.test(trimmed) ||
+    (!hasFirstPerson && /^in\s+(?:the|that|a|this)\s+(?:movie|film|news|article|book|show|story|class)\s*,?\s*(?:the\s+)?(?:character|he|she|they|someone|a\s*man|a\s*woman|the\s*hero)\b[^.!?]*(?:kill(?:ed|s)?\s*(?:him|her|them)sel(?:f|ves)|suicide|wanted\s*to\s*die|die[sd]?)[^.!?]*[.!]?$/i.test(trimmed));
   const matchedRules: PatternRule[] = [];
 
   for (const rule of contextualDiscussion ? [] : CRISIS_RULES) {
@@ -243,7 +294,11 @@ export function evaluateCrisisInput(
   // Age-tailored empathetic crisis intervention copy
   let interventionCopy = '';
   if (isCrisis) {
-    if (ageBracket === '15-17') {
+    if (lang === 'en') {
+      interventionCopy = ageBracket === '15-17'
+        ? 'We hear your pain, and you matter. You do not have to carry this alone. Please contact the youth protection line or Healing119 (Ministry of Health) below right away. Someone is ready to listen and protect you now.'
+        : 'We hear how heavy things are for you right now. Your safety and your life matter. Please take one step and contact a professional emergency line below. Healing119 from the Ministry of Health is free and you do not have to give your name.';
+    } else if (ageBracket === '15-17') {
       interventionCopy =
         'Kami mendengar rasa sakitmu, dan kamu sangat berharga. Kamu tidak harus memikul beban ini sendirian. Silakan segera hubungi saluran perlindungan remaja atau Healing119 (Kemenkes) di bawah ini. Ada orang yang siap mendengarkan dan melindungimu sekarang.';
     } else {

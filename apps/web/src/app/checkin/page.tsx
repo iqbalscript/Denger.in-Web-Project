@@ -30,11 +30,15 @@ import {
 } from '@/components/ui';
 import { awardLangkah } from '@/lib/gamification';
 import { getLocalDateString } from '@/lib/calendar';
+import { useLanguage, useText } from '@/i18n';
+import { checkinText, moodLabel } from '@/i18n/pages/checkin';
 
 export default function CheckinPage() {
   const router = useRouter();
   const { ready, session } = useConsentGuard();
   const crisis = useCrisisGuard(session?.ageBracket);
+  const t = useText(checkinText);
+  const { locale } = useLanguage();
 
   const [selectedMood, setSelectedMood] = useState<MoodScore | null>(null);
   const [energyLevel, setEnergyLevel] = useState<number>(5);
@@ -51,22 +55,15 @@ export default function CheckinPage() {
   }, [ready]);
 
   const moods: Array<{ id: MoodScore; label: string; sub: string; activeClass: string }> = [
-    { id: 'sangat_baik', label: 'Sangat Baik', sub: 'Bertenaga', activeClass: 'bg-lime text-ink' },
-    { id: 'baik', label: 'Cukup Baik', sub: 'Oke', activeClass: 'bg-cobalt text-white' },
-    { id: 'netral', label: 'Biasa Saja', sub: 'Lumayan', activeClass: 'bg-yellow text-ink' },
-    { id: 'berat', label: 'Terasa Berat', sub: 'Cemas / Lelah', activeClass: 'bg-tangerine text-white' },
-    { id: 'kewalahan', label: 'Kewalahan', sub: 'Sangat Lelah', activeClass: 'bg-[#D32F2F] text-white' },
+    { id: 'sangat_baik', ...t.moods.sangat_baik, activeClass: 'bg-lime text-ink' },
+    { id: 'baik', ...t.moods.baik, activeClass: 'bg-cobalt text-white' },
+    { id: 'netral', ...t.moods.netral, activeClass: 'bg-yellow text-ink' },
+    { id: 'berat', ...t.moods.berat, activeClass: 'bg-tangerine text-white' },
+    { id: 'kewalahan', ...t.moods.kewalahan, activeClass: 'bg-[#D32F2F] text-white' },
   ];
 
-  const tags = [
-    'Tugas Sekolah / Kuliah',
-    'Beban Kerja Kantor',
-    'Finansial & Tagihan',
-    'Kurang Tidur / Lelah',
-    'Konflik Pasangan / Teman',
-    'Dinamika Keluarga',
-    'Merasa Kesepian',
-  ];
+  // Label beban disimpan apa adanya (bahasa saat check-in) agar riwayat lama tetap terbaca.
+  const tags = t.tags;
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -128,7 +125,7 @@ export default function CheckinPage() {
             size="sm"
             icon={<ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />}
           >
-            Kembali ke beranda
+            {t.backHome}
           </Button>
         </div>
 
@@ -136,13 +133,13 @@ export default function CheckinPage() {
         <div className="space-y-4 animate-reveal-up [animation-delay:80ms]">
           <Badge variant="yellow" size="md">
             <Sparkles className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
-            Check-in harian
+            {t.badge}
           </Badge>
           <h1 className="text-[2rem] sm:text-4xl lg:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
-            Gimana keadaanmu hari ini?
+            {t.title}
           </h1>
           <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed max-w-[36rem]">
-            Ambil jeda satu menit untuk menyapa dirimu sendiri. Apa pun jawabannya, semuanya boleh.
+            {t.intro}
           </p>
         </div>
 
@@ -150,7 +147,7 @@ export default function CheckinPage() {
           {/* PRIMARY: Large Tactile Mood Selector */}
           <div className="space-y-3" role="group" aria-labelledby="label-mood">
             <p id="label-mood" className="text-lg font-bold text-ink leading-snug">
-              1. Lagi terasa seperti apa?
+              {t.moodQuestion}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {moods.map((m) => {
@@ -183,10 +180,10 @@ export default function CheckinPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="tingkat-energi" className="text-lg font-bold text-ink leading-snug flex items-center gap-2">
                 <BatteryMedium className="w-5 h-5 text-ink" aria-hidden="true" />
-                <span>2. Tingkat energimu (1-10)</span>
+                <span>{t.energyLabel}</span>
               </label>
               <span aria-live="polite" className="text-base font-bold px-2.5 py-1 bg-yellow border-2 border-ink rounded shadow-hard-sm tabular-nums">
-                Energi: {energyLevel} dari 10
+                {t.energyValue(energyLevel)}
               </span>
             </div>
             <input
@@ -197,20 +194,20 @@ export default function CheckinPage() {
               step="1"
               value={energyLevel}
               onChange={(e) => setEnergyLevel(Number(e.target.value))}
-              aria-valuetext={`${energyLevel} dari 10`}
+              aria-valuetext={t.energyValueText(energyLevel)}
               className="w-full"
             />
             <div className="flex justify-between text-sm font-semibold text-[#59544D]" aria-hidden="true">
-              <span>1 = sangat lelah</span>
-              <span>10 = sangat bertenaga</span>
+              <span>{t.energyLow}</span>
+              <span>{t.energyHigh}</span>
             </div>
           </div>
 
           {/* Stressor Chips */}
           <div className="space-y-3" role="group" aria-labelledby="label-beban">
             <p id="label-beban" className="text-lg font-bold text-ink leading-snug">
-              3. Ada yang terasa membebani hari ini?{' '}
-              <span className="text-base font-medium text-[#59544D]">(boleh dilewati, bisa pilih lebih dari satu)</span>
+              {t.stressorQuestion}{' '}
+              <span className="text-base font-medium text-[#59544D]">{t.stressorHint}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => {
@@ -233,30 +230,30 @@ export default function CheckinPage() {
           {/* Brief Note with safety warning */}
           <div className="space-y-2">
             <Textarea
-              label="4. Catatan singkat (boleh dikosongkan)"
+              label={t.noteLabel}
               value={briefNote}
               onChange={handleNoteChange}
               rows={2}
-              placeholder="Kalau mau, ceritakan sedikit apa yang ada di pikiranmu..."
+              placeholder={t.notePlaceholder}
             />
             {crisis.cardVisible && (
               <InlineCrisisCard
                 contacts={crisis.contacts}
                 onAcknowledge={crisis.acknowledge}
-                blockedNote="Catatanmu tetap ada di sini dan check-in belum kami simpan."
+                blockedNote={t.blockedNote}
               />
             )}
             {crisis.isCrisis && <CrisisBlockedNote id="checkin-krisis-catatan" />}
             <div className="p-3 rounded-md bg-[#FFF4CC] flex items-center gap-2 text-base text-ink">
               <AlertTriangle className="w-5 h-5 text-ink shrink-0" aria-hidden="true" />
-              <span>Catatanmu tersimpan anonim di peramban perangkatmu.</span>
+              <span>{t.storedLocally}</span>
             </div>
           </div>
 
           {/* Submit */}
           <div className="pt-2 space-y-3">
             {!selectedMood && !saved && (
-              <p className="text-base text-[#59544D]" aria-live="polite">Pilih dulu perasaanmu di nomor 1, lalu tombol simpan akan aktif.</p>
+              <p className="text-base text-[#59544D]" aria-live="polite">{t.pickMoodFirst}</p>
             )}
             <Button
               type="submit"
@@ -268,9 +265,9 @@ export default function CheckinPage() {
               iconPosition={saved ? 'start' : 'end'}
               icon={saved ? <CheckCircle2 className="w-5 h-5" aria-hidden="true" /> : <ArrowRight className="w-4 h-4" />}
             >
-              {saved ? 'Tersimpan. Terima kasih sudah menyapa dirimu' : 'Simpan check-in hari ini'}
+              {saved ? t.saved : t.save}
             </Button>
-            <p role="status" aria-live="polite" className="sr-only">{saved ? 'Check-in tersimpan. Kembali ke beranda.' : ''}</p>
+            <p role="status" aria-live="polite" className="sr-only">{saved ? t.savedStatus : ''}</p>
           </div>
         </form>
 
@@ -279,7 +276,7 @@ export default function CheckinPage() {
           <section aria-labelledby="judul-riwayat" className="pt-10 border-t-2 border-ink space-y-5">
             <h2 id="judul-riwayat" className="text-xl sm:text-2xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <Calendar className="w-5 h-5 text-ink" aria-hidden="true" />
-              <span>Riwayat check-in terakhir <span className="text-[#59544D] font-medium tabular-nums">({history.length})</span></span>
+              <span>{t.historyTitle} <span className="text-[#59544D] font-medium tabular-nums">({history.length})</span></span>
             </h2>
 
             <div className="space-y-3">
@@ -291,16 +288,16 @@ export default function CheckinPage() {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-ink capitalize">
-                        {entry.mood.replace('_', ' ')}
+                      <span className="font-bold text-ink">
+                        {moodLabel(t, entry.mood)}
                       </span>
                       <span className="text-sm font-bold px-2 py-0.5 bg-paper border border-borderSubtle rounded tabular-nums">
-                        Energi {entry.energyLevel}/10
+                        {t.historyEnergy(entry.energyLevel)}
                       </span>
                     </div>
                     {entry.stressorTags.length > 0 && (
                       <p className="text-base text-[#59544D]">
-                        Yang terasa berat: {entry.stressorTags.join(', ')}
+                        {t.historyStressors(entry.stressorTags.join(', '))}
                       </p>
                     )}
                     {entry.briefNote && (
@@ -309,7 +306,7 @@ export default function CheckinPage() {
                   </div>
 
                   <span className="text-sm text-[#59544D] font-medium shrink-0 tabular-nums">
-                    {new Date(entry.timestamp).toLocaleDateString('id-ID', {
+                    {new Date(entry.timestamp).toLocaleDateString(locale, {
                       day: 'numeric',
                       month: 'short',
                       hour: '2-digit',

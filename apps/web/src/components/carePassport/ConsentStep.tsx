@@ -3,48 +3,26 @@
 import React, { useState } from 'react';
 import { ArrowRight, CheckSquare, Square, PenLine } from 'lucide-react';
 import { Button } from '@/components/ui';
-import { MUTED, SectionCard, StepHeading, UrgentHelpLink } from './shared';
+import { MUTED, SectionCard, StepHeading, UrgentHelpLink, usePassportText } from './shared';
 
 export interface ConsentStepProps {
   onAccept: () => void;
   onDecline: () => void;
 }
 
-const POINTS = [
-  {
-    title: 'Ini persetujuan terpisah',
-    body: 'Persetujuan umum Dengar.in tidak otomatis mencakup ini. Khusus halaman ini, ceritamu dikirim ke model AI untuk disusun menjadi catatan. Kamu boleh menolak dan tetap menulis catatan sendiri.',
-  },
-  {
-    title: 'Data pribadi disamarkan dulu',
-    body: 'Sebelum dikirim, nomor telepon, email, alamat, dan nama yang terdeteksi diganti dengan label. Kamu melihat dan mengatur sendiri apa yang disamarkan.',
-  },
-  {
-    title: 'AI hanya merangkum, kamu yang memutuskan',
-    body: 'Setiap kalimat di catatan harus mengutip ceritamu. Tidak ada diagnosis, tidak ada skor, dan tidak ada yang dikirim ke pihak lain tanpa tindakanmu sendiri.',
-  },
-  {
-    title: 'Tidak disimpan',
-    body: 'Cerita dan catatanmu tidak disimpan di server dan tidak dipakai untuk melatih apa pun. Kalau halaman ditutup, isinya hilang.',
-  },
-];
-
 export function ConsentStep({ onAccept, onDecline }: ConsentStepProps) {
   const [checked, setChecked] = useState(false);
+  const t = usePassportText().consent;
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <StepHeading
-          step="Langkah 1 dari 4"
-          title="Sebelum AI membaca ceritamu."
-          lede="Catatan Konsultasi membantu kamu menyiapkan apa yang ingin disampaikan ke psikolog atau konselor. Bagian ini butuh izin khusus darimu."
-        />
+        <StepHeading step={t.step} title={t.title} lede={t.lede} />
         <UrgentHelpLink className="shrink-0" />
       </div>
 
       <ol className="space-y-5">
-        {POINTS.map((point, index) => (
+        {t.points.map((point, index) => (
           <li
             key={point.title}
             style={{ animationDelay: `${120 + index * 70}ms` }}
@@ -81,9 +59,7 @@ export function ConsentStep({ onAccept, onDecline }: ConsentStepProps) {
           ) : (
             <Square className="w-5 h-5 text-[#6B665E] shrink-0 mt-0.5" aria-hidden="true" />
           )}
-          <span className="text-base text-[#151515] leading-snug font-medium">
-            Saya berusia 18 tahun ke atas dan setuju cerita saya, setelah data pribadi disamarkan, diproses oleh AI untuk menyusun draf catatan yang akan saya tinjau sendiri.
-          </span>
+          <span className="text-base text-[#151515] leading-snug font-medium">{t.checkbox}</span>
         </button>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -96,15 +72,13 @@ export function ConsentStep({ onAccept, onDecline }: ConsentStepProps) {
             icon={<ArrowRight className="w-4 h-4" />}
             className="sm:flex-1"
           >
-            Setuju, lanjut tulis cerita
+            {t.accept}
           </Button>
           <Button variant="secondary" size="lg" onClick={onDecline} icon={<PenLine className="w-4 h-4" />} className="sm:flex-1">
-            Tidak, saya tulis sendiri
+            {t.decline}
           </Button>
         </div>
-        <p className={`text-sm leading-relaxed ${MUTED}`}>
-          Menolak tidak mengurangi apa pun. Kamu tetap mendapat kerangka catatan yang bisa diisi dan diunduh.
-        </p>
+        <p className={`text-sm leading-relaxed ${MUTED}`}>{t.declineNote}</p>
       </SectionCard>
     </div>
   );

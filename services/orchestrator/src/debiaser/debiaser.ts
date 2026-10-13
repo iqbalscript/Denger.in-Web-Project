@@ -33,11 +33,15 @@ export interface DebiasResult {
   warnings: string[];
 }
 
+const ENGLISH_LANGUAGE_NOTE =
+  '\n\n7. BAHASA: Pengguna memakai antarmuka bahasa Inggris. Pertahankan teks message/reason/prompt dalam bahasa Inggris yang hangat dan sederhana (jangan menerjemahkannya ke bahasa Indonesia), kecuali pengguna sendiri menulis dalam bahasa Indonesia. Properti "disclaimer" tetap persis seperti draf.';
+
 export async function debiasCandidateAction(
   candidateAction: ValidatedAIAction,
   userMessage: string,
   provider: LLMProvider = createOpenrouterProvider(),
-  timeoutMs: number = 8000
+  timeoutMs: number = 8000,
+  lang: 'id' | 'en' = 'id'
 ): Promise<DebiasResult> {
   if (!provider.isConfigured()) {
     return {
@@ -51,7 +55,7 @@ export async function debiasCandidateAction(
 
   try {
     const response = await provider.generate({
-      systemPrompt: DEBIASER_SYSTEM_PROMPT,
+      systemPrompt: lang === 'en' ? DEBIASER_SYSTEM_PROMPT + ENGLISH_LANGUAGE_NOTE : DEBIASER_SYSTEM_PROMPT,
       userPrompt: prompt,
       timeoutMs
     });

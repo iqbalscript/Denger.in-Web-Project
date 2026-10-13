@@ -2,20 +2,24 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Accessibility, Check, RotateCcw, X } from 'lucide-react';
+import { LanguageSwitch } from '@/i18n/LanguageSwitch';
+import { commonText } from '@/i18n/common';
+import { useText } from '@/i18n/store';
 
 /**
- * Akses cepat mandiri: pengguna mengatur sendiri ukuran teks, kontras, garis
- * bawah tautan, jarak baca, dan animasi. Pilihan disimpan di perangkat ini saja
- * dan diterapkan sebelum halaman tampil oleh ACCESSIBILITY_INIT_SCRIPT.
+ * Akses cepat mandiri: pengguna memilih bahasa dan mengatur sendiri ukuran
+ * teks, kontras, garis bawah tautan, jarak baca, dan animasi. Pilihan tampilan
+ * disimpan di perangkat ini saja dan diterapkan sebelum halaman tampil oleh
+ * ACCESSIBILITY_INIT_SCRIPT; bahasa disimpan di cookie (lihat i18n/language.ts).
  */
 
 export const ACCESSIBILITY_STORAGE_KEY = 'dengarin:aksesibilitas';
 
 const TEXT_SCALES = [
-  { value: 100, label: 'Biasa', sample: 'text-sm' },
-  { value: 112.5, label: 'Besar', sample: 'text-base' },
-  { value: 125, label: 'Lebih besar', sample: 'text-lg' },
-  { value: 140, label: 'Sangat besar', sample: 'text-xl' },
+  { value: 100, key: 'normal', sample: 'text-sm' },
+  { value: 112.5, key: 'large', sample: 'text-base' },
+  { value: 125, key: 'larger', sample: 'text-lg' },
+  { value: 140, key: 'largest', sample: 'text-xl' },
 ] as const;
 
 type Settings = {
@@ -34,12 +38,19 @@ const DEFAULTS: Settings = {
   reduceMotion: false,
 };
 
-const TOGGLES: { key: Exclude<keyof Settings, 'textScale'>; label: string; hint: string; className: string }[] = [
-  { key: 'contrast', label: 'Kontras tinggi', hint: 'Teks abu-abu jadi hitam pekat', className: 'a11y-contrast' },
-  { key: 'underline', label: 'Garis bawah tautan', hint: 'Tautan lebih mudah dikenali', className: 'a11y-underline' },
-  { key: 'spacing', label: 'Jarak baca lega', hint: 'Jarak huruf dan baris lebih longgar', className: 'a11y-spacing' },
-  { key: 'reduceMotion', label: 'Hentikan animasi', hint: 'Tanpa gerakan dan efek muncul', className: 'a11y-reduce-motion' },
+const TOGGLES: { key: Exclude<keyof Settings, 'textScale'>; className: string }[] = [
+  { key: 'contrast', className: 'a11y-contrast' },
+  { key: 'underline', className: 'a11y-underline' },
+  { key: 'spacing', className: 'a11y-spacing' },
+  { key: 'reduceMotion', className: 'a11y-reduce-motion' },
 ];
+
+const TOGGLE_TEXT = {
+  contrast: { label: 'contrast', hint: 'contrastHint' },
+  underline: { label: 'underline', hint: 'underlineHint' },
+  spacing: { label: 'spacing', hint: 'spacingHint' },
+  reduceMotion: { label: 'reduceMotion', hint: 'reduceMotionHint' },
+} as const;
 
 // Dijalankan di <head> sebelum render agar tidak ada kedipan ukuran/warna.
 export const ACCESSIBILITY_INIT_SCRIPT = `(function(){try{var s=JSON.parse(localStorage.getItem('${ACCESSIBILITY_STORAGE_KEY}')||'null');if(!s)return;var r=document.documentElement;if(s.textScale&&s.textScale!==100){r.style.fontSize=s.textScale+'%';r.classList.add('a11y-scaled','a11y-scale-'+Math.floor(s.textScale));}${TOGGLES.map(
@@ -83,6 +94,7 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const t = useText(commonText).a11y;
 
   useEffect(() => {
     setSettings(readSettings());
@@ -130,8 +142,8 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-controls="panel-aksesibilitas"
-        aria-label="Akses cepat: atur ukuran teks, kontras, dan animasi"
-        title="Akses cepat: atur ukuran teks, kontras, dan animasi"
+        aria-label={t.buttonAria}
+        title={t.buttonAria}
         className={`relative inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-2.5 rounded-[4px] text-sm font-bold border-2 border-[#151515] shadow-[2px_2px_0px_#151515] transition-[transform,box-shadow,background-color] duration-200 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] ${
           open ? 'bg-[#FFD84D] text-[#151515]' : 'bg-white text-[#151515] hover:bg-[#FFD84D]/40'
         } ${focusRing}`}
@@ -139,7 +151,7 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
         <Accessibility className="w-5 h-5 shrink-0" aria-hidden="true" />
         {/* Label baru muat di baris navigasi mulai 1680px (bersama "Catatan Konsultasi"
             dan "Bantuan darurat"); di bawah itu ikon + tooltip + aria-label. */}
-        <span className="hidden min-[1680px]:inline">Akses cepat</span>
+        <span className="hidden min-[1680px]:inline">{t.button}</span>
         {isCustomised && (
           <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#3357EE] border-2 border-white" aria-hidden="true" />
         )}
@@ -157,22 +169,26 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 id="judul-aksesibilitas" className="text-base font-bold text-[#151515]">
-                Akses cepat
+                {t.title}
               </h2>
-              <p className="text-sm text-[#59544D]">Atur tampilan sesuai kenyamananmu.</p>
+              <p className="text-sm text-[#59544D]">{t.subtitle}</p>
             </div>
             <button
               type="button"
               onClick={() => close(true)}
               className={`shrink-0 inline-flex items-center justify-center w-11 h-11 -mr-2 -mt-2 rounded-[4px] text-[#151515] hover:bg-[#151515]/5 ${focusRing}`}
-              aria-label="Tutup akses cepat"
+              aria-label={t.close}
             >
               <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
+          {/* Bahasa di paling atas: pilihan paling mendasar, dan tetap terbaca
+              oleh orang yang belum paham bahasa aktif (label dwibahasa). */}
+          <LanguageSwitch idPrefix="bahasa-panel" />
+
           <fieldset>
-            <legend className="text-sm font-bold text-[#151515] mb-2">Ukuran teks</legend>
+            <legend className="text-sm font-bold text-[#151515] mb-2">{t.textSize}</legend>
             <div className="grid grid-cols-2 gap-2">
               {TEXT_SCALES.map((scale) => {
                 const active = settings.textScale === scale.value;
@@ -186,7 +202,7 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
                       active ? 'bg-[#3357EE] text-white' : 'bg-white text-[#151515] hover:bg-[#FFF8EF]'
                     } ${focusRing}`}
                   >
-                    <span className="text-sm">{scale.label}</span>
+                    <span className="text-sm">{t.sizes[scale.key]}</span>
                     <span className={`${scale.sample} leading-none`} aria-hidden="true">Aa</span>
                   </button>
                 );
@@ -197,6 +213,7 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
           <ul className="space-y-2">
             {TOGGLES.map((toggle) => {
               const active = settings[toggle.key];
+              const text = TOGGLE_TEXT[toggle.key];
               return (
                 <li key={toggle.key}>
                   <button
@@ -209,8 +226,8 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
                     } ${focusRing}`}
                   >
                     <span className="flex-1">
-                      <span className="block text-sm font-bold text-[#151515]">{toggle.label}</span>
-                      <span className="block text-xs text-[#59544D]">{toggle.hint}</span>
+                      <span className="block text-sm font-bold text-[#151515]">{t[text.label]}</span>
+                      <span className="block text-xs text-[#59544D]">{t[text.hint]}</span>
                     </span>
                     <span
                       className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-[4px] border-2 border-[#151515] ${
@@ -233,10 +250,10 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
             className={`w-full inline-flex items-center justify-center gap-2 min-h-[44px] rounded-[4px] text-sm font-bold border-2 border-[#151515] bg-white text-[#151515] hover:bg-[#FFF8EF] disabled:border-[#D8D3C9] disabled:text-[#7A756D] disabled:cursor-not-allowed ${focusRing}`}
           >
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
-            Kembalikan ke tampilan awal
+            {t.reset}
           </button>
 
-          <p className="text-xs text-[#59544D]">Disimpan di perangkat ini saja.</p>
+          <p className="text-xs text-[#59544D]">{t.storedLocally}</p>
         </div>
       )}
     </div>

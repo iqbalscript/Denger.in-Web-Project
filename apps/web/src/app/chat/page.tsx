@@ -21,7 +21,6 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { evaluateCrisisInput } from '@dengarin/crisis-engine';
-import { STANDARD_DISCLAIMER } from '@dengarin/validator';
 import type { ValidatedAIAction } from '@dengarin/types';
 import { useConsentGuard } from '@/lib/useConsentGuard';
 import { ConsentPending } from '@/components/ConsentPending';
@@ -29,26 +28,29 @@ import { SupportPathwayCard, readSupportPathway } from '@/components/SupportPath
 import { buildSupportPathway, type SupportPathway } from '@/lib/api/crisisGate';
 import { CHAT_CLIENT_HISTORY_ENTRIES, CHAT_CLIENT_TIMEOUT_MS } from '@/lib/api/requestLimits';
 import {
-  BROWSER_VOICE_PRIVACY_DISCLOSURE,
   applyFinalTranscript,
+  browserVoicePrivacyDisclosure,
   cancelSpeech,
   getFinalTranscript,
   getSpeechRecognitionConstructor,
   isSpeechRecognitionSupported,
   isSpeechSynthesisSupported,
-  selectIndonesianVoice,
+  selectVoiceForLanguage,
   speakExpressively,
   speechRecognitionErrorMessage,
   type BrowserSpeechRecognition,
 } from '@/lib/browserSpeech';
 import { validatedActionDisplayText } from '@/lib/voiceRoom';
 import { PageContainer, ContentColumn, Button, ChatProgress } from '@/components/ui';
+import { LOCALE_TAG, commonText, useLanguage, useText } from '@/i18n';
+import { chatText } from '@/i18n/pages/chat';
 
 interface Message {
   id: string;
   sender: 'user' | 'assistant';
   text: string;
-  disclaimer?: string;
+  /** Show the standard disclaimer (rendered from the UI dictionary, same meaning as the server text). */
+  disclaimer?: boolean;
   tier?: 'primary' | 'secondary' | 'tertiary' | 'fallback' | string;
   providerId?: string;
   debiased?: boolean;
@@ -58,22 +60,17 @@ interface Message {
   ttsEligible?: boolean;
   /** Static greeting: no AI call happened, so no provider badge and not sent as history. */
   isWelcome?: boolean;
+  /** Which greeting to render from the dictionary (so it follows the active language). */
+  welcomeKind?: 'first' | 'again';
   /** Deterministic human-support pathway (crisis engine `high`), never from model output. */
   supportPathway?: SupportPathway;
 }
 
-const TIMEOUT_TEXT =
-  'Balasannya lebih lama dari biasanya, jadi kami hentikan dulu supaya kamu tidak menunggu tanpa kepastian. Pesanmu tidak hilang, coba kirim lagi sebentar lagi, ya.';
-
-const STARTER_PROMPTS = [
-  'Tugas dan pekerjaan menumpuk, aku kewalahan',
-  'Aku cemas mikirin masa depan dan ekspektasi orang sekitar',
-  'Pengeluaran tak terduga bikin aku overthinking dan susah tidur',
-  'Aku cuma butuh tempat aman buat cerita tanpa dihakimi'
-];
-
 export default function ChatPage() {
   const { ready, session } = useConsentGuard();
+  const { lang, locale } = useLanguage();
+  const t = useText(chatText);
+  const common = useText(commonText);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
   const hasMountedRef = useRef(false);
@@ -81,9 +78,10 @@ export default function ChatPage() {
     {
       id: 'welcome',
       sender: 'assistant',
-      text: 'Halo, aku Dengar.in, teman bicara anonimmu. Di sini kamu boleh bercerita apa saja tanpa dihakimi, entah soal tugas, pekerjaan, hubungan, atau uang. Tidak perlu rapi, dan tidak perlu buru-buru. Apa yang lagi paling terasa berat buatmu sekarang?',
-      disclaimer: STANDARD_DISCLAIMER,
-      isWelcome: true
+      text: '',
+      disclaimer: true,
+      isWelcome: true,
+      welcomeKind: 'first'
     },
   ]);
   const [inputText, setInputText] = useState('');
@@ -146,25 +144,25 @@ export default function ChatPage() {
   const stopListening = useCallback(() => {
     const recognition = recognitionRef.current;
     if (!recognition) return;
-    setVoiceStatus('Pendengaran dihentikan. Periksa dan edit teks sebelum mengirim.');
+    setVoiceStatus(t.voiceStopped);
     setIsListening(false);
     try {
       recognition.stop();
     } catch {
       recognition.abort();
     }
-  }, []);
+  }, [t]);
 
   const startListening = useCallback(() => {
     const Recognition = getSpeechRecognitionConstructor(window);
     if (!Recognition) {
-      setVoiceStatus('Fitur Bicara belum didukung oleh browser ini. Kamu tetap bisa menulis pesan.');
+      setVoiceStatus(t.voiceUnsupported);
       return;
     }
 
     recognitionRef.current?.abort();
     const recognition = new Recognition();
-    recognition.lang = 'id-ID';
+    recognition.lang = LOCALE_TAG[lang];
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
@@ -172,10 +170,10 @@ export default function ChatPage() {
       // Recognition may only update the editable text field. It has no submit,
       // fetch, crisis-routing, or gamification side effect.
       applyFinalTranscript(setInputText, getFinalTranscript(event));
-      setVoiceStatus('Teks suara sudah ditambahkan. Periksa dan edit teks sebelum mengirim.');
+      setVoiceStatus(t.voiceAdded);
     };
     recognition.onerror = (event) => {
-      setVoiceStatus(speechRecognitionErrorMessage(event.error));
+      setVoiceStatus(speechRecognitionErrorMessage(event.error, lang));
       setIsListening(false);
     };
     recognition.onend = () => {
@@ -183,7 +181,7 @@ export default function ChatPage() {
       setIsListening(false);
     };
     recognitionRef.current = recognition;
-    setVoiceStatus('Sedang mendengarkan... Bicara pelan-pelan saja.');
+    setVoiceStatus(t.voiceListening);
     setIsListening(true);
     try {
       // This is reached only from the person explicitly choosing "Mulai bicara".
@@ -191,9 +189,9 @@ export default function ChatPage() {
     } catch {
       recognitionRef.current = null;
       setIsListening(false);
-      setVoiceStatus('Pengenalan suara tidak dapat dimulai. Kamu tetap bisa menulis pesan.');
+      setVoiceStatus(t.voiceCannotStart);
     }
-  }, []);
+  }, [lang, t]);
 
   const requestListening = useCallback(() => {
     if (!hasAcknowledgedVoiceDisclosure) {
@@ -224,11 +222,12 @@ export default function ChatPage() {
     setSpeakingMessageId(message.id);
     // Dibacakan per kalimat dengan nada dan tempo yang mengikuti isi, bukan datar.
     speakExpressively(window.speechSynthesis, Utterance, message.text, {
-      voice: selectIndonesianVoice(window.speechSynthesis.getVoices()),
+      lang: LOCALE_TAG[lang],
+      voice: selectVoiceForLanguage(window.speechSynthesis.getVoices(), lang),
       onend: finish,
       onerror: finish,
     });
-  }, []);
+  }, [lang]);
 
   const handleResetChat = () => {
     stopSpeaking();
@@ -237,9 +236,10 @@ export default function ChatPage() {
       {
         id: 'welcome-' + Date.now(),
         sender: 'assistant',
-        text: 'Halo lagi. Kita mulai percakapan baru, ya. Aku di sini kalau kamu mau bercerita, kapan pun kamu siap.',
-        disclaimer: STANDARD_DISCLAIMER,
-        isWelcome: true
+        text: '',
+        disclaimer: true,
+        isWelcome: true,
+        welcomeKind: 'again'
       }
     ]);
   };
@@ -249,7 +249,7 @@ export default function ChatPage() {
     if (!userText || isTyping || isSubmittingRef.current) return;
     isSubmittingRef.current = true;
 
-    // 1. DETERMINISTIC SAFETY GATE (Step 0 — client-side pre-check, ZERO AI)
+    // 1. DETERMINISTIC SAFETY GATE (Step 0, client-side pre-check, ZERO AI)
     const crisisCheck = evaluateCrisisInput(userText, session?.ageBracket || '18-24');
     if (crisisCheck.isCrisis) {
       window.location.href = '/crisis';
@@ -294,6 +294,7 @@ export default function ChatPage() {
           history: historyPayload,
           ageBracket: session?.ageBracket,
           domain: session?.primaryDomain,
+          lang,
         }),
       });
 
@@ -305,15 +306,17 @@ export default function ChatPage() {
         return;
       }
 
-      // Handle non-OK status codes (413, 429, 400, etc.)
+      // Handle non-OK status codes (413, 429, 400, etc.). Known statuses use the
+      // dictionary (follows the active language); server text is only a fallback.
       if (!res.ok) {
         const errorText =
-          json?.error ||
-          (res.status === 413
-            ? 'Pesanmu terlalu panjang untuk sekali kirim (maksimum 2.000 karakter). Boleh dipecah jadi beberapa bagian, ya.'
+          res.status === 413
+            ? t.errorTooLong
             : res.status === 429
-              ? 'Sedang cukup ramai. Tarik napas dulu, lalu coba lagi sebentar lagi, ya.'
-              : 'Maaf, ada kendala di sisi kami dan pesanmu belum terbalas. Bukan salahmu. Coba kirim lagi sebentar lagi, ya.');
+              ? t.errorBusy
+              : res.status === 400
+                ? t.errorInvalid
+                : (typeof json?.error === 'string' && json.error) || t.errorGeneric;
 
         setMessages((prev) => [
           ...prev,
@@ -330,21 +333,21 @@ export default function ChatPage() {
 
       // Successful AI action response
       if (json?.ok && json?.data?.action) {
-        const { action, tier, providerId, debiased, disclaimer } = json.data;
+        const { action, tier, providerId, debiased } = json.data;
         // Server pathway wins; the local deterministic one is the floor. Neither
         // can be removed by anything the model returns.
         const supportPathway = readSupportPathway(json.data.supportPathway) ?? localPathway;
 
         // This action originated from the existing server validation pipeline.
         // The shared mapper still refuses unknown shapes before they can render.
-        const displayText = validatedActionDisplayText(action);
+        const displayText = validatedActionDisplayText(action, lang);
         if (!displayText) {
           setMessages((prev) => [
             ...prev,
             {
               id: (Date.now() + 1).toString(),
               sender: 'assistant',
-              text: 'Maaf, ada kendala di sisi kami dan pesanmu belum terbalas. Bukan salahmu. Coba kirim lagi sebentar lagi, ya.',
+              text: t.errorGeneric,
               isError: true,
               supportPathway,
             },
@@ -356,7 +359,7 @@ export default function ChatPage() {
           id: (Date.now() + 1).toString(),
           sender: 'assistant',
           text: displayText,
-          disclaimer: disclaimer ?? action.disclaimer ?? STANDARD_DISCLAIMER,
+          disclaimer: true,
           tier,
           providerId,
           debiased,
@@ -371,7 +374,7 @@ export default function ChatPage() {
           {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',
-            text: 'Maaf, ada kendala di sisi kami dan pesanmu belum terbalas. Bukan salahmu. Coba kirim lagi sebentar lagi, ya.',
+            text: t.errorGeneric,
             isError: true,
             supportPathway: localPathway,
           },
@@ -383,9 +386,7 @@ export default function ChatPage() {
         {
           id: (Date.now() + 1).toString(),
           sender: 'assistant',
-          text: controller.signal.aborted
-            ? TIMEOUT_TEXT
-            : 'Koneksimu sepertinya terputus. Periksa internetmu, lalu coba kirim lagi, ya.',
+          text: controller.signal.aborted ? t.errorTimeout : t.errorOffline,
           isError: true,
           supportPathway: localPathway,
         },
@@ -409,12 +410,12 @@ export default function ChatPage() {
           <div className="mt-2.5 p-3 rounded-md bg-white border-2 border-ink shadow-hard-sm text-base space-y-2">
             <div className="flex items-center gap-1.5 font-bold text-base text-ink leading-snug">
               <Compass className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
-              <span>Saran misi harian: {action.missionId}</span>
+              <span>{t.actionMission(action.missionId)}</span>
             </div>
             {action.reason && <p className="text-[#59544D] text-base leading-relaxed">{action.reason}</p>}
             <div className="pt-1">
               <Button href="/mission" size="sm" variant="primary" iconPosition="end" icon={<ArrowRight className="w-4 h-4" />}>
-                Buka misi
+                {t.openMission}
               </Button>
             </div>
           </div>
@@ -425,7 +426,7 @@ export default function ChatPage() {
           <div className="mt-2.5 p-3 rounded-md bg-[#FFF8EF] border-2 border-ink shadow-hard-sm text-base space-y-2">
             <div className="flex items-center gap-1.5 font-bold text-base text-ink leading-snug">
               <BookOpen className="w-4 h-4 text-ink shrink-0" aria-hidden="true" />
-              <span>Pertanyaan untuk jurnalmu</span>
+              <span>{t.actionJournal}</span>
             </div>
             <p className="text-ink font-semibold italic text-base leading-relaxed">&ldquo;{action.prompt}&rdquo;</p>
             {action.suggestedTags && action.suggestedTags.length > 0 && (
@@ -440,7 +441,7 @@ export default function ChatPage() {
             )}
             <div className="pt-1">
               <Button href="/journal" size="sm" variant="primary" iconPosition="end" icon={<ArrowRight className="w-4 h-4" />}>
-                Tulis di jurnal
+                {t.writeJournal}
               </Button>
             </div>
           </div>
@@ -451,14 +452,12 @@ export default function ChatPage() {
           <div className="mt-2.5 p-3 rounded-md bg-white border-2 border-ink shadow-hard-sm text-base space-y-2">
             <div className="flex items-center gap-1.5 font-bold text-base text-ink leading-snug">
               <MessageSquare className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
-              <span>Cerita sesama: #{action.topicSlug}</span>
+              <span>{t.actionForum(action.topicSlug)}</span>
             </div>
-            <p className="text-[#59544D] text-base leading-relaxed">
-              Temukan cerita dan saling menyemangati dengan teman sebaya yang memahami situasi serupa.
-            </p>
+            <p className="text-[#59544D] text-base leading-relaxed">{t.actionForumBody}</p>
             <div className="pt-1">
               <Button href="/forum" size="sm" variant="primary" iconPosition="end" icon={<ArrowRight className="w-4 h-4" />}>
-                Buka Ruang Cerita
+                {t.openForum}
               </Button>
             </div>
           </div>
@@ -469,14 +468,12 @@ export default function ChatPage() {
           <div className="mt-2.5 p-3 rounded-md bg-[#FFEBEB] border-2 border-ink shadow-hard-sm text-base space-y-2">
             <div className="flex items-center gap-1.5 font-bold text-base text-[#B3261E] leading-snug">
               <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span>Daftar bantuan profesional ({action.category})</span>
+              <span>{t.actionHelp}</span>
             </div>
-            <p className="text-[#59544D] text-base leading-relaxed">
-              Akses daftar layanan konseling, hotline, dan pendampingan resmi yang telah dikurasi.
-            </p>
+            <p className="text-[#59544D] text-base leading-relaxed">{t.actionHelpBody}</p>
             <div className="pt-1">
               <Button href="/resources" size="sm" variant="primary" iconPosition="end" icon={<ArrowRight className="w-4 h-4" />}>
-                Lihat daftar bantuan
+                {t.openHelp}
               </Button>
             </div>
           </div>
@@ -487,7 +484,7 @@ export default function ChatPage() {
           <div className="mt-3 pt-3 border-t border-[#D8D3C9] text-base space-y-1.5">
             <div className="flex items-center gap-1.5 font-bold text-base text-ink leading-snug">
               <Sparkles className="w-4 h-4 text-cobalt shrink-0" aria-hidden="true" />
-              <span>Saran ritme: {action.recommendedPace}</span>
+              <span>{t.actionPace(t.pace[action.recommendedPace] ?? action.recommendedPace)}</span>
             </div>
             {action.reason && <p className="text-[#59544D] text-base leading-relaxed">{action.reason}</p>}
           </div>
@@ -511,16 +508,16 @@ export default function ChatPage() {
             size="sm"
             icon={<ArrowLeft className="w-4 h-4" />}
           >
-            Kembali ke beranda
+            {t.backHome}
           </Button>
 
           <span className="inline-flex items-center gap-1.5 text-sm font-bold px-2.5 py-1 bg-white border-2 border-ink rounded shadow-hard-sm text-ink">
             <ShieldCheck className="w-4 h-4 text-cobalt" aria-hidden="true" />
-            <span>Pemeriksa krisis aktif (tanpa AI)</span>
+            <span>{t.crisisCheckActive}</span>
           </span>
         </div>
 
-        <h1 className="sr-only">Teman Bicara Dengar.in</h1>
+        <h1 className="sr-only">{t.pageTitle}</h1>
 
         {/* Chat Container */}
         <div className="animate-reveal-up [animation-delay:80ms] flex flex-col h-[calc(100dvh-240px)] min-h-[520px] max-h-[680px] sm:h-[680px] bg-white border-2 border-ink rounded-lg shadow-hard overflow-hidden text-left">
@@ -533,14 +530,12 @@ export default function ChatPage() {
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-base font-bold text-ink tracking-[-0.01em] leading-tight">Teman Bicara</h2>
+                    <h2 className="text-base font-bold text-ink tracking-[-0.01em] leading-tight">{t.headerTitle}</h2>
                     <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded bg-lime text-ink border border-ink">
-                      Aktif
+                      {t.headerStatus}
                     </span>
                   </div>
-                  <p className="text-sm text-[#59544D] leading-snug">
-                    Dibantu AI, mendengarkan tanpa menghakimi
-                  </p>
+                  <p className="text-sm text-[#59544D] leading-snug">{t.headerSubtitle}</p>
                 </div>
               </div>
 
@@ -549,23 +544,23 @@ export default function ChatPage() {
                 className="shrink-0 min-h-[44px] text-sm font-bold text-white bg-[#D32F2F] hover:bg-[#B3261E] px-3 rounded border-2 border-ink shadow-hard-sm inline-flex items-center gap-1.5 transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
               >
                 <PhoneCall className="w-[18px] h-[18px]" aria-hidden="true" />
-                <span>Bantuan segera</span>
+                <span>{t.emergency}</span>
               </Link>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <Link href="/ruang-ngobrol" className="min-h-[44px] text-sm font-bold text-ink px-3 rounded border-2 border-ink bg-white inline-flex items-center gap-1.5 shadow-hard-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">
                 <Mic className="w-4 h-4" aria-hidden="true" />
-                <span>Ngobrol pakai suara</span>
+                <span>{t.voiceRoom}</span>
               </Link>
               {confirmReset ? (
-                <span className="inline-flex flex-wrap items-center gap-2 text-sm font-semibold text-ink" role="group" aria-label="Konfirmasi percakapan baru">
-                  <span>Hapus percakapan ini?</span>
+                <span className="inline-flex flex-wrap items-center gap-2 text-sm font-semibold text-ink" role="group" aria-label={t.confirmResetGroup}>
+                  <span>{t.confirmResetQuestion}</span>
                   <Button variant="crisis" size="sm" onClick={handleResetChat}>
-                    Ya, mulai baru
+                    {t.confirmResetYes}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setConfirmReset(false)}>
-                    Batal
+                    {t.cancel}
                   </Button>
                 </span>
               ) : (
@@ -575,14 +570,14 @@ export default function ChatPage() {
                   onClick={() => setConfirmReset(true)}
                   icon={<RotateCcw className="w-4 h-4" aria-hidden="true" />}
                 >
-                  Percakapan baru
+                  {t.newChat}
                 </Button>
               )}
             </div>
           </div>
 
           {/* Message History */}
-          <div ref={messagesContainerRef} onScroll={handleMessagesScroll} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5" role="log" aria-live="polite" aria-relevant="additions" aria-label="Riwayat percakapan">
+          <div ref={messagesContainerRef} onScroll={handleMessagesScroll} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5" role="log" aria-live="polite" aria-relevant="additions" aria-label={t.historyLabel}>
             {messages.map((msg, index) => (
               <div
                 key={msg.id}
@@ -596,7 +591,7 @@ export default function ChatPage() {
                         : 'bg-cobalt text-white'
                       }`}
                   >
-                    Dengar
+                    {t.assistantBadge}
                   </div>
                 )}
 
@@ -609,7 +604,9 @@ export default function ChatPage() {
                           : 'bg-paper text-ink'
                       }`}
                   >
-                    <div className="whitespace-pre-line">{msg.text}</div>
+                    <div className="whitespace-pre-line">
+                      {msg.isWelcome ? (msg.welcomeKind === 'again' ? t.welcomeAgain : t.welcome) : msg.text}
+                    </div>
 
                     {/* Action Cards (Missions, Journals, Forums, etc.) */}
                     {msg.action && renderActionCard(msg.action)}
@@ -622,26 +619,26 @@ export default function ChatPage() {
                       {msg.providerId === 'guardrail:domain-gate' ? (
                         <span className="text-xs font-bold text-[#2B51E6] bg-white px-1.5 py-0.5 rounded border border-ink inline-flex items-center gap-1">
                           <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
-                          Dijaga filter topik
+                          {t.badgeDomainGate}
                         </span>
                       ) : msg.debiased || msg.providerId?.includes('nemotron') ? (
                         <span className="text-xs font-bold text-ink bg-lime px-1.5 py-0.5 rounded border border-ink inline-flex items-center gap-1" title="Verified & Debiased">
                           <Zap className="w-3.5 h-3.5" aria-hidden="true" />
-                          Sudah diperiksa ulang
+                          {t.badgeDebiased}
                         </span>
                       ) : msg.tier === 'tertiary' || msg.providerId?.includes('gemini') ? (
                         <span className="text-xs font-bold text-white bg-cobalt px-1.5 py-0.5 rounded border border-ink inline-flex items-center gap-1">
                           <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-                          Jalur cadangan
+                          {t.badgeSecondary}
                         </span>
                       ) : msg.tier === 'primary' ? (
                         <span className="text-xs font-bold text-ink bg-yellow px-1.5 py-0.5 rounded border border-ink inline-flex items-center gap-1">
                           <Zap className="w-3.5 h-3.5" aria-hidden="true" />
-                          Jalur utama
+                          {t.badgePrimary}
                         </span>
                       ) : (
                         <span className="text-xs font-bold text-ink bg-paper px-1.5 py-0.5 rounded border border-ink">
-                          Jalur pengganti
+                          {t.badgeFallback}
                         </span>
                       )}
                     </div>
@@ -654,25 +651,25 @@ export default function ChatPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => speakingMessageId === msg.id ? stopSpeaking() : speakMessage(msg)}
-                        aria-label={speakingMessageId === msg.id ? 'Berhenti membacakan balasan' : 'Bacakan balasan ini dengan suara'}
+                        aria-label={speakingMessageId === msg.id ? t.stopReading : t.readAloud}
                         aria-pressed={speakingMessageId === msg.id}
                         icon={speakingMessageId === msg.id ? <Square className="w-4 h-4" aria-hidden="true" /> : <Volume2 className="w-4 h-4" aria-hidden="true" />}
                       >
-                        {speakingMessageId === msg.id ? 'Berhenti' : 'Bacakan'}
+                        {speakingMessageId === msg.id ? t.stop : t.read}
                       </Button>
                     </div>
                   )}
 
                   {msg.disclaimer && (
                     <p className="text-sm text-[#59544D] px-1 leading-snug">
-                      {msg.disclaimer}
+                      {common.disclaimer}
                     </p>
                   )}
                 </div>
 
                 {msg.sender === 'user' && (
                   <div className="px-2 py-1 rounded border-2 border-ink bg-ink text-white font-bold text-xs shadow-hard-sm shrink-0 mt-1" aria-hidden="true">
-                    Kamu
+                    {t.userBadge}
                   </div>
                 )}
               </div>
@@ -687,9 +684,9 @@ export default function ChatPage() {
             <div className="animate-reveal-up [animation-delay:160ms] px-4 py-3 bg-paper border-t-2 border-ink flex flex-wrap gap-2 items-center">
               <span className="text-sm text-ink font-bold mr-1 flex items-center gap-1 w-full sm:w-auto">
                 <Sparkles className="w-4 h-4 text-cobalt" aria-hidden="true" />
-                Bingung mulai dari mana? Ketuk salah satu:
+                {t.starterIntro}
               </span>
-              {STARTER_PROMPTS.map((prompt) => (
+              {t.starters.map((prompt) => (
                 <button
                   key={prompt}
                   type="button"
@@ -706,7 +703,7 @@ export default function ChatPage() {
           <form onSubmit={handleSendMessage} className="p-3 border-t-2 border-ink bg-paper space-y-2">
             {showVoiceDisclosure && (
               <div className="animate-reveal-up border-2 border-ink rounded-md bg-white p-3 text-base leading-relaxed shadow-hard-sm" role="status">
-                <p>{BROWSER_VOICE_PRIVACY_DISCLOSURE}</p>
+                <p>{browserVoicePrivacyDisclosure(lang)}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <Button
                     type="button"
@@ -714,7 +711,7 @@ export default function ChatPage() {
                     size="sm"
                     onClick={() => setShowVoiceDisclosure(false)}
                   >
-                    Batal
+                    {t.voiceDisclosureCancel}
                   </Button>
                   <Button
                     type="button"
@@ -726,7 +723,7 @@ export default function ChatPage() {
                       startListening();
                     }}
                   >
-                    Mulai bicara
+                    {t.voiceDisclosureStart}
                   </Button>
                 </div>
               </div>
@@ -735,7 +732,7 @@ export default function ChatPage() {
             <p className="sr-only" role="status" aria-live="polite">{voiceStatus}</p>
             {!speechRecognitionSupported && (
               <p className="text-sm text-[#59544D]" aria-live="polite">
-                Fitur bicara belum didukung oleh peramban ini. Kamu tetap bisa menulis pesan.
+                {t.voiceUnsupported}
               </p>
             )}
             {speechRecognitionSupported && voiceStatus && (
@@ -744,14 +741,15 @@ export default function ChatPage() {
               </p>
             )}
 
-            <label htmlFor="pesan-chat" className="block text-sm font-bold text-ink">Tulis pesanmu</label>
+            <label htmlFor="pesan-chat" className="block text-sm font-bold text-ink">{t.inputLabel}</label>
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 id="pesan-chat"
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Contoh: Hari ini aku capek banget..."
+                placeholder={t.inputPlaceholder}
+                lang={locale}
                 disabled={isTyping}
                 autoComplete="off"
                 className="min-h-[48px] flex-1 px-4 py-2.5 rounded-md border-2 border-ink text-base bg-white placeholder:text-[#6B665E] shadow-[2px_2px_0px_#151515] transition-shadow duration-200 ease-spring focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2 disabled:bg-[#D8D3C9]/40 disabled:cursor-not-allowed"
@@ -764,12 +762,12 @@ export default function ChatPage() {
                     size="sm"
                     onClick={isListening ? stopListening : requestListening}
                     disabled={isTyping}
-                    aria-label={isListening ? 'Berhenti mendengarkan' : 'Bicara menggunakan mikrofon'}
+                    aria-label={isListening ? t.micStop : t.micStart}
                     aria-pressed={isListening}
                     className="min-h-[48px] flex-1 sm:flex-none"
                     icon={isListening ? <Square className="w-4 h-4" aria-hidden="true" /> : <Mic className="w-4 h-4" aria-hidden="true" />}
                   >
-                    {isListening ? 'Berhenti' : 'Bicara'}
+                    {isListening ? t.micStopShort : t.micStartShort}
                   </Button>
                 )}
                 <Button
@@ -780,7 +778,7 @@ export default function ChatPage() {
                   icon={<Send className="w-4 h-4" />}
                   className="min-h-[48px] flex-1 sm:flex-none"
                 >
-                  Kirim
+                  {t.send}
                 </Button>
               </div>
             </div>

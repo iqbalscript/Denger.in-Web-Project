@@ -37,6 +37,8 @@ import type { AnonymousUserSession, DailyCheckin, JournalEntry, GamificationStat
 import { PageContainer, ContentColumn, Button, Badge, Textarea, Reveal } from '@/components/ui';
 import { useConsentGuard } from '@/lib/useConsentGuard';
 import { ConsentPending } from '@/components/ConsentPending';
+import { useLanguage, useText } from '@/i18n';
+import { recoveryText } from '@/i18n/pages/recovery';
 
 interface DecryptedBackupPayload {
   session: AnonymousUserSession;
@@ -48,6 +50,8 @@ interface DecryptedBackupPayload {
 
 export default function RecoveryPage() {
   const { ready } = useConsentGuard();
+  const t = useText(recoveryText);
+  const { locale } = useLanguage();
   const [session, setSession] = useState<AnonymousUserSession | null>(null);
   const [copied, setCopied] = useState(false);
   const [restoreInput, setRestoreInput] = useState('');
@@ -128,7 +132,7 @@ export default function RecoveryPage() {
       const encryptedBlob = await encryptSessionData(payload, backupSession.recoveryMnemonic);
       const { backupId, writeKey } = await deriveSyncCredentials(backupSession.recoveryMnemonic);
       const existing = await fetch(`/api/sync?backupId=${encodeURIComponent(backupId)}`, { cache: 'no-store' });
-      if (!existing.ok && existing.status !== 404) throw new Error('Gagal membaca versi cadangan.');
+      if (!existing.ok && existing.status !== 404) throw new Error(t.backupReadFailed);
       const expectedVersion = existing.ok ? (await existing.json()).data.record.version as number : 0;
       const writeProof = await signBackupUpdate(writeKey, backupId, expectedVersion, encryptedBlob);
 
@@ -143,7 +147,7 @@ export default function RecoveryPage() {
       });
 
       if (!res.ok) {
-        throw new Error('Gagal mengirim paket cadangan ke server.');
+        throw new Error(t.backupSendFailed);
       }
 
       if (backupSession !== session) {
@@ -157,13 +161,13 @@ export default function RecoveryPage() {
       setBackupNotice({
         type: 'success',
         message: backupSession !== session
-          ? 'Cadangan baru berhasil dibuat. Kunci pemulihan telah diperbarui; salin dan simpan 12 kelompok baru yang ditampilkan di atas.'
-          : 'Data sesi, check-in, dan jurnal berhasil dienkripsi dan dicadangkan ke cloud secara aman (hanya kamu yang bisa membukanya).'
+          ? t.backupSuccessNewKey
+          : t.backupSuccess
       });
     } catch (err: any) {
       setBackupNotice({
         type: 'error',
-        message: err?.message || 'Terjadi kesalahan saat mengenkripsi dan mencadangkan data.'
+        message: err?.message || t.backupError
       });
     } finally {
       setIsBackingUp(false);
@@ -178,7 +182,7 @@ export default function RecoveryPage() {
     if (parts.length !== 12) {
       setRestoreStatus({
         type: 'error',
-        message: 'Format kunci belum sesuai: harus 12 bagian, dipisahkan spasi.'
+        message: t.restoreFormat
       });
       return;
     }
@@ -194,7 +198,7 @@ export default function RecoveryPage() {
         : `mnemonicHash=${encodeURIComponent(await hashMnemonic(clean))}`;
       const res = await fetch(`/api/sync?${lookup}`, { cache: 'no-store' });
 
-      if (!res.ok && res.status !== 404) throw new Error('Gagal membaca cadangan cloud.');
+      if (!res.ok && res.status !== 404) throw new Error(t.restoreReadFailed);
 
       if (res.ok) {
         const data = await res.json();
@@ -231,7 +235,7 @@ export default function RecoveryPage() {
 
           setRestoreStatus({
             type: 'success',
-            message: 'Seluruh riwayat check-in, jurnal, dan sesi berhasil dibuka & dipulihkan dari cloud. Mengarahkan ke Beranda...'
+            message: t.restoreSuccess
           });
           setTimeout(() => {
             window.location.href = '/dashboard';
@@ -256,7 +260,7 @@ export default function RecoveryPage() {
       setSession(restoredSession);
       setRestoreStatus({
         type: 'warning',
-        message: 'Sesi dipulihkan secara lokal (tidak ditemukan cadangan cloud untuk kunci ini). Mengarahkan ke Beranda...'
+        message: t.restoreLocal
       });
       setTimeout(() => {
         window.location.href = '/dashboard';
@@ -264,7 +268,8 @@ export default function RecoveryPage() {
     } catch (err: any) {
       setRestoreStatus({
         type: 'error',
-        message: err?.message || 'Gagal memulihkan sesi. Pastikan kunci pemulihannya sesuai.'
+        // Pesan dari lapisan kripto berbahasa Indonesia; di EN pakai teks halaman.
+        message: (locale === 'id-ID' && err?.message) || t.restoreError
       });
     } finally {
       setIsRestoring(false);
@@ -296,7 +301,7 @@ export default function RecoveryPage() {
             size="sm"
             icon={<ArrowLeft className="w-4 h-4" />}
           >
-            Kembali ke beranda
+            {t.back}
           </Button>
         </div>
 
@@ -304,13 +309,13 @@ export default function RecoveryPage() {
         <div className="animate-reveal-up space-y-3">
           <Badge variant="cobalt" size="md">
             <Key className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
-            Cadangan dan pemulihan
+            {t.badge}
           </Badge>
           <h1 className="text-[2.25rem] sm:text-5xl font-bold text-[#151515] tracking-[-0.03em] leading-[1.05]">
-            Kunci akses sesi pribadimu
+            {t.title}
           </h1>
           <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed max-w-xl">
-            Dengar.in tidak menyimpan email atau nomor telepon. Simpan 12 bagian kunci ini untuk mencadangkan dan memulihkan seluruh progresmu secara mandiri.
+            {t.intro}
           </p>
         </div>
 
@@ -318,14 +323,14 @@ export default function RecoveryPage() {
         <div className="animate-reveal-up [animation-delay:100ms] p-6 sm:p-8 space-y-6 bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
             <h2 className="text-xl font-bold text-[#151515] tracking-[-0.01em]">
-              12 bagian kunci rahasia
+              {t.keyTitle}
             </h2>
             <span className="text-sm text-[#59544D] font-semibold flex items-center gap-1">
-              <Lock className="w-4 h-4 text-[#3357EE]" aria-hidden="true" /> Hanya kamu yang memegang kunci ini
+              <Lock className="w-4 h-4 text-[#3357EE]" aria-hidden="true" /> {t.keyOnlyYou}
             </span>
           </div>
 
-          <ol className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 sm:p-4 rounded-[4px] bg-[#FFF8EF]" aria-label="12 bagian kunci pemulihan">
+          <ol className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 sm:p-4 rounded-[4px] bg-[#FFF8EF]" aria-label={t.keyListAria}>
             {words.map((w: string, idx: number) => (
               <li
                 key={idx}
@@ -345,25 +350,25 @@ export default function RecoveryPage() {
               onClick={handleCopy}
               icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             >
-              {copied ? 'Tersalin' : 'Salin 12 bagian kunci'}
+              {copied ? t.copied : t.copy}
             </Button>
 
             <span className="text-base text-[#59544D] font-medium" role="status">
-              {copied ? 'Kunci sudah disalin. ' : ''}Jangan bagikan kata-kata ini kepada siapa pun.
+              {copied ? t.copiedNotice : ''}{t.doNotShare}
             </span>
           </div>
         </div>
 
         {/* 2. E2EE CLOUD BACKUP SECTION */}
-        <Reveal as="section" aria-label="Cadangan cloud terenkripsi" className="p-6 sm:p-7 space-y-5 bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
+        <Reveal as="section" aria-label={t.backupAria} className="p-6 sm:p-7 space-y-5 bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
               <h2 className="text-xl font-bold text-[#151515] tracking-[-0.01em] leading-[1.25] flex items-start gap-2">
                 <CloudUpload className="w-5 h-5 text-[#3357EE] shrink-0 mt-0.5" aria-hidden="true" />
-                <span>Cadangkan ke cloud (terenkripsi, hanya kamu yang bisa buka)</span>
+                <span>{t.backupTitle}</span>
               </h2>
               <p className="text-base text-[#59544D] leading-relaxed max-w-lg">
-                Data check-in dan jurnalmu dienkripsi menggunakan AES-GCM 256-bit langsung di peramban sebelum dikirim. Server tidak pernah memiliki kunci dekripsi.
+                {t.backupBody}
               </p>
             </div>
 
@@ -375,7 +380,7 @@ export default function RecoveryPage() {
               icon={<CloudUpload className="w-4 h-4" />}
               className="shrink-0"
             >
-              {isBackingUp ? 'Mengamankan...' : 'Cadangkan sekarang'}
+              {isBackingUp ? t.backupLoading : t.backupButton}
             </Button>
           </div>
 
@@ -396,20 +401,20 @@ export default function RecoveryPage() {
           {lastBackupTime && (
             <div className="text-base text-[#59544D] font-medium pt-3 border-t border-[#D8D3C9] flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-[#3357EE]" aria-hidden="true" />
-              <span className="tabular-nums">Terakhir dicadangkan: {new Date(lastBackupTime).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+              <span className="tabular-nums">{t.lastBackup} {new Date(lastBackupTime).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}</span>
             </div>
           )}
         </Reveal>
 
         {/* 3. RESTORE SESSION SECTION */}
-        <Reveal as="section" aria-label="Pulihkan sesi" className="p-6 sm:p-7 space-y-4 bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
+        <Reveal as="section" aria-label={t.restoreAria} className="p-6 sm:p-7 space-y-4 bg-white border-2 border-[#151515] rounded-[8px] shadow-[4px_4px_0px_#151515]">
           <div className="space-y-1">
             <h2 className="text-xl font-bold text-[#151515] tracking-[-0.01em] leading-[1.25] flex items-start gap-2">
               <CloudDownload className="w-5 h-5 text-[#3357EE] shrink-0 mt-0.5" aria-hidden="true" />
-              <span>Pulihkan sesi di perangkat baru</span>
+              <span>{t.restoreTitle}</span>
             </h2>
             <p id="petunjuk-pulihkan" className="text-base text-[#59544D] leading-relaxed">
-              Masukkan 12 bagian kunci (atau 12 kata lama) untuk membuka cadangan cloud.
+              {t.restoreHint}
             </p>
           </div>
 
@@ -418,8 +423,8 @@ export default function RecoveryPage() {
               value={restoreInput}
               onChange={(e) => setRestoreInput(e.target.value)}
               rows={2}
-              placeholder="Ketik 12 bagian kunci dipisahkan spasi"
-              aria-label="12 bagian kunci pemulihan"
+              placeholder={t.restorePlaceholder}
+              aria-label={t.restoreInputAria}
               aria-describedby="petunjuk-pulihkan"
               autoComplete="off"
               autoCapitalize="off"
@@ -456,7 +461,7 @@ export default function RecoveryPage() {
                 disabled={isRestoring || !restoreInput.trim()}
                 icon={<RefreshCw className={`w-4 h-4 ${isRestoring ? 'animate-spin' : ''}`} />}
               >
-                {isRestoring ? 'Sedang memulihkan...' : 'Pulihkan sesi'}
+                {isRestoring ? t.restoreLoading : t.restoreButton}
               </Button>
             </div>
           </form>
@@ -468,10 +473,10 @@ export default function RecoveryPage() {
             <div className="space-y-1.5">
               <h2 id="judul-hapus-data" className="text-lg font-bold text-[#151515] leading-[1.25] flex items-center gap-1.5">
                 <Trash2 className="w-5 h-5 text-[#B3261E]" aria-hidden="true" />
-                <span>Hapus semua data di perangkat ini</span>
+                <span>{t.wipeTitle}</span>
               </h2>
               <p className="text-base text-[#59544D] leading-relaxed">
-                Menghapus seluruh data anonim yang tersimpan di peramban ini: jurnal, riwayat check-in, refleksi misi, dan catatan cadangan. Cadangan cloud dan kunci yang sudah kamu salin tidak ikut terhapus.
+                {t.wipeBody}
               </p>
             </div>
             {!confirmWipe && (
@@ -483,24 +488,24 @@ export default function RecoveryPage() {
                 aria-expanded={confirmWipe}
                 aria-controls="konfirmasi-hapus"
               >
-                Hapus permanen
+                {t.wipeButton}
               </Button>
             )}
           </div>
           {confirmWipe && (
             <div id="konfirmasi-hapus" role="group" aria-labelledby="judul-konfirmasi-hapus" className="p-4 rounded-[6px] bg-[#FFEBEB] border-2 border-[#151515] space-y-3">
               <p id="judul-konfirmasi-hapus" className="text-lg font-bold text-[#151515] leading-snug">
-                Yakin ingin menghapus semua data di perangkat ini?
+                {t.wipeConfirmTitle}
               </p>
               <p className="text-base text-[#151515] leading-relaxed">
-                Tindakan ini tidak bisa dibatalkan. Setelah dihapus, kamu akan diarahkan ke halaman depan.
+                {t.wipeConfirmBody}
               </p>
               <div className="flex flex-col sm:flex-row gap-2.5">
                 <Button variant="crisis" size="md" onClick={handleWipe} icon={<Trash2 className="w-4 h-4" />}>
-                  Ya, hapus semua
+                  {t.wipeYes}
                 </Button>
                 <Button variant="outline" size="md" onClick={() => setConfirmWipe(false)}>
-                  Batal, jangan hapus
+                  {t.wipeNo}
                 </Button>
               </div>
             </div>

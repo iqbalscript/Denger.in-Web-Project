@@ -14,6 +14,8 @@ import { ClarificationStep } from '@/components/carePassport/ClarificationStep';
 import { ManualNote } from '@/components/carePassport/ManualNote';
 import { PassportReview } from '@/components/carePassport/PassportReview';
 import { MUTED, SectionCard, StepHeading, UrgentHelpLink } from '@/components/carePassport/shared';
+import { pickText, useLanguage, type Language } from '@/i18n';
+import { carePassportText } from '@/i18n/pages/carePassport';
 import { useConsentGuard } from '@/lib/useConsentGuard';
 import { ConsentPending } from '@/components/ConsentPending';
 import { CARE_PASSPORT_MAX_CLARIFICATION_ROUNDS } from '@/lib/carePassportLimits';
@@ -47,7 +49,7 @@ type Step =
 
 type ApiEnvelope = { ok: true; data: CarePassportResponse } | { ok: false; error?: string };
 
-const NETWORK_ERROR = 'Koneksi terputus atau server tidak menjawab. Ceritamu masih ada di sini; coba lagi sebentar lagi.';
+const networkError = (lang: Language) => pickText(carePassportText, lang).page.networkError;
 const MINOR_BRACKET: AgeBracket = '15-17';
 
 const DECLINED_RESULT: CarePassportResult = {
@@ -57,20 +59,22 @@ const DECLINED_RESULT: CarePassportResult = {
   warnings: ['ai_consent_declined'],
 };
 
-async function callApi(path: string, body: Record<string, unknown>): Promise<ApiEnvelope> {
+async function callApi(path: string, body: Record<string, unknown>, lang: Language): Promise<ApiEnvelope> {
   const response = await fetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
   const json = (await response.json().catch(() => null)) as ApiEnvelope | null;
-  if (!json) return { ok: false, error: NETWORK_ERROR };
+  if (!json) return { ok: false, error: networkError(lang) };
   return json;
 }
 
 export default function CarePassportPage() {
   // App-level consent first; the separate AI opt-in (aiConsent) still applies on top.
   const { ready, session } = useConsentGuard();
+  const { lang } = useLanguage();
+  const t = pickText(carePassportText, lang).page;
   const [step, setStep] = useState<Step>({ name: 'consent' });
   const [aiConsent, setAiConsent] = useState(false);
   const [text, setText] = useState('');
@@ -93,9 +97,9 @@ export default function CarePassportPage() {
     if (!ready) return;
     if (session?.ageBracket) setAgeBracket(session.ageBracket);
     if (session?.ageBracket === MINOR_BRACKET) setStep({ name: 'minor' });
-    setEntries(loadLocalEvidence());
+    setEntries(loadLocalEvidence({ lang }));
     setEvidenceLoaded(true);
-  }, [ready, session]);
+  }, [ready, session, lang]);
 
   const selected = useMemo(() => entries.filter((e) => selectedIds.has(e.id)), [entries, selectedIds]);
   const segments = useMemo(() => buildSegments({ story: text, selected, clarifications }), [text, selected, clarifications]);
@@ -163,9 +167,9 @@ export default function CarePassportPage() {
       setBusy(true);
       setError(null);
       try {
-        const res = await callApi('/api/care-passport/preview', { ...requestBase(segs), mode: 'preview' });
+        const res = await callApi('/api/care-passport/preview', { ...requestBase(segs), mode: 'preview' }, lang);
         if (!res.ok) {
-          setError(res.error ?? NETWORK_ERROR);
+          setError(res.error ?? networkError(lang));
           return null;
         }
         if (res.data.kind === 'result') {
@@ -178,13 +182,13 @@ export default function CarePassportPage() {
         setKept((prev) => new Set([...prev].filter((id) => stillValid.has(id))));
         return preview;
       } catch {
-        setError(NETWORK_ERROR);
+        setError(networkError(lang));
         return null;
       } finally {
         setBusy(false);
       }
     },
-    [requestBase, showResult]
+    [requestBase, showResult, lang]
   );
 
   const runGenerate = useCallback(
@@ -198,20 +202,20 @@ export default function CarePassportPage() {
           keepSoftPii: [...keptIds],
           aiConsent,
           mode: 'generate',
-        });
+        }, lang);
         if (!res.ok) {
-          setError(res.error ?? NETWORK_ERROR);
+          setError(res.error ?? networkError(lang));
           setStep(previous.name === 'loading' ? { name: 'intake' } : previous);
           return;
         }
         if (res.data.kind === 'result') showResult(res.data.result, segs, rounds);
         else setStep({ name: 'preview', segments: res.data.segments });
       } catch {
-        setError(NETWORK_ERROR);
+        setError(networkError(lang));
         setStep(previous.name === 'loading' ? { name: 'intake' } : previous);
       }
     },
-    [aiConsent, requestBase, showResult, step]
+    [aiConsent, requestBase, showResult, step, lang]
   );
 
   const handleIntakeSubmit = async () => {
@@ -272,22 +276,17 @@ export default function CarePassportPage() {
       content = (
         <div className="space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <StepHeading
-              step="Catatan Konsultasi"
-              title="Bagian ini untuk pengguna 18 tahun ke atas."
-              lede="Bagian lain Dengar.in tetap bisa kamu pakai. Kalau kamu butuh teman bicara sekarang, bantuan tersedia kapan saja."
-              animate={false}
-            />
+            <StepHeading step={t.minorStep} title={t.minorTitle} lede={t.minorLede} animate={false} />
             <UrgentHelpLink className="shrink-0" />
           </div>
           <SectionCard as="div" tone="paper" elevation="low" className="space-y-2">
             <p className={`text-base leading-relaxed ${MUTED}`}>
               <Link href="/resources" className="inline-flex items-center min-h-[44px] font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE]">
-                Lihat jalur bantuan
+                {t.seeHelp}
               </Link>{' '}
-              atau{' '}
+              {t.or}{' '}
               <Link href="/dashboard" className="inline-flex items-center min-h-[44px] font-bold text-[#151515] underline underline-offset-4 decoration-2 hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE]">
-                kembali ke beranda
+                {t.backHome}
               </Link>
               .
             </p>
@@ -356,7 +355,7 @@ export default function CarePassportPage() {
         content = (
           <ClarificationStep
             key={resultVersion}
-            question={result.clarificationQuestion ?? 'Boleh ceritakan sedikit lebih jelas, hal apa yang paling ingin kamu bicarakan saat konsultasi nanti?'}
+            question={result.clarificationQuestion ?? t.defaultClarification}
             provenance={result.provenance}
             remainingChars={budget.remaining}
             round={rounds + 1}

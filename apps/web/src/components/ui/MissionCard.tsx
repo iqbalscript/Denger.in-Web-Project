@@ -1,7 +1,11 @@
+'use client';
+
 import React from 'react';
 import { Badge } from './Chip';
 import { Button } from './Button';
 import { CheckCircle2, Clock, ArrowRight } from 'lucide-react';
+import { useText } from '@/i18n/store';
+import { uiText } from '@/i18n/pages/ui';
 
 export interface MissionCardProps {
   title: string;
@@ -28,8 +32,10 @@ export function MissionCard({
   onAction,
   className = '',
 }: MissionCardProps) {
+  const t = useText(uiText).missionCard;
   const isCompleted = status === 'completed';
   const isInProgress = status === 'in_progress';
+  const actionLabel = isCompleted ? t.review : isInProgress ? t.continue : t.start;
 
   return (
     <div
@@ -41,23 +47,23 @@ export function MissionCard({
             {category}
           </Badge>
           <Badge variant="sand" size="sm">
-            Kesulitan: {difficulty}
+            {t.difficulty}: {t.difficulties[difficulty]}
           </Badge>
         </div>
 
         {isCompleted ? (
           <span className="inline-flex items-center gap-1 text-sm font-bold text-[#151515] bg-[#B8F34A] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
             <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Selesai</span>
+            <span>{t.completed}</span>
           </span>
         ) : isInProgress ? (
           <span className="inline-flex items-center gap-1 text-sm font-bold text-[#151515] bg-[#FFD84D] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
             <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Sedang Berjalan</span>
+            <span>{t.inProgress}</span>
           </span>
         ) : (
           <span className="inline-flex items-center gap-1 text-sm font-bold text-[#151515] bg-[#FFF8EF] px-2.5 py-1 rounded-[4px] border-2 border-[#151515]">
-            <span>Rekomendasi</span>
+            <span>{t.recommended}</span>
           </span>
         )}
       </div>
@@ -71,11 +77,7 @@ export function MissionCard({
 
       <div className="mt-auto flex items-center justify-between gap-3 pt-4 border-t border-[#D8D3C9]">
         <div className="text-sm text-[#59544D] font-semibold tabular-nums">
-          {stepsCount > 0 && (
-            <span>
-              {completedStepsCount} / {stepsCount} langkah selesai
-            </span>
-          )}
+          {stepsCount > 0 && <span>{t.steps(completedStepsCount, stepsCount)}</span>}
         </div>
 
         {href ? (
@@ -85,7 +87,7 @@ export function MissionCard({
             size="sm"
             icon={isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
           >
-            {isCompleted ? 'Tinjau Kembali' : isInProgress ? 'Lanjutkan' : 'Mulai Langkah'}
+            {actionLabel}
           </Button>
         ) : onAction ? (
           <Button
@@ -94,7 +96,7 @@ export function MissionCard({
             onClick={onAction}
             icon={isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
           >
-            {isCompleted ? 'Tinjau Kembali' : isInProgress ? 'Lanjutkan' : 'Mulai Langkah'}
+            {actionLabel}
           </Button>
         ) : null}
       </div>

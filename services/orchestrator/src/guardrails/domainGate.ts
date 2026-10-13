@@ -34,7 +34,12 @@ export interface DomainGateResult {
   reason?: string;
 }
 
-export function evaluateDomainGate(message: string): DomainGateResult {
+const OUT_OF_DOMAIN_MESSAGE = {
+  id: 'Dengar.in hadir khusus sebagai ruang aman untuk menemani perasaan dan kesehatan mentalmu, bukan asisten pemrograman. Aku tidak bisa membuatkan kode, skrip, atau mengerjakan tugas koding. Tapi kalau pekerjaan atau tugas ini sedang membuatmu tertekan, cemas, atau lelah, aku siap mendengarkan dan menemanimu.',
+  en: 'Dengar.in is here as a safe space for your feelings and mental well-being, not as a coding assistant. I cannot write code, scripts, or do programming tasks. But if this work is making you feel stressed, anxious, or worn out, I am here to listen and keep you company.'
+} as const;
+
+export function evaluateDomainGate(message: string, lang: 'id' | 'en' = 'id'): DomainGateResult {
   const trimmed = message.trim();
   if (!trimmed) {
     return { isOutOfDomain: false };
@@ -54,8 +59,7 @@ export function evaluateDomainGate(message: string): DomainGateResult {
       reason: 'Permintaan pemrograman/teknis di luar domain kesehatan mental',
       action: {
         action: 'chat',
-        message:
-          'Dengar.in hadir khusus sebagai ruang aman pendampingan emosional dan kesejahteraan mental, bukan asisten pemrograman teknis. Aku tidak dapat membuatkan kode, skrip, atau menyelesaikan tugas koding. Namun, jika pekerjaan atau tugas ini sedang membuatmu merasa tertekan, cemas, atau lelah, aku siap mendengarkan dan menemanimu.',
+        message: OUT_OF_DOMAIN_MESSAGE[lang] ?? OUT_OF_DOMAIN_MESSAGE.id,
         disclaimer: CLINICAL_DISCLAIMER
       }
     };

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import type { AgeBracket, InterventionDomain } from '@dengarin/types';
 import type { ChatHistoryEntry, OrchestratorResult } from '@dengarin/orchestrator';
 import { getRedis, REDIS_PREFIX } from '../redis.ts';
+import type { Language } from '../../i18n/language.ts';
 
 /**
  * Cache hasil orkestrator AI di Redis.
@@ -32,6 +33,8 @@ interface AiCacheInput {
   history?: ChatHistoryEntry[];
   ageBracket?: AgeBracket;
   domain?: InterventionDomain;
+  /** Bahasa balasan; jawaban EN dan ID tidak boleh saling tertukar. */
+  lang?: Language;
 }
 
 /** Bagian OrchestratorResult yang aman dan berguna untuk disimpan ulang. */
@@ -52,7 +55,8 @@ export function aiCacheKey(input: AiCacheInput): string {
     normalize(input.message),
     history,
     input.ageBracket ?? '-',
-    input.domain ?? '-'
+    input.domain ?? '-',
+    input.lang ?? 'id'
   ].join('|');
 
   return `${REDIS_PREFIX}ai:${createHash('sha256').update(fingerprint).digest('hex')}`;

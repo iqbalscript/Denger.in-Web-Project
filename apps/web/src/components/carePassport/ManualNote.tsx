@@ -5,9 +5,10 @@ import { CheckSquare, Square, RotateCcw, ArrowLeft } from 'lucide-react';
 import type { CarePassport, CarePassportProvenance, EvidenceField } from '@dengarin/types';
 import { CARE_PASSPORT_DISCLAIMER } from '@dengarin/validator';
 import { Button } from '@/components/ui';
-import { EXPORT_SECTION_LABELS } from '@/lib/carePassportExport';
+import { useLanguage } from '@/i18n';
+import { exportSectionLabels } from '@/lib/carePassportExport';
 import { ExportActions } from './ExportActions';
-import { MUTED, ProvenanceTag, SectionCard, StepHeading, Tag, UrgentHelpLink, provenanceLabel } from './shared';
+import { MUTED, ProvenanceTag, SectionCard, StepHeading, Tag, UrgentHelpLink, provenanceLabel, usePassportText } from './shared';
 
 export type ManualNoteReason = 'declined' | 'unavailable';
 
@@ -22,15 +23,6 @@ export interface ManualNoteProps {
   /** Shown when a retry failed; the manual path stays usable regardless. */
   error?: string | null;
 }
-
-const FIELD_HELP: Record<keyof typeof EXPORT_SECTION_LABELS, string> = {
-  concerns: 'Satu hal per baris. Misalnya: susah tidur, cemas kalau mikirin kerjaan.',
-  dailyImpact: 'Apa yang berubah di keseharian: tidur, makan, fokus, hubungan.',
-  duration: 'Perkiraan saja cukup, misalnya "sekitar dua bulan".',
-  relevantContext: 'Hal lain yang menurutmu penting diketahui profesional.',
-  questionsForProfessional: 'Satu pertanyaan per baris.',
-  unknowns: '',
-};
 
 function linesToFields(text: string): EvidenceField[] {
   return text
@@ -48,6 +40,9 @@ const INPUT_CLASS =
  * writes every field; nothing here pretends an AI summary exists.
  */
 export function ManualNote({ reason, provenance, warnings, onRetry, onBack, busy = false, error = null }: ManualNoteProps) {
+  const t = usePassportText().manual;
+  const { lang } = useLanguage();
+  const labels = exportSectionLabels(lang);
   const [concerns, setConcerns] = useState('');
   const [impact, setImpact] = useState('');
   const [duration, setDuration] = useState('');
@@ -80,25 +75,19 @@ export function ManualNote({ reason, provenance, warnings, onRetry, onBack, busy
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <StepHeading
-          step={reason === 'declined' ? 'Tanpa AI' : 'AI tidak tersedia'}
-          title={reason === 'declined' ? 'Kamu menulis, kami menyiapkan kerangkanya.' : 'AI sedang tidak bisa dipakai. Kerangkanya tetap ada.'}
-          lede={
-            reason === 'declined'
-              ? 'Tidak ada yang dikirim ke AI. Isi bagian yang terasa relevan saja, sisanya boleh kosong.'
-              : noProvider
-                ? 'Layanan AI belum dikonfigurasi di server ini. Tidak ada draf yang dibuat, jadi tidak ada yang perlu dicurigai. Kamu bisa mengisi kerangka ini sendiri.'
-                : 'Permintaan ke AI gagal, dan kami tidak mau mengarang ringkasan. Kamu bisa coba lagi, atau isi kerangka ini sendiri sekarang.'
-          }
+          step={reason === 'declined' ? t.stepDeclined : t.stepUnavailable}
+          title={reason === 'declined' ? t.titleDeclined : t.titleUnavailable}
+          lede={reason === 'declined' ? t.ledeDeclined : noProvider ? t.ledeNoProvider : t.ledeFailed}
         />
         <UrgentHelpLink className="shrink-0" />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <ProvenanceTag provenance={provenance} />
-        {reason === 'unavailable' && <Tag tone="yellow">Tidak ada draf AI</Tag>}
+        {reason === 'unavailable' && <Tag tone="yellow">{t.noDraft}</Tag>}
         {onRetry && (
           <Button variant="outline" size="sm" onClick={onRetry} isLoading={busy} icon={<RotateCcw className="w-3.5 h-3.5" />}>
-            Coba AI lagi
+            {t.retry}
           </Button>
         )}
       </div>
@@ -111,11 +100,11 @@ export function ManualNote({ reason, provenance, warnings, onRetry, onBack, busy
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         <div className="lg:col-span-8 space-y-5 animate-reveal-up [animation-delay:120ms]">
           <SectionCard as="div" className="space-y-5">
-            <Field id="manual-concerns" label={EXPORT_SECTION_LABELS.concerns} help={FIELD_HELP.concerns} value={concerns} onChange={setConcerns} rows={3} />
-            <Field id="manual-impact" label={EXPORT_SECTION_LABELS.dailyImpact} help={FIELD_HELP.dailyImpact} value={impact} onChange={setImpact} rows={3} />
-            <Field id="manual-duration" label={EXPORT_SECTION_LABELS.duration} help={FIELD_HELP.duration} value={duration} onChange={setDuration} rows={1} />
-            <Field id="manual-context" label={EXPORT_SECTION_LABELS.relevantContext} help={FIELD_HELP.relevantContext} value={context} onChange={setContext} rows={3} />
-            <Field id="manual-questions" label={EXPORT_SECTION_LABELS.questionsForProfessional} help={FIELD_HELP.questionsForProfessional} value={questions} onChange={setQuestions} rows={3} />
+            <Field id="manual-concerns" label={labels.concerns} help={t.fieldHelp.concerns} value={concerns} onChange={setConcerns} rows={3} />
+            <Field id="manual-impact" label={labels.dailyImpact} help={t.fieldHelp.dailyImpact} value={impact} onChange={setImpact} rows={3} />
+            <Field id="manual-duration" label={labels.duration} help={t.fieldHelp.duration} value={duration} onChange={setDuration} rows={1} />
+            <Field id="manual-context" label={labels.relevantContext} help={t.fieldHelp.relevantContext} value={context} onChange={setContext} rows={3} />
+            <Field id="manual-questions" label={labels.questionsForProfessional} help={t.fieldHelp.questionsForProfessional} value={questions} onChange={setQuestions} rows={3} />
           </SectionCard>
 
           <button
@@ -133,21 +122,19 @@ export function ManualNote({ reason, provenance, warnings, onRetry, onBack, busy
             ) : (
               <Square className="w-5 h-5 text-[#6B665E] shrink-0 mt-0.5" aria-hidden="true" />
             )}
-            <span className="text-base text-[#151515] leading-snug font-medium">
-              Saya sudah membaca ulang catatan ini dan isinya benar menurut saya.
-            </span>
+            <span className="text-base text-[#151515] leading-snug font-medium">{t.reviewed}</span>
           </button>
 
-          <ExportActions passport={passport} provenanceLabel={provenanceLabel(provenance)} />
+          <ExportActions passport={passport} provenanceLabel={provenanceLabel(provenance, lang)} />
         </div>
 
         <aside className="lg:col-span-4 space-y-4 animate-reveal-up [animation-delay:200ms]">
           <SectionCard as="div" tone="paper" elevation="low" className="space-y-2">
-            <h2 className="text-base font-bold text-[#151515]">Catatan penting</h2>
-            <p className={`text-base leading-relaxed ${MUTED}`}>{CARE_PASSPORT_DISCLAIMER}</p>
+            <h2 className="text-base font-bold text-[#151515]">{t.importantTitle}</h2>
+            <p className={`text-base leading-relaxed ${MUTED}`} lang="id">{CARE_PASSPORT_DISCLAIMER}</p>
           </SectionCard>
           <Button variant="outline" size="md" onClick={onBack} icon={<ArrowLeft className="w-4 h-4" />} fullWidth>
-            Kembali ke awal
+            {t.back}
           </Button>
         </aside>
       </div>

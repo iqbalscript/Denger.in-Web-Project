@@ -13,7 +13,7 @@ import {
   getSpeechRecognitionConstructor,
   isSpeechRecognitionSupported,
   isSpeechSynthesisSupported,
-  selectIndonesianVoice,
+  selectVoiceForLanguage,
   speakExpressively,
   speechRecognitionErrorMessage,
   type BrowserSpeechRecognition,
@@ -26,24 +26,24 @@ import {
   screenVoiceRoomFinalTranscript,
   shouldResumeVoiceRoomListening,
   validatedActionDisplayText,
-  VOICE_ROOM_PRIVACY_DISCLOSURE,
+  // Teks pengungkapan privasi: VOICE_ROOM_PRIVACY_DISCLOSURE (ID) atau versi EN,
+  // dipilih lewat voiceRoomPrivacyDisclosure(lang) dengan makna yang sama.
+  voiceRoomPrivacyDisclosure,
   voiceRoomHistory,
   type VoiceRoomCaption,
   type VoiceRoomState,
 } from '@/lib/voiceRoom';
 import { Button, ContentColumn, PageContainer } from '@/components/ui';
+import { LOCALE_TAG, useLanguage, useText, type Language } from '@/i18n';
+import { ruangNgobrolText, type RuangNgobrolStatusKey } from '@/i18n/pages/ruangNgobrol';
 
 type TimeoutHandle = ReturnType<typeof setTimeout>;
 
-const STATE_LABELS: Record<VoiceRoomState, string> = {
-  IDLE: 'Siap ngobrol',
-  LISTENING: 'Sedang mendengarkan...',
-  PROCESSING: 'Sedang berpikir...',
-  SPEAKING: 'Dengar.in sedang bicara...',
-  ERROR: 'Ada kendala',
-  CRISIS: 'Bantuan darurat',
-  ENDED: 'Selesai',
-};
+/**
+ * Pesan status disimpan sebagai kunci kamus supaya ikut berganti saat bahasa
+ * diganti; pesan dari browser/server disimpan sebagai teks apa adanya.
+ */
+type RoomStatus = { key: RuangNgobrolStatusKey } | { text: string };
 
 const MAX_ROOM_AUDIO_BYTES = 1_500_000;
 const MAX_ROOM_AUDIO_BASE64_CHARS = Math.ceil(MAX_ROOM_AUDIO_BYTES / 3) * 4;
@@ -82,9 +82,11 @@ function decodeRoomWav(base64: string): Uint8Array | null {
  */
 export default function RuangNgobrolPage() {
   const { ready, session } = useConsentGuard();
+  const { lang } = useLanguage();
+  const t = useText(ruangNgobrolText);
   const [roomState, setRoomState] = useState<VoiceRoomState>('IDLE');
   const [captions, setCaptions] = useState<VoiceRoomCaption[]>([]);
-  const [statusMessage, setStatusMessage] = useState('Tekan tombol "Mulai ngobrol" saat kamu siap.');
+  const [status, setStatus] = useState<RoomStatus>({ key: 'initial' });
   const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(false);
   const [speechSynthesisSupported, setSpeechSynthesisSupported] = useState(false);
   const [showPrivacyDisclosure, setShowPrivacyDisclosure] = useState(false);
@@ -110,6 +112,16 @@ export default function RuangNgobrolPage() {
   const sessionStartedAtRef = useRef<number | null>(null);
   const lastSafeTurnRef = useRef<string | null>(null);
   const startListeningRef = useRef<() => void>(() => undefined);
+  // Bahasa dibaca lewat ref di dalam callback agar rantai useCallback tidak berubah tiap ganti bahasa.
+  const langRef = useRef<Language>(lang);
+  langRef.current = lang;
+
+  const setStatusKey = useCallback((key: RuangNgobrolStatusKey) => {
+    if (mountedRef.current) setStatus({ key });
+  }, []);
+  const setStatusText = useCallback((text: string) => {
+    if (mountedRef.current) setStatus({ text });
+  }, []);
 
   const transitionTo = useCallback((next: VoiceRoomState) => {
     if (!canTransitionVoiceRoom(stateRef.current, next)) return false;
@@ -201,7 +213,7 @@ export default function RuangNgobrolPage() {
     if (typeof window === 'undefined' || generation !== generationRef.current || !sessionActiveRef.current) return;
     if (!isSpeechSynthesisSupported(window)) {
       setMuted(true);
-      setStatusMessage('Balasan sudah tampil sebagai teks. Tekan "Lanjut mendengarkan" untuk melanjutkan tanpa suara.');
+      setStatusKey('textOnly');
       transitionTo('IDLE');
       return;
     }
@@ -227,18 +239,21 @@ export default function RuangNgobrolPage() {
     const handleError = () => {
       if (speechGeneration !== speechGenerationRef.current || generation !== generationRef.current) return;
       setMuted(true);
-      setStatusMessage('Respons aman tetap tersedia sebagai teks. Suara browser tidak dapat diputar; kamu dapat melanjutkan mendengarkan secara manual.');
+      setStatusKey('speechFailed');
       transitionTo('IDLE');
     };
 
     if (!transitionTo('SPEAKING')) return;
-    // Cadangan suara browser: per kalimat dengan intonasi yang mengikuti isi.
+    // Cadangan suara browser: per kalimat dengan intonasi yang mengikuti isi,
+    // memakai suara dan bahasa sesuai pilihan antarmuka.
+    const speechLang = langRef.current;
     speakExpressively(window.speechSynthesis, window.SpeechSynthesisUtterance, text, {
-      voice: selectIndonesianVoice(window.speechSynthesis.getVoices()),
+      lang: LOCALE_TAG[speechLang],
+      voice: selectVoiceForLanguage(window.speechSynthesis.getVoices(), speechLang),
       onend: handleEnd,
       onerror: handleError,
     });
-  }, [setMuted, stopRecognition, stopRoomAudio, transitionTo]);
+  }, [setMuted, setStatusKey, stopRecognition, stopRoomAudio, transitionTo]);
 
   const playGeminiAudio = useCallback((payload: RoomAudioPayload, displayText: string, generation: number) => {
     if (typeof window === 'undefined' || payload.mimeType !== 'audio/wav') {
@@ -304,7 +319,7 @@ export default function RuangNgobrolPage() {
     const transcript = screening.transcript;
     if (!transcript || !sessionActiveRef.current || generation !== generationRef.current || processingRef.current) return;
     if (sessionHasExpired()) {
-      setStatusMessage('Ruang ngobrol ini sudah selesai. Kamu dapat memulai ruang baru saat siap.');
+      setStatusKey('expired');
       endRoom();
       return;
     }
@@ -339,6 +354,8 @@ export default function RuangNgobrolPage() {
           history,
           ageBracket: session?.ageBracket,
           domain: session?.primaryDomain,
+          // Bahasa antarmuka: AI menjawab dalam bahasa ini; gerbang krisis tidak berubah.
+          lang: langRef.current,
           // Opt out of the shared response cache: room captions remain memory-only.
           noStore: true,
           // This only requests the post-validation room enhancement. It cannot
@@ -358,14 +375,18 @@ export default function RuangNgobrolPage() {
       if (pathway && mountedRef.current) setSupportPathway(pathway);
 
       if (!response.ok) {
-        setStatusMessage(json?.error || 'Respons belum dapat diproses. Coba lagi atau buka chat teks.');
+        // Pesan sendiri per status HTTP; teks galat server hanya sebagai cadangan.
+        if (response.status === 429) setStatusKey('busy');
+        else if (response.status === 400 || response.status === 413) setStatusKey('invalid');
+        else if (typeof json?.error === 'string' && json.error.trim()) setStatusText(json.error);
+        else setStatusKey('responseFailed');
         transitionTo('ERROR');
         return;
       }
 
-      const displayText = validatedActionDisplayText(json?.data?.action);
+      const displayText = validatedActionDisplayText(json?.data?.action, langRef.current);
       if (!json?.ok || !displayText) {
-        setStatusMessage('Respons belum dapat diproses dengan aman. Coba lagi atau buka chat teks.');
+        setStatusKey('responseUnsafe');
         transitionTo('ERROR');
         return;
       }
@@ -379,7 +400,7 @@ export default function RuangNgobrolPage() {
       }
     } catch {
       if (controller.signal.aborted || generation !== generationRef.current || !sessionActiveRef.current) return;
-      setStatusMessage('Koneksi sedang bermasalah. Coba lagi saat kamu siap atau gunakan chat teks.');
+      setStatusKey('connectionFailed');
       transitionTo('ERROR');
     } finally {
       if (generation === generationRef.current) {
@@ -387,18 +408,18 @@ export default function RuangNgobrolPage() {
         requestAbortRef.current = null;
       }
     }
-  }, [appendCaption, endRoom, playGeminiAudio, routeToCrisis, session?.ageBracket, session?.primaryDomain, session?.userId, sessionHasExpired, speakValidatedResponse, stopRecognition, transitionTo]);
+  }, [appendCaption, endRoom, playGeminiAudio, routeToCrisis, session?.ageBracket, session?.primaryDomain, session?.userId, sessionHasExpired, setStatusKey, setStatusText, speakValidatedResponse, stopRecognition, transitionTo]);
 
   const startListening = useCallback(() => {
     if (typeof window === 'undefined' || !sessionActiveRef.current || mutedRef.current || processingRef.current) return;
     if (sessionHasExpired()) {
-      setStatusMessage('Ruang ngobrol ini sudah selesai. Kamu dapat memulai ruang baru saat siap.');
+      setStatusKey('expired');
       endRoom();
       return;
     }
     const Recognition = getSpeechRecognitionConstructor(window);
     if (!Recognition) {
-      setStatusMessage('Browser ini belum mendukung pengenalan suara. Kamu tetap bisa menggunakan chat teks.');
+      setStatusKey('unsupported');
       transitionTo('ERROR');
       return;
     }
@@ -408,7 +429,7 @@ export default function RuangNgobrolPage() {
     stopRecognition(true);
     const generation = generationRef.current;
     const recognition = new Recognition();
-    recognition.lang = 'id-ID';
+    recognition.lang = LOCALE_TAG[langRef.current];
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
@@ -423,7 +444,7 @@ export default function RuangNgobrolPage() {
       if (generation !== generationRef.current || !sessionActiveRef.current || stateRef.current !== 'LISTENING') return;
       recognitionRef.current = null;
       processingRef.current = false;
-      setStatusMessage(speechRecognitionErrorMessage(event.error));
+      setStatusText(speechRecognitionErrorMessage(event.error, langRef.current));
       transitionTo('ERROR');
     };
     recognition.onend = () => {
@@ -433,13 +454,13 @@ export default function RuangNgobrolPage() {
     if (!transitionTo('LISTENING')) return;
     try {
       recognition.start();
-      setStatusMessage('Aku lagi dengerin. Kamu bisa bicara pelan-pelan.');
+      setStatusKey('listening');
     } catch {
       recognitionRef.current = null;
-      setStatusMessage('Pengenalan suara belum dapat dimulai. Coba lagi saat kamu siap.');
+      setStatusKey('startFailed');
       transitionTo('ERROR');
     }
-  }, [endRoom, sessionHasExpired, stopRecognition, stopRoomAudio, submitFinalTurn, transitionTo]);
+  }, [endRoom, sessionHasExpired, setStatusKey, setStatusText, stopRecognition, stopRoomAudio, submitFinalTurn, transitionTo]);
 
   useEffect(() => {
     startListeningRef.current = startListening;
@@ -447,7 +468,7 @@ export default function RuangNgobrolPage() {
 
   const activateSession = useCallback(() => {
     if (typeof window === 'undefined' || !isSpeechRecognitionSupported(window)) {
-      setStatusMessage('Browser ini belum mendukung pengenalan suara. Kamu tetap bisa menggunakan chat teks.');
+      setStatusKey('unsupported');
       transitionTo('ERROR');
       return;
     }
@@ -462,17 +483,17 @@ export default function RuangNgobrolPage() {
     const generation = generationRef.current;
     warningTimerRef.current = setTimeout(() => {
       if (sessionActiveRef.current && generation === generationRef.current) {
-        setStatusMessage('Sebentar lagi ruang ngobrol ini selesai.');
+        setStatusKey('expiringSoon');
       }
     }, VOICE_ROOM_MAX_SESSION_MS - VOICE_ROOM_EXPIRY_WARNING_MS);
     expiryTimerRef.current = setTimeout(() => {
       if (sessionActiveRef.current && generation === generationRef.current) {
-        setStatusMessage('Ruang ngobrol ini sudah selesai. Kamu dapat memulai ruang baru saat siap.');
+        setStatusKey('expired');
         endRoom();
       }
     }, VOICE_ROOM_MAX_SESSION_MS);
     startListeningRef.current();
-  }, [clearCaptions, endRoom, setMuted, transitionTo]);
+  }, [clearCaptions, endRoom, setMuted, setStatusKey, transitionTo]);
 
   const handleStart = useCallback(() => {
     if (!hasAcknowledgedDisclosure) {
@@ -486,8 +507,8 @@ export default function RuangNgobrolPage() {
     setMuted(true);
     stopRecognition(true);
     if (stateRef.current === 'LISTENING') transitionTo('IDLE');
-    setStatusMessage('Mikrofon dijeda. Tekan "Lanjut mendengarkan" saat kamu siap.');
-  }, [setMuted, stopRecognition, transitionTo]);
+    setStatusKey('muted');
+  }, [setMuted, setStatusKey, stopRecognition, transitionTo]);
 
   const handleResume = useCallback(() => {
     if (!sessionActiveRef.current) {
@@ -527,34 +548,36 @@ export default function RuangNgobrolPage() {
 
   if (!ready) return <ConsentPending />;
 
+  const statusMessage = 'key' in status ? t.status[status.key] : status.text;
+
   return (
     <div className="bg-[#FFF8EF] text-[#151515]">
       <PageContainer size="narrow">
         <ContentColumn size="sm" className="space-y-6">
           <header className="animate-reveal-up space-y-3">
             <Link href="/dashboard" className="inline-flex min-h-[44px] items-center text-base font-bold underline underline-offset-4 decoration-2 transition-colors duration-200 ease-spring hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2">
-              ← Kembali ke beranda
+              {t.back}
             </Link>
-            <p className="text-sm font-bold text-[#2B51E6]">Ruang Ngobrol (pakai suara)</p>
-            <h1 className="text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] sm:text-4xl">Gak perlu nyusun kata-kata dengan sempurna.</h1>
-            <p className="text-lg leading-[1.5] text-[#4A453E]">Cerita aja pelan-pelan. Kamu tetap memegang kendali untuk mulai, jeda, atau selesai.</p>
+            <p className="text-sm font-bold text-[#2B51E6]">{t.eyebrow}</p>
+            <h1 className="text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] sm:text-4xl">{t.title}</h1>
+            <p className="text-lg leading-[1.5] text-[#4A453E]">{t.lede}</p>
           </header>
 
           <section className="animate-reveal-up [animation-delay:100ms] rounded-[8px] border-2 border-[#151515] bg-white p-5 shadow-[4px_4px_0px_#151515] sm:p-7" aria-labelledby="room-state">
-            <p id="room-state" className="inline-block rounded-[4px] bg-[#3357EE] px-2.5 py-1 text-sm font-bold text-white" aria-live="polite">Status: {STATE_LABELS[roomState]}</p>
+            <p id="room-state" className="inline-block rounded-[4px] bg-[#3357EE] px-2.5 py-1 text-sm font-bold text-white" aria-live="polite">{t.statusLabel} {t.state[roomState]}</p>
             <p className="mt-4 text-base leading-relaxed" aria-live="polite">{statusMessage}</p>
 
             {!speechRecognitionSupported && (
               <p className="mt-4 border-l-4 border-[#FFD84D] bg-[#FFF8EF] p-3 text-base leading-relaxed" role="status">
-                Pengenalan suara belum tersedia di browser ini. Chat teks tetap bisa digunakan.
+                {t.unsupportedNote}
               </p>
             )}
 
             {showPrivacyDisclosure && (
-              <div className="animate-reveal-up mt-5 rounded-[6px] border-2 border-[#151515] bg-[#FFF8EF] p-4" role="region" aria-label="Privasi fitur suara">
-                <p className="text-base leading-relaxed">{VOICE_ROOM_PRIVACY_DISCLOSURE}</p>
+              <div className="animate-reveal-up mt-5 rounded-[6px] border-2 border-[#151515] bg-[#FFF8EF] p-4" role="region" aria-label={t.privacyRegion}>
+                <p className="text-base leading-relaxed">{voiceRoomPrivacyDisclosure(lang)}</p>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <Button variant="secondary" onClick={() => setShowPrivacyDisclosure(false)}>Batal</Button>
+                  <Button variant="secondary" onClick={() => setShowPrivacyDisclosure(false)}>{t.cancel}</Button>
                   <Button
                     variant="lime"
                     onClick={() => {
@@ -564,7 +587,7 @@ export default function RuangNgobrolPage() {
                     }}
                     icon={<Mic size={18} aria-hidden="true" />}
                   >
-                    Setuju, lanjutkan
+                    {t.agree}
                   </Button>
                 </div>
               </div>
@@ -579,33 +602,33 @@ export default function RuangNgobrolPage() {
                   disabled={!speechRecognitionSupported}
                   icon={<Mic size={20} aria-hidden="true" />}
                 >
-                  Mulai ngobrol
+                  {t.start}
                 </Button>
               )}
               {showMute && (
                 <Button variant="secondary" onClick={handleMute} icon={<Volume2 size={18} aria-hidden="true" />}>
-                  Jeda mikrofon
+                  {t.mute}
                 </Button>
               )}
               {showResume && (
                 <Button variant="secondary" onClick={handleResume} icon={<Mic size={18} aria-hidden="true" />}>
-                  Lanjut mendengarkan
+                  {t.resume}
                 </Button>
               )}
               {roomState === 'ERROR' && (
                 <Button variant="secondary" onClick={handleRetry} icon={<RotateCcw size={18} aria-hidden="true" />}>
-                  Coba lagi
+                  {t.retry}
                 </Button>
               )}
               {isActive && (
                 <Button variant="outline" onClick={() => endRoom()} icon={<Square size={17} aria-hidden="true" />}>
-                  Selesai
+                  {t.end}
                 </Button>
               )}
             </div>
 
             {!speechSynthesisSupported && speechRecognitionSupported && (
-              <p className="mt-4 text-base leading-relaxed text-[#59544D]">Peramban ini akan menampilkan balasan sebagai teks; suara balasan tidak tersedia.</p>
+              <p className="mt-4 text-base leading-relaxed text-[#59544D]">{t.noSynthesis}</p>
             )}
           </section>
 
@@ -613,20 +636,20 @@ export default function RuangNgobrolPage() {
           {supportPathway && <SupportPathwayCard pathway={supportPathway} />}
 
           {captions.length > 0 && (
-            <section className="space-y-3" aria-label="Caption percakapan" aria-live="polite">
+            <section className="space-y-3" aria-label={t.captionsRegion} aria-live="polite">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-xl font-bold tracking-[-0.01em]">Percakapan saat ini</h2>
+                <h2 className="text-xl font-bold tracking-[-0.01em]">{t.captionsTitle}</h2>
                 <button
                   type="button"
                   onClick={clearCaptions}
                   className="min-h-[44px] text-base font-bold underline underline-offset-4 decoration-2 transition-colors duration-200 ease-spring hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2"
                 >
-                  Bersihkan tampilan
+                  {t.clearCaptions}
                 </button>
               </div>
               {captions.map((caption) => (
                 <article key={caption.id} className={`animate-reveal-up ${caption.sender === 'user' ? 'border-l-4 border-[#D8D3C9] py-1 pl-4' : 'rounded-[6px] border-2 border-[#151515] bg-white p-4 shadow-[2px_2px_0px_#151515]'}`}>
-                  <p className={`text-sm font-bold ${caption.sender === 'user' ? 'text-[#59544D]' : 'text-[#2B51E6]'}`}>{caption.sender === 'user' ? 'Kamu' : 'Dengar.in'}</p>
+                  <p className={`text-sm font-bold ${caption.sender === 'user' ? 'text-[#59544D]' : 'text-[#2B51E6]'}`}>{caption.sender === 'user' ? t.you : t.assistant}</p>
                   <p className="mt-2 whitespace-pre-wrap text-base leading-[1.6]">{caption.text}</p>
                 </article>
               ))}
@@ -636,9 +659,9 @@ export default function RuangNgobrolPage() {
           <section className="animate-reveal-up [animation-delay:200ms] border-t border-[#D8D3C9] pt-5">
             <Link href="/chat" className="inline-flex min-h-[44px] items-center gap-2 text-base font-bold underline underline-offset-4 decoration-2 transition-colors duration-200 ease-spring hover:text-[#3357EE] rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2">
               <MessageSquare size={18} aria-hidden="true" />
-              Lebih nyaman ngetik? Buka chat teks.
+              {t.preferTyping}
             </Link>
-            <p className="mt-3 text-base leading-relaxed text-[#59544D]">Ruang ini berhenti otomatis setelah 10 menit. Tidak ada poin, Langkah, atau pencapaian dari percakapan suara.</p>
+            <p className="mt-3 text-base leading-relaxed text-[#59544D]">{t.footnote}</p>
           </section>
         </ContentColumn>
       </PageContainer>

@@ -7,6 +7,8 @@ import {
   CARE_PASSPORT_MAX_SEGMENTS,
   CARE_PASSPORT_MAX_TOTAL_TEXT,
 } from './carePassportLimits.ts';
+import type { Language } from '../i18n/language.ts';
+import { carePassportText } from '../i18n/pages/carePassport.ts';
 
 /**
  * F-A "BUKTI BERTANGGAL": CLIENT-SIDE EVIDENCE
@@ -54,6 +56,12 @@ export const MOOD_LABELS: Record<MoodScore, string> = {
   kewalahan: 'kewalahan',
 };
 
+/** Mood words for the picker label in the interface language (the wire text stays Indonesian). */
+function moodLabel(mood: MoodScore, lang: Language): string {
+  const moods = carePassportText[lang].evidence.moods as Record<string, string | undefined>;
+  return moods[mood] ?? MOOD_LABELS[mood] ?? String(mood).replace(/_/g, ' ');
+}
+
 function tidy(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
@@ -62,7 +70,8 @@ function tidy(text: string): string {
  * A check-in becomes one plain sentence in the user's own register. The
  * calendar date is deliberately NOT written into the text: it travels as the
  * segment's `date` (and the prompt header), so the model cannot turn a
- * timestamp into a "duration" fact.
+ * timestamp into a "duration" fact. The sentence is always Indonesian: it is
+ * sent to the Indonesian-only passport pipeline, whatever the UI language.
  */
 export function checkinToText(checkin: DailyCheckin): string {
   const mood = MOOD_LABELS[checkin.mood] ?? String(checkin.mood).replace(/_/g, ' ');
@@ -84,7 +93,7 @@ export function journalToText(entry: JournalEntry): string {
 export function excerpt(text: string, length = PREVIEW_LENGTH): string {
   const flat = tidy(text);
   if (flat.length <= length) return flat;
-  return `${flat.slice(0, length - 1).trimEnd()}…`;
+  return `${flat.slice(0, length - 1).trimEnd()}\u2026`;
 }
 
 export interface EvidenceSources {
@@ -95,6 +104,8 @@ export interface EvidenceSources {
 export interface EvidenceWindowOptions {
   now?: Date;
   windowDays?: number;
+  /** Interface language for the picker labels only; defaults to Indonesian. */
+  lang?: Language;
 }
 
 function withinWindow(timestamp: string, now: Date, windowDays: number): boolean {
@@ -111,6 +122,8 @@ function withinWindow(timestamp: string, now: Date, windowDays: number): boolean
 export function buildEvidenceEntries(sources: EvidenceSources, options: EvidenceWindowOptions = {}): LocalEvidenceEntry[] {
   const now = options.now ?? new Date();
   const windowDays = options.windowDays ?? CARE_PASSPORT_EVIDENCE_WINDOW_DAYS;
+  const lang = options.lang ?? 'id';
+  const labels = carePassportText[lang].evidence;
   const entries: LocalEvidenceEntry[] = [];
 
   for (const journal of sources.journals ?? []) {
@@ -123,7 +136,7 @@ export function buildEvidenceEntries(sources: EvidenceSources, options: Evidence
       kind: 'journal',
       date,
       timestamp: journal.createdAt,
-      label: 'Jurnal',
+      label: labels.journalLabel,
       preview: excerpt(text),
       text,
       piiCount: detectPii(text).length,
@@ -135,13 +148,13 @@ export function buildEvidenceEntries(sources: EvidenceSources, options: Evidence
     const text = checkinToText(checkin);
     const date = getLocalDateOfTimestamp(checkin.timestamp);
     if (!date) continue;
-    const mood = MOOD_LABELS[checkin.mood] ?? 'tercatat';
+    const mood = checkin.mood in MOOD_LABELS ? moodLabel(checkin.mood, lang) : labels.moods.recorded;
     entries.push({
       id: `checkin:${String(checkin.id).replace(/[^A-Za-z0-9_.-]/g, '')}`,
       kind: 'checkin',
       date,
       timestamp: checkin.timestamp,
-      label: `Check-in: ${mood}`,
+      label: labels.checkinLabel(mood),
       preview: excerpt(text),
       text,
       piiCount: detectPii(text).length,

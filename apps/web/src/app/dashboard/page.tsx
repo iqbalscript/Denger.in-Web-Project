@@ -29,14 +29,22 @@ import {
   WEEKLY_QUEST_REQUIREMENTS,
   LEVEL_THRESHOLDS,
 } from '@/lib/gamification';
-import { DOMAIN_CONFIGS, AGE_BRACKET_CONFIGS, OCCUPATION_OPTIONS } from '@dengarin/config';
 import type { AnonymousUserSession, DailyMission, DailyCheckin, GamificationStateV1 } from '@dengarin/types';
 import { PageContainer, Button, Reveal, MoodIcon } from '@/components/ui';
 import { useConsentGuard } from '@/lib/useConsentGuard';
 import { ConsentPending } from '@/components/ConsentPending';
+import { useLanguage, useText } from '@/i18n';
+import { ageBracketText, domainText, localizedMission, occupationText } from '@/i18n/config';
+import { dashboardText } from '@/i18n/pages/dashboard';
+import { uiText } from '@/i18n/pages/ui';
+import { levelName, weekdayLabel } from '@/i18n/pages/gamification';
+import { assessmentSummaryText } from '@/i18n/pages/assessmentResult';
 
 export default function DashboardPage() {
   const { ready } = useConsentGuard();
+  const { lang } = useLanguage();
+  const t = useText(dashboardText);
+  const moodNames = useText(uiText).moods;
   const [session, setSession] = useState<AnonymousUserSession | null>(null);
   const [todayMission, setTodayMission] = useState<DailyMission | null>(null);
   const [todayCheckin, setTodayCheckin] = useState<DailyCheckin | null>(null);
@@ -65,11 +73,10 @@ export default function DashboardPage() {
     return () => window.removeEventListener('storage', handleStorage);
   }, [ready]);
 
-  const ageInfo = session?.ageBracket ? AGE_BRACKET_CONFIGS[session.ageBracket] : null;
-  const domainInfo = session?.primaryDomain ? DOMAIN_CONFIGS[session.primaryDomain] : null;
-  const occupationInfo = session?.occupation
-    ? OCCUPATION_OPTIONS.find((o) => o.id === session.occupation)?.label
-    : null;
+  const ageInfo = session?.ageBracket ? ageBracketText(session.ageBracket, lang) : null;
+  const domainInfo = session?.primaryDomain ? domainText(session.primaryDomain, lang) : null;
+  const occupationInfo = session?.occupation ? occupationText(session.occupation, lang) : null;
+  const mission = todayMission ? localizedMission(todayMission, lang) : null;
 
   const currentDay = session?.currentDay || 1;
   const assessment = session?.assessmentResult;
@@ -84,16 +91,14 @@ export default function DashboardPage() {
           <div className="space-y-3 text-left">
             <div className="animate-reveal-up flex items-center gap-2">
               <span className="text-sm font-bold text-ink bg-lime px-2.5 py-1 rounded border-2 border-ink shadow-hard-sm">
-                100% anonim, tanpa akun
+                {t.badge}
               </span>
             </div>
             <h1 className="animate-reveal-up [animation-delay:80ms] text-[2rem] sm:text-4xl lg:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
-              Gimana keadaanmu hari ini?
+              {t.title}
             </h1>
             <p className="animate-reveal-up [animation-delay:160ms] text-base sm:text-lg text-[#4A453E] max-w-[38rem] leading-relaxed">
-              {domainInfo
-                ? `Fokus kita: ${domainInfo.label}: ${domainInfo.description}`
-                : 'Tidak perlu banyak. Satu langkah kecil sudah cukup untuk hari ini.'}
+              {domainInfo ? t.focus(domainInfo.label, domainInfo.description) : t.noFocus}
             </p>
           </div>
 
@@ -109,7 +114,7 @@ export default function DashboardPage() {
               </span>
             )}
             <span className="text-sm font-bold px-2.5 py-1 bg-lime text-ink border-2 border-ink rounded shadow-hard-sm tabular-nums">
-              Hari ke-{currentDay} dari 14
+              {t.dayOf(currentDay)}
             </span>
           </div>
         </header>
@@ -122,21 +127,20 @@ export default function DashboardPage() {
               <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-bold text-white bg-cobalt px-3 py-1 rounded border-2 border-ink shadow-hard-sm tabular-nums">
-                    Misi utama hari ke-{currentDay}
+                    {t.missionOfDay(currentDay)}
                   </span>
                   <div className="flex items-center gap-1.5 text-sm text-ink font-bold">
                     <Clock className="w-4 h-4 text-cobalt" aria-hidden="true" />
-                    <span className="tabular-nums">Sekitar {todayMission?.durationMinutes || 5} menit</span>
+                    <span className="tabular-nums">{t.about(mission?.durationMinutes || 5)}</span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <h2 id="judul-misi" className="text-[1.75rem] sm:text-[2.5rem] font-bold text-ink tracking-[-0.02em] leading-[1.15]">
-                    {todayMission?.title || 'Misi kecil untuk menenangkan diri'}
+                    {mission?.title || t.missionFallbackTitle}
                   </h2>
                   <p className="text-base text-[#4A453E] leading-relaxed max-w-[38rem]">
-                    {todayMission?.summary ||
-                      'Ambil jeda sejenak. Beri waktu untuk tubuh dan pikiranmu menenang.'}
+                    {mission?.summary || t.missionFallbackSummary}
                   </p>
                 </div>
               </div>
@@ -147,10 +151,10 @@ export default function DashboardPage() {
                   {isMissionDone ? (
                     <span role="status" className="inline-flex items-center gap-1.5 text-ink font-semibold bg-lime px-2.5 py-1 rounded border border-ink">
                       <CheckCircle2 className="w-4 h-4 text-ink shrink-0" aria-hidden="true" />
-                      Misi hari ini selesai. Terima kasih sudah merawat dirimu.
+                      {t.missionDone}
                     </span>
                   ) : (
-                    <span>Langkahnya singkat dan bisa kamu jalani pelan-pelan</span>
+                    <span>{t.missionShort}</span>
                   )}
                 </div>
 
@@ -162,7 +166,7 @@ export default function DashboardPage() {
                   iconPosition="end"
                   className="shrink-0 w-full sm:w-auto"
                 >
-                  {isMissionDone ? 'Lihat lagi langkah misi' : 'Mulai misi kecil'}
+                  {isMissionDone ? t.reviewMission : t.startMission}
                 </Button>
               </div>
             </section>
@@ -174,7 +178,7 @@ export default function DashboardPage() {
             <section aria-labelledby="judul-checkin" className="bg-white border border-borderSubtle rounded-lg p-5 space-y-3 text-left">
               <div className="flex items-center justify-between border-b border-borderSubtle pb-2">
                 <h2 id="judul-checkin" className="text-base font-bold text-ink">
-                  Check-in emosi
+                  {t.checkinTitle}
                 </h2>
                 <Smile className="w-5 h-5 text-cobalt" aria-hidden="true" />
               </div>
@@ -183,35 +187,35 @@ export default function DashboardPage() {
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center gap-2">
                     <MoodIcon mood={todayCheckin.mood} className="w-7 h-7 text-[#151515]" />
-                    <span className="text-base font-bold text-ink capitalize">
-                      {todayCheckin.mood.replace('_', ' ')}
+                    <span className="text-base font-bold text-ink">
+                      {moodNames[todayCheckin.mood] ?? todayCheckin.mood.replace('_', ' ')}
                     </span>
                   </div>
                   <p className="text-base text-[#59544D] tabular-nums">
-                    Energi {todayCheckin.energyLevel} dari 10. Sudah tercatat hari ini.
+                    {t.energy(todayCheckin.energyLevel)}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3 pt-1">
                   <p className="text-base text-[#4A453E] leading-relaxed">
-                    Apa kabar hatimu saat ini? Luangkan satu menit untuk mencatatnya.
+                    {t.checkinPrompt}
                   </p>
                   <Button href="/checkin" variant="outline" size="md" fullWidth icon={<Smile className="w-4 h-4" aria-hidden="true" />}>
-                    Check-in sekarang
+                    {t.checkinNow}
                   </Button>
                 </div>
               )}
             </section>
 
-            {/* Perjalanan Kecil — Compact Progress Widget */}
+            {/* Perjalanan Kecil: Compact Progress Widget */}
             <section aria-labelledby="judul-perjalanan" className="bg-white border border-borderSubtle rounded-lg p-5 space-y-3 text-left">
               <div className="flex items-center justify-between gap-2 text-base font-bold text-ink border-b border-borderSubtle pb-2">
                 <h2 id="judul-perjalanan" className="flex items-center gap-1.5">
                   <Calendar className="w-5 h-5 text-cobalt" aria-hidden="true" />
-                  Perjalanan kecil
+                  {t.journeyTitle}
                 </h2>
                 <Link href="/perjalanan" className="inline-flex items-center min-h-[44px] px-2 text-sm text-[#2B51E6] font-bold underline underline-offset-4 decoration-2 rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt">
-                  Lihat detail
+                  {t.seeDetail}
                 </Link>
               </div>
 
@@ -226,10 +230,10 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-2xl font-bold text-ink tracking-[-0.02em] tabular-nums">{gamState.totalLangkah}</span>
                         <span className="text-sm font-bold text-white bg-cobalt px-2 py-0.5 rounded border border-ink">
-                          {levelInfo.name}
+                          {levelName(gamState.currentLevel, lang, levelInfo.name)}
                         </span>
                       </div>
-                      <span className="block text-sm text-[#59544D] font-bold">Total Langkah</span>
+                      <span className="block text-sm text-[#59544D] font-bold">{t.totalLangkah}</span>
                       {/* Progress bar to next level */}
                       {levelInfo.nextThreshold && (
                         <div className="w-full h-2 bg-paper border border-ink rounded-sm overflow-hidden">
@@ -240,7 +244,7 @@ export default function DashboardPage() {
                             aria-valuenow={gamState.totalLangkah}
                             aria-valuemin={LEVEL_THRESHOLDS[gamState.currentLevel].threshold}
                             aria-valuemax={levelInfo.nextThreshold}
-                            aria-label={`Progress ke level ${LEVEL_THRESHOLDS[gamState.currentLevel + 1]?.name}`}
+                            aria-label={t.progressTo(levelName(gamState.currentLevel + 1, lang, LEVEL_THRESHOLDS[gamState.currentLevel + 1]?.name ?? ''))}
                           />
                         </div>
                       )}
@@ -249,7 +253,7 @@ export default function DashboardPage() {
                     {/* Ritme 7 Hari */}
                     <div className="space-y-1">
                       <span className="block text-sm text-[#59544D] font-bold tabular-nums">
-                        Aktif {activeCount} dari 7 hari terakhir
+                        {t.activeDays(activeCount)}
                       </span>
                       <div className="grid grid-cols-7 gap-1.5">
                         {ritme.map((day) => (
@@ -260,11 +264,11 @@ export default function DashboardPage() {
                                 ? 'bg-lime text-ink border-ink'
                                 : 'bg-paper text-[#6B665E] border-borderSubtle'
                             }`}
-                            title={`${day.dayLabel} ${day.date}${day.active ? ' (aktif)' : ''}`}
+                            title={`${weekdayLabel(day.weekday, lang)} ${day.date}${day.active ? ` (${t.dayActive})` : ''}`}
                             role="img"
-                            aria-label={`${day.dayLabel} ${day.date}: ${day.active ? 'aktif' : 'tidak aktif'}`}
+                            aria-label={`${weekdayLabel(day.weekday, lang)} ${day.date}: ${day.active ? t.dayActive : t.dayInactive}`}
                           >
-                            <span aria-hidden="true">{day.dayLabel.slice(0, 2)}</span>
+                            <span aria-hidden="true">{weekdayLabel(day.weekday, lang).slice(0, 2)}</span>
                           </div>
                         ))}
                       </div>
@@ -272,11 +276,11 @@ export default function DashboardPage() {
 
                     {/* Weekly Quest Progress (compact) */}
                     <div className="space-y-1">
-                      <span className="block text-sm text-[#59544D] font-bold">Target minggu ini</span>
+                      <span className="block text-sm text-[#59544D] font-bold">{t.weeklyTarget}</span>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 text-base font-medium text-ink tabular-nums">
-                        <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />{gamState.questProgress.checkinDays}/{WEEKLY_QUEST_REQUIREMENTS.checkinDays} check-in</span>
-                        <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />{gamState.questProgress.missionsCompleted}/{WEEKLY_QUEST_REQUIREMENTS.missionsCompleted} misi</span>
-                        <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />{gamState.questProgress.journalEntries}/{WEEKLY_QUEST_REQUIREMENTS.journalEntries} jurnal</span>
+                        <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />{gamState.questProgress.checkinDays}/{WEEKLY_QUEST_REQUIREMENTS.checkinDays} {t.questCheckin}</span>
+                        <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />{gamState.questProgress.missionsCompleted}/{WEEKLY_QUEST_REQUIREMENTS.missionsCompleted} {t.questMission}</span>
+                        <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />{gamState.questProgress.journalEntries}/{WEEKLY_QUEST_REQUIREMENTS.journalEntries} {t.questJournal}</span>
                       </div>
                     </div>
                   </div>
@@ -291,24 +295,26 @@ export default function DashboardPage() {
           {/* LEFT: Your Progress / Assessment Synthesis (6 Cols) */}
           <Reveal as="section" aria-labelledby="judul-progres" className="lg:col-span-5 space-y-4 text-left">
             <h2 id="judul-progres" className="text-xl sm:text-2xl font-bold text-ink tracking-[-0.01em] leading-[1.25]">
-              Perjalananmu sejauh ini
+              {t.progressTitle}
             </h2>
 
             <div className="bg-white border border-borderSubtle rounded-lg p-6 space-y-4">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-bold text-ink bg-lime px-2.5 py-1 rounded border border-ink">
-                  {assessment?.recommendedPathId ? 'Program 14 hari aktif' : 'Baru mulai'}
+                  {assessment?.recommendedPathId ? t.programActive : t.justStarted}
                 </span>
                 {assessment && (
                   <span className="text-sm font-semibold px-2.5 py-1 bg-paper border border-borderSubtle rounded">
-                    Beban terasa: {{ MILD: 'Ringan', MODERATE: 'Cukup Berat', SEVERE: 'Sangat Berat' }[assessment.severityLevel || 'MILD']}
+                    {t.load} {t.severity[assessment.severityLevel || 'MILD']}
                   </span>
                 )}
               </div>
 
               <p className="text-base sm:text-base text-[#4A453E] leading-relaxed">
-                {assessment?.summaryFeedback ||
-                  'Program 14 hari ini menemani hari-harimu lewat langkah kecil yang bisa kamu jalani pelan-pelan.'}
+                {/* Dirender ulang dari tingkat beban (bukan teks tersimpan) supaya ikut bahasa. */}
+                {assessment?.severityLevel
+                  ? assessmentSummaryText(assessment.severityLevel, lang).summary
+                  : assessment?.summaryFeedback || t.programSummary}
               </p>
 
               <div className="pt-4 border-t border-borderSubtle flex items-center justify-between">
@@ -317,7 +323,7 @@ export default function DashboardPage() {
                   className="group inline-flex items-center gap-1.5 min-h-[44px] text-base font-bold text-[#2B51E6] underline underline-offset-4 decoration-2 rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt"
                 >
                   <BarChart3 className="w-4 h-4" aria-hidden="true" />
-                  <span>Lihat rangkuman mingguanmu</span>
+                  <span>{t.seeWeekly}</span>
                   <ArrowRight className="w-4 h-4 transition-transform duration-400 ease-spring group-hover:translate-x-1" aria-hidden="true" />
                 </Link>
               </div>
@@ -327,7 +333,7 @@ export default function DashboardPage() {
           {/* RIGHT: SUPPORT TOOLKIT (4 Compact Tiles - 6 Cols) */}
           <Reveal as="section" aria-labelledby="judul-teman" delay={80} className="lg:col-span-7 space-y-4 text-left">
             <h2 id="judul-teman" className="text-xl sm:text-2xl font-bold text-ink tracking-[-0.01em] leading-[1.25]">
-              Yang bisa menemanimu
+              {t.companionsTitle}
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -337,8 +343,8 @@ export default function DashboardPage() {
                   <div className="w-8 h-8 rounded bg-cobalt text-white border-2 border-ink flex items-center justify-center" aria-hidden="true">
                     <BookOpen className="w-4 h-4" />
                   </div>
-                  <h3 className="font-bold text-base text-ink leading-snug">Jurnal privat lokal</h3>
-                  <p className="text-base text-[#59544D] leading-relaxed">Tuangkan pikiranmu. Tersimpan di perangkatmu dan tidak dikirim ke AI.</p>
+                  <h3 className="font-bold text-base text-ink leading-snug">{t.journal}</h3>
+                  <p className="text-base text-[#59544D] leading-relaxed">{t.journalHint}</p>
                 </div>
               </Link>
               </Reveal>
@@ -349,8 +355,8 @@ export default function DashboardPage() {
                   <div className="w-8 h-8 rounded bg-cobalt text-white border-2 border-ink flex items-center justify-center" aria-hidden="true">
                     <MessageSquare className="w-4 h-4" />
                   </div>
-                  <h3 className="font-bold text-base text-ink leading-snug">Teman bicara</h3>
-                  <p className="text-base text-[#59544D] leading-relaxed">Cerita apa saja, kami dengarkan.</p>
+                  <h3 className="font-bold text-base text-ink leading-snug">{t.chat}</h3>
+                  <p className="text-base text-[#59544D] leading-relaxed">{t.chatHint}</p>
                 </div>
               </Link>
               </Reveal>
@@ -361,8 +367,8 @@ export default function DashboardPage() {
                   <div className="w-8 h-8 rounded bg-[#D32F2F] text-white border-2 border-ink flex items-center justify-center" aria-hidden="true">
                     <PhoneCall className="w-4 h-4" />
                   </div>
-                  <h3 className="font-bold text-base text-ink leading-snug">Direktori bantuan</h3>
-                  <p className="text-base text-[#59544D] leading-relaxed">Kontak resmi darurat dan psikolog, kapan pun kamu butuh.</p>
+                  <h3 className="font-bold text-base text-ink leading-snug">{t.help}</h3>
+                  <p className="text-base text-[#59544D] leading-relaxed">{t.helpHint}</p>
                 </div>
               </Link>
               </Reveal>
@@ -373,8 +379,8 @@ export default function DashboardPage() {
                   <div className="w-8 h-8 rounded bg-lime text-ink border-2 border-ink flex items-center justify-center" aria-hidden="true">
                     <Users className="w-4 h-4" />
                   </div>
-                  <h3 className="font-bold text-base text-ink leading-snug">Ruang cerita</h3>
-                  <p className="text-base text-[#59544D] leading-relaxed">Saling menguatkan dengan sesama.</p>
+                  <h3 className="font-bold text-base text-ink leading-snug">{t.forum}</h3>
+                  <p className="text-base text-[#59544D] leading-relaxed">{t.forumHint}</p>
                 </div>
               </Link>
               </Reveal>
@@ -389,7 +395,7 @@ export default function DashboardPage() {
             className="inline-flex items-center gap-1.5 min-h-[44px] underline underline-offset-4 decoration-2 decoration-[#D8D3C9] hover:decoration-ink rounded focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt"
           >
             <Key className="w-4 h-4 text-cobalt" aria-hidden="true" />
-            <span>Simpan atau pulihkan sesi dengan kunci pemulihan</span>
+            <span>{t.recovery}</span>
           </Link>
 
           <Link
@@ -397,7 +403,7 @@ export default function DashboardPage() {
             className="inline-flex items-center gap-2 min-h-[48px] text-base font-bold text-white bg-[#D32F2F] px-4 py-2 rounded border-2 border-ink shadow-hard-sm transition-[transform,box-shadow,background-color] duration-200 ease-spring hover:bg-[#B3261E] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"
           >
             <PhoneCall className="w-5 h-5" aria-hidden="true" />
-            <span>Butuh bantuan segera? Kemenkes 119 ext 8</span>
+            <span>{t.crisis}</span>
           </Link>
         </div>
       </div>

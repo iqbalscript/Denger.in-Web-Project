@@ -3,7 +3,7 @@
 import React from 'react';
 import { Lock, ShieldCheck } from 'lucide-react';
 import type { LocalEvidenceEntry, SegmentBudget } from '@/lib/carePassportClient';
-import { MUTED, SectionCard, SourceChip, Tag } from './shared';
+import { MUTED, SectionCard, SourceChip, Tag, usePassportText } from './shared';
 
 export interface EvidencePickerProps {
   entries: LocalEvidenceEntry[];
@@ -24,6 +24,7 @@ export interface EvidencePickerProps {
  * count only, never the matched text.
  */
 export function EvidencePicker({ entries, selectedIds, loaded, onToggle, canSelect, budget, disabled = false }: EvidencePickerProps) {
+  const t = usePassportText().evidence;
   const selectedCount = entries.filter((e) => selectedIds.has(e.id)).length;
   const headingId = React.useId();
   const helpId = React.useId();
@@ -33,26 +34,24 @@ export function EvidencePicker({ entries, selectedIds, loaded, onToggle, canSele
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id={headingId} className="text-lg font-bold text-[#151515] leading-[1.25]">
-            Sertakan bukti dari perangkatmu (opsional)
+            {t.title}
           </h2>
           <Tag tone="white">
             <Lock className="w-3 h-3" aria-hidden="true" />
-            Privat
+            {t.privateTag}
           </Tag>
         </div>
         <p id={helpId} className={`text-base leading-relaxed ${MUTED}`}>
-          Jurnal dan check-in 30 hari terakhir tersimpan di perangkat ini saja. Centang yang mau kamu bawa; setiap fakta di catatan nanti akan ditautkan ke tanggalnya. Yang tidak dicentang tidak pernah dikirim.
+          {t.help}
         </p>
       </div>
 
       {!loaded ? (
         <p className={`text-base ${MUTED}`} aria-live="polite">
-          Membaca jurnal dan check-in di perangkat ini…
+          {t.loading}
         </p>
       ) : entries.length === 0 ? (
-        <p className={`text-base leading-relaxed ${MUTED}`}>
-          Belum ada jurnal atau check-in dalam 30 hari terakhir di perangkat ini. Tidak apa-apa, ceritamu saja sudah cukup.
-        </p>
+        <p className={`text-base leading-relaxed ${MUTED}`}>{t.empty}</p>
       ) : (
         <ul className="space-y-2" aria-describedby={helpId}>
           {entries.map((entry) => {
@@ -83,14 +82,14 @@ export function EvidencePicker({ entries, selectedIds, loaded, onToggle, canSele
                       {entry.piiCount > 0 && (
                         <Tag tone="yellow">
                           <ShieldCheck className="w-3 h-3" aria-hidden="true" />
-                          {entry.piiCount} data pribadi disamarkan
+                          {t.piiBadge(entry.piiCount)}
                         </Tag>
                       )}
                     </span>
                     <span className={`block text-base leading-relaxed break-words ${MUTED}`}>{entry.preview}</span>
                     {blocked && (
                       <span id={`${inputId}-blocked`} className="block text-sm font-bold text-[#B3261E]">
-                        Tidak muat: batas {budget.max} karakter atau {budget.maxCount - 1} entri sudah tercapai.
+                        {t.blocked(budget.max, budget.maxCount - 1)}
                       </span>
                     )}
                   </span>
@@ -102,10 +101,7 @@ export function EvidencePicker({ entries, selectedIds, loaded, onToggle, canSele
       )}
 
       <p className={`text-sm leading-relaxed border-t border-[#D8D3C9] pt-3 ${MUTED}`} aria-live="polite">
-        {selectedCount === 0
-          ? 'Belum ada entri yang dipilih.'
-          : `${selectedCount} entri dipilih. Total ${budget.used} dari ${budget.max} karakter.`}{' '}
-        Entri yang dipilih ikut diperiksa data pribadinya di langkah berikutnya.
+        {selectedCount === 0 ? t.none : t.selected(selectedCount, budget.used, budget.max)} {t.checkedNote}
       </p>
     </SectionCard>
   );

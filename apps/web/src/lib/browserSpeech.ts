@@ -3,8 +3,17 @@
  * network APIs, request permissions, persist data, or submit chat messages.
  */
 
+import type { Language } from '../i18n/language.ts';
+
 export const BROWSER_VOICE_PRIVACY_DISCLOSURE =
-  'Suaramu diproses oleh fitur suara browser/perangkatmu. Dengar.in tidak menyimpan rekaman suara. Dukungan dan pemrosesan dapat berbeda tergantung browser.';
+  'Suaramu diproses oleh fitur suara browser/perangkatmu. Dengar.in tidak menyimpan rekaman suara. Dukungan dan hasilnya bisa berbeda tiap browser.';
+export const BROWSER_VOICE_PRIVACY_DISCLOSURE_EN =
+  'Your voice is processed by your browser or device speech feature. Dengar.in does not store voice recordings. Support and results differ between browsers.';
+
+/** Pengungkapan privasi fitur suara sesuai bahasa antarmuka (makna sama). */
+export function browserVoicePrivacyDisclosure(lang: Language = 'id'): string {
+  return lang === 'en' ? BROWSER_VOICE_PRIVACY_DISCLOSURE_EN : BROWSER_VOICE_PRIVACY_DISCLOSURE;
+}
 
 export interface BrowserSpeechRecognitionAlternative {
   transcript: string;
@@ -117,6 +126,30 @@ export function selectIndonesianVoice(
     ?? indonesian[0];
 }
 
+function isEnglish(voice: SpeechSynthesisVoice): boolean {
+  return voice.lang.toLowerCase().replace('_', '-').startsWith('en');
+}
+
+/** Prefers en-US, then any English voice; within each, natural/neural voices first. */
+export function selectEnglishVoice(
+  voices: readonly SpeechSynthesisVoice[]
+): SpeechSynthesisVoice | undefined {
+  const english = voices.filter(isEnglish);
+  const exact = english.filter((voice) => voice.lang.toLowerCase().replace('_', '-') === 'en-us');
+  return exact.find((voice) => NATURAL_VOICE_HINT.test(voice.name))
+    ?? exact[0]
+    ?? english.find((voice) => NATURAL_VOICE_HINT.test(voice.name))
+    ?? english[0];
+}
+
+/** Voice for the active UI language; undefined lets the browser pick its default. */
+export function selectVoiceForLanguage(
+  voices: readonly SpeechSynthesisVoice[],
+  lang: Language
+): SpeechSynthesisVoice | undefined {
+  return lang === 'en' ? selectEnglishVoice(voices) : selectIndonesianVoice(voices);
+}
+
 export interface SpeechSegment {
   text: string;
   pitch: number;
@@ -126,18 +159,21 @@ export interface SpeechSegment {
 const BASE_RATE = 0.95;
 const BASE_PITCH = 1;
 const LONG_SENTENCE_CHARS = 180;
-// Kalimat yang menenangkan dibaca lebih pelan dan lembut.
-const SOOTHING_WORDS = /\b(tenang|pelan|perlahan|napas|nafas|tarik|embuskan|hembuskan|tidak apa|gak apa|nggak apa|aman|sendirian|istirahat|rehat|wajar|boleh)\b/i;
+// Kalimat yang menenangkan dibaca lebih pelan dan lembut (ID dan EN).
+const SOOTHING_WORDS: Record<Language, RegExp> = {
+  id: /\b(tenang|pelan|perlahan|napas|nafas|tarik|embuskan|hembuskan|tidak apa|gak apa|nggak apa|aman|sendirian|istirahat|rehat|wajar|boleh)\b/i,
+  en: /\b(calm|slow(?:ly)?|gently|gentle|breathe?|breathing|inhale|exhale|it'?s okay|it'?s alright|that'?s okay|safe|not alone|rest|normal|allowed|you can|take your time|no rush|easy)\b/i,
+};
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 /** Cleans text so the synthesizer does not read symbols, markdown, emoji or URLs aloud. */
-export function prepareSpeechText(text: string): string {
+export function prepareSpeechText(text: string, lang: Language = 'id'): string {
   return text
-    .replace(/https?:\/\/\S+/g, 'tautan')
+    .replace(/https?:\/\/\S+/g, lang === 'en' ? 'link' : 'tautan')
     .replace(/[*_#`>~|]+/g, ' ')
     .replace(/\p{Extended_Pictographic}\uFE0F?/gu, ' ')
-    .replace(/\bext\.?\s*(\d)/gi, 'ekstensi $1')
+    .replace(/\bext\.?\s*(\d)/gi, lang === 'en' ? 'extension $1' : 'ekstensi $1')
     .replace(/\s*[\u2013\u2014]\s*/g, ', ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -172,8 +208,9 @@ function splitSentences(text: string): string[] {
  * questions lift, exclamations brighten, soothing lines slow down and soften,
  * the closing line settles lower, and neighbouring sentences vary slightly.
  */
-export function planExpressiveSpeech(text: string): SpeechSegment[] {
-  const sentences = splitSentences(prepareSpeechText(text));
+export function planExpressiveSpeech(text: string, lang: Language = 'id'): SpeechSegment[] {
+  const sentences = splitSentences(prepareSpeechText(text, lang));
+  const soothing = SOOTHING_WORDS[lang] ?? SOOTHING_WORDS.id;
   return sentences.map((sentence, index) => {
     let pitch = BASE_PITCH + (index % 2 === 0 ? 0.03 : -0.02);
     let rate = BASE_RATE + (index % 3 === 1 ? 0.03 : 0);
@@ -187,7 +224,7 @@ export function planExpressiveSpeech(text: string): SpeechSegment[] {
       pitch += 0.06;
       rate += 0.04;
     }
-    if (SOOTHING_WORDS.test(sentence)) {
+    if (soothing.test(sentence)) {
       pitch -= 0.04;
       rate -= 0.08;
     }
@@ -205,6 +242,7 @@ export function planExpressiveSpeech(text: string): SpeechSegment[] {
 }
 
 export interface ExpressiveSpeechOptions {
+  /** BCP-47 tag for the utterances ('id-ID' default, 'en-US' for English). */
   lang?: string;
   voice?: SpeechSynthesisVoice;
   onend?: () => void;
@@ -222,7 +260,7 @@ export function speakExpressively(
   text: string,
   options: ExpressiveSpeechOptions = {}
 ): SpeechSynthesisUtterance[] {
-  const segments = planExpressiveSpeech(text);
+  const segments = planExpressiveSpeech(text, options.lang?.toLowerCase().startsWith('en') ? 'en' : 'id');
   const plan = segments.length > 0 ? segments : [{ text, pitch: BASE_PITCH, rate: BASE_RATE }];
   let settled = false;
 
@@ -253,19 +291,37 @@ export function speakExpressively(
   return utterances;
 }
 
-export function speechRecognitionErrorMessage(errorCode: string): string {
+const RECOGNITION_ERROR_TEXT: Record<Language, Record<'notAllowed' | 'noSpeech' | 'aborted' | 'network' | 'unknown', string>> = {
+  id: {
+    notAllowed: 'Izin mikrofon belum diberikan. Kamu tetap bisa menulis pesan.',
+    noSpeech: 'Tidak ada suara yang terdengar. Coba lagi saat kamu siap.',
+    aborted: 'Mendengarkan dihentikan.',
+    network: 'Layanan pengenalan suara browser sedang tidak bisa dipakai. Kamu tetap bisa menulis pesan.',
+    unknown: 'Pengenalan suara tidak dapat digunakan saat ini. Kamu tetap bisa menulis pesan.',
+  },
+  en: {
+    notAllowed: 'Microphone permission was not given. You can still type your message.',
+    noSpeech: 'No speech was heard. Try again when you are ready.',
+    aborted: 'Listening stopped.',
+    network: 'The browser speech service is not available right now. You can still type your message.',
+    unknown: 'Speech recognition cannot be used right now. You can still type your message.',
+  },
+};
+
+export function speechRecognitionErrorMessage(errorCode: string, lang: Language = 'id'): string {
+  const text = RECOGNITION_ERROR_TEXT[lang] ?? RECOGNITION_ERROR_TEXT.id;
   switch (errorCode) {
     case 'not-allowed':
     case 'service-not-allowed':
-      return 'Izin mikrofon belum diberikan. Kamu tetap bisa menulis pesan.';
+      return text.notAllowed;
     case 'no-speech':
-      return 'Tidak ada suara yang terdeteksi. Coba lagi saat kamu siap.';
+      return text.noSpeech;
     case 'aborted':
-      return 'Pendengaran dihentikan.';
+      return text.aborted;
     case 'network':
-      return 'Layanan pengenalan suara browser sedang tidak tersedia. Kamu tetap bisa menulis pesan.';
+      return text.network;
     default:
-      return 'Pengenalan suara tidak dapat digunakan saat ini. Kamu tetap bisa menulis pesan.';
+      return text.unknown;
   }
 }
 

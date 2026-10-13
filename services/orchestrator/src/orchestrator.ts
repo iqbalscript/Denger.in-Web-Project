@@ -26,11 +26,15 @@ export interface ChatHistoryEntry {
   text: string;
 }
 
+export type ReplyLanguage = 'id' | 'en';
+
 export interface OrchestratorRequest {
   message: string;
   history?: ChatHistoryEntry[];
   ageBracket?: AgeBracket;
   domain?: InterventionDomain;
+  /** UI language; the model is asked to reply in it. Safety pipeline is identical. */
+  lang?: ReplyLanguage;
 }
 
 export interface OrchestratorResult {
@@ -102,10 +106,12 @@ export function isDebiaserDisabledByEnv(env: Record<string, string | undefined> 
 }
 const TIER_LABELS: OrchestratorTier[] = ['primary', 'tertiary'];
 
-function safeDeterministicAction(): ValidatedAIAction {
+function safeDeterministicAction(lang: ReplyLanguage = 'id'): ValidatedAIAction {
   return {
     action: 'chat',
-    message: 'Aku di sini menemanimu. Coba ambil satu napas perlahan dan pilih langkah kecil yang terasa aman saat ini.',
+    message: lang === 'en'
+      ? 'I am here with you. Take one slow breath and pick one small step that feels safe right now.'
+      : 'Aku di sini menemanimu. Coba tarik satu napas pelan dan pilih satu langkah kecil yang terasa aman sekarang.',
     disclaimer: STANDARD_DISCLAIMER
   };
 }
@@ -130,13 +136,14 @@ export async function runOrchestrator(
 
   // 1. PRE-LLM DETERMINISTIC DOMAIN & CODING GATE
   // Intercept pure technical/programming queries (e.g. coding requests) and redirect empathetically
-  const domainCheck = evaluateDomainGate(request.message);
+  const lang: ReplyLanguage = request.lang === 'en' ? 'en' : 'id';
+  const domainCheck = evaluateDomainGate(request.message, lang);
   if (domainCheck.isOutOfDomain && domainCheck.action) {
     const validation = validateAIOutput(domainCheck.action);
     return {
       tier: 'primary',
       providerId: 'guardrail:domain-gate',
-      action: validation.isValid && validation.action ? validation.action : safeDeterministicAction(),
+      action: validation.isValid && validation.action ? validation.action : safeDeterministicAction(lang),
       debiased: false,
       warnings: [domainCheck.reason ?? 'Dicegat oleh domain gate (bukan pertanyaan kesejahteraan mental)']
     };
@@ -146,7 +153,7 @@ export async function runOrchestrator(
   const debiaserProvider = deps.debiaserProvider ?? createOpenrouterProvider();
   const enableDebiaser = deps.enableDebiaser !== false && !isDebiaserDisabledByEnv(deps.env);
 
-  const promptContext = { ageBracket: request.ageBracket, domain: request.domain };
+  const promptContext = { ageBracket: request.ageBracket, domain: request.domain, lang };
   const systemPrompt = buildChatSystemPrompt(promptContext);
   
   const history = request.history ?? [];
@@ -205,7 +212,8 @@ export async function runOrchestrator(
               finalAction,
               request.message,
               debiaserProvider,
-              debiasTimeoutMs
+              debiasTimeoutMs,
+              lang
             );
             finalAction = debiasResult.action;
             wasDebiased = debiasResult.debiased;
@@ -238,12 +246,12 @@ export async function runOrchestrator(
 
   warnings.push('Seluruh tier AI gagal atau tidak dikonfigurasi; menggunakan fallback deterministik.');
 
-  const fallback = buildDeterministicFallbackAction(request.domain);
+  const fallback = buildDeterministicFallbackAction(request.domain, lang);
   const fallbackValidation = validateAIOutput(fallback);
   return {
     tier: 'fallback',
     providerId: 'deterministic-fallback',
-    action: fallbackValidation.isValid && fallbackValidation.action ? fallbackValidation.action : safeDeterministicAction(),
+    action: fallbackValidation.isValid && fallbackValidation.action ? fallbackValidation.action : safeDeterministicAction(lang),
     debiased: false,
     warnings
   };

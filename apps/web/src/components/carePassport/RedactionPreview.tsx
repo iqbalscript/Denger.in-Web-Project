@@ -4,7 +4,8 @@ import React from 'react';
 import { ArrowLeft, Send, Eye, EyeOff, Lock, ShieldCheck } from 'lucide-react';
 import type { CarePassportPiiFinding, CarePassportPreviewSegment } from '@/lib/api/carePassportHandler';
 import { Button } from '@/components/ui';
-import { MUTED, PII_KIND_LABELS, SectionCard, SourceChip, StepHeading, Tag, UrgentHelpLink } from './shared';
+import { useLanguage } from '@/i18n';
+import { MUTED, SectionCard, SourceChip, StepHeading, Tag, UrgentHelpLink, piiKindLabel, usePassportText } from './shared';
 
 export interface RedactionPreviewProps {
   /** Raw segment texts by id, exactly as they will be sent before redaction. */
@@ -48,6 +49,9 @@ function renderPreview(text: string, findings: CarePassportPiiFinding[], kept: R
  * locked; only address / name hints can be left visible, per finding.
  */
 export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit, onBack, busy, error }: RedactionPreviewProps) {
+  const text = usePassportText();
+  const t = text.redaction;
+  const { lang } = useLanguage();
   const allFindings = segments.flatMap((s) => s.findings);
   const visibleCount = allFindings.filter((f) => f.canKeep && kept.has(f.id)).length;
   const redactedCount = allFindings.length - visibleCount;
@@ -56,38 +60,28 @@ export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit,
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <StepHeading
-          step="Langkah 3 dari 4"
-          title="Cek dulu, apa yang akan dikirim."
-          lede={
-            allFindings.length === 0
-              ? `Kami tidak menemukan data pribadi yang perlu disamarkan${evidenceCount > 0 ? ', termasuk di entri yang kamu pilih' : ''}. Baca sekali lagi, lalu kirim kalau sudah nyaman.`
-              : 'Nama dan nomor diganti label supaya cerita tetap anonim. Nomor, email, dan tautan selalu disamarkan. Petunjuk alamat atau nama boleh kamu biarkan kalau memang bukan data pribadi.'
-          }
-        />
+        <StepHeading step={t.step} title={t.title} lede={allFindings.length === 0 ? t.ledeNone(evidenceCount > 0) : t.ledeFound} />
         <UrgentHelpLink className="shrink-0" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         <div className="lg:col-span-7 space-y-4 animate-reveal-up [animation-delay:120ms]">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base font-bold text-[#151515]">
-              Yang akan dibaca AI ({segments.length} bagian)
-            </h2>
+            <h2 className="text-base font-bold text-[#151515]">{t.willRead(segments.length)}</h2>
             <Tag tone="lime">
               <ShieldCheck className="w-3 h-3" aria-hidden="true" />
-              {redactedCount} disamarkan
+              {t.redactedCount(redactedCount)}
             </Tag>
           </div>
 
-          <ol className="space-y-4" aria-label="Bagian yang akan dikirim">
+          <ol className="space-y-4" aria-label={t.listLabel}>
             {segments.map((segment) => (
               <li key={segment.id}>
-                <SectionCard as="article" elevation="low" className="space-y-3" aria-label={`Bagian: ${segment.kind}`}>
+                <SectionCard as="article" elevation="low" className="space-y-3" aria-label={t.segmentLabel(text.shared.segmentKinds[segment.kind])}>
                   <div className="flex flex-wrap items-center gap-2">
                     <SourceChip sourceRef={{ kind: segment.kind, date: segment.date }} />
                     {segment.findings.length > 0 && (
-                      <span className={`text-sm ${MUTED}`}>{segment.findings.length} terdeteksi</span>
+                      <span className={`text-sm ${MUTED}`}>{t.detected(segment.findings.length)}</span>
                     )}
                   </div>
                   <p className="text-base leading-[1.6] text-[#151515] whitespace-pre-wrap break-words">
@@ -114,28 +108,31 @@ export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit,
               icon={<Send className="w-4 h-4" />}
               className="sm:flex-1"
             >
-              Kirim dan susun catatan
+              {t.submit}
             </Button>
             <Button variant="outline" size="lg" onClick={onBack} disabled={busy} icon={<ArrowLeft className="w-4 h-4" />}>
-              Ubah cerita atau pilihan entri
+              {t.back}
             </Button>
           </div>
-          <p className={`text-sm leading-relaxed ${MUTED}`}>
-            Ini yang akan dikirim. Server menyamarkan ulang berdasarkan pilihanmu sebelum mengirim ke AI. AI tidak pernah menerima versi aslinya, dan entri yang tidak kamu centang tidak ikut terkirim.
-          </p>
+          <p className={`text-sm leading-relaxed ${MUTED}`}>{t.note}</p>
         </div>
 
         <div className="lg:col-span-5 space-y-4 animate-reveal-up [animation-delay:200ms]">
           <SectionCard as="div" tone="paper" elevation="low" className="space-y-3">
-            <h2 className="text-base font-bold text-[#151515]">Terdeteksi ({allFindings.length})</h2>
+            <h2 className="text-base font-bold text-[#151515]">{t.detectedTitle(allFindings.length)}</h2>
             {allFindings.length === 0 ? (
-              <p className={`text-base leading-relaxed ${MUTED}`}>Tidak ada yang terdeteksi.</p>
+              <p className={`text-base leading-relaxed ${MUTED}`}>{t.nothing}</p>
             ) : (
               <ul className="space-y-2">
                 {segments.flatMap((segment) =>
                   segment.findings.map((f) => {
                     const visible = f.canKeep && kept.has(f.id);
-                    const where = `${segment.kind === 'intake' ? 'cerita' : segment.kind === 'clarification' ? 'jawaban' : `${segment.kind === 'journal' ? 'jurnal' : 'check-in'} ${segment.date ?? ''}`}`.trim();
+                    const where =
+                      segment.kind === 'intake'
+                        ? t.where.story
+                        : segment.kind === 'clarification'
+                          ? t.where.answer
+                          : `${segment.kind === 'journal' ? t.where.journal : t.where.checkin} ${segment.date ?? ''}`.trim();
                     return (
                       <li key={f.id}>
                         <button
@@ -143,14 +140,14 @@ export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit,
                           aria-pressed={!visible}
                           aria-disabled={!f.canKeep || undefined}
                           onClick={() => f.canKeep && onToggle(f)}
-                          title={f.canKeep ? undefined : 'Jenis ini selalu disamarkan'}
+                          title={f.canKeep ? undefined : t.alwaysTitle}
                           className={`w-full flex items-center justify-between gap-3 text-left min-h-[48px] px-3 py-2 rounded-[4px] border-2 border-[#151515] transition-[transform,box-shadow,background-color] duration-200 ease-spring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${
                             !f.canKeep ? 'bg-[#F1ECE3] cursor-not-allowed shadow-none' : visible ? 'bg-[#FFF2D6] shadow-none' : 'bg-white shadow-[2px_2px_0px_#151515]'
                           }`}
                         >
                           <span className="min-w-0">
                             <span className="block text-sm font-bold text-[#59544D]">
-                              {PII_KIND_LABELS[f.kind]} · {where}
+                              {piiKindLabel(f.kind, lang)} · {where}
                             </span>
                             <span className="block text-base font-bold text-[#151515] truncate">{f.match}</span>
                           </span>
@@ -158,17 +155,17 @@ export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit,
                             {!f.canKeep ? (
                               <>
                                 <Lock className="w-4 h-4" aria-hidden="true" />
-                                Selalu disamarkan
+                                {t.always}
                               </>
                             ) : visible ? (
                               <>
                                 <Eye className="w-4 h-4" aria-hidden="true" />
-                                Dibiarkan
+                                {t.kept}
                               </>
                             ) : (
                               <>
                                 <EyeOff className="w-4 h-4" aria-hidden="true" />
-                                Disamarkan
+                                {t.redacted}
                               </>
                             )}
                           </span>
@@ -182,10 +179,8 @@ export function RedactionPreview({ rawTexts, segments, kept, onToggle, onSubmit,
           </SectionCard>
 
           <SectionCard as="div" tone="white" elevation="low" className="space-y-2">
-            <h2 className="text-base font-bold text-[#151515]">Yang mungkin terlewat</h2>
-            <p className={`text-base leading-relaxed ${MUTED}`}>
-              Pendeteksi ini bekerja dengan pola, bukan pemahaman. Yang sering lolos: nomor telepon rumah, nama yang ditulis huruf kecil, alamat tanpa kata &quot;Jl.&quot;, nama sekolah atau kantor, dan julukan. Kalau ada di jurnal atau check-in, lebih aman tidak menyertakan entrinya.
-            </p>
+            <h2 className="text-base font-bold text-[#151515]">{t.missedTitle}</h2>
+            <p className={`text-base leading-relaxed ${MUTED}`}>{t.missedBody}</p>
           </SectionCard>
         </div>
       </div>

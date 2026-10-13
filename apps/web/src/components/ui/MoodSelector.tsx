@@ -1,6 +1,10 @@
+'use client';
+
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { MOOD_ICONS_BY_VALUE } from './MoodIcon';
+import { useText } from '@/i18n/store';
+import { uiText } from '@/i18n/pages/ui';
 
 export interface MoodOption {
   value: number;
@@ -13,13 +17,19 @@ export interface MoodOption {
   accentColor?: string;
 }
 
-export const DEFAULT_MOOD_OPTIONS: MoodOption[] = [
-  { value: 1, label: 'Kewalahan', subtext: 'Sangat Berat', accentColor: '#FF5252' },
-  { value: 2, label: 'Berat', subtext: 'Cemas / Lelah', accentColor: '#FF8A3D' },
-  { value: 3, label: 'Netral', subtext: 'Biasa Saja', accentColor: '#FFD84D' },
-  { value: 4, label: 'Baik', subtext: 'Cukup Tenang', accentColor: '#C7D3FF' },
-  { value: 5, label: 'Sangat Baik', subtext: 'Bertenaga', accentColor: '#B8F34A' },
-];
+const MOOD_ACCENTS: Record<number, string> = {
+  1: '#FF5252',
+  2: '#FF8A3D',
+  3: '#FFD84D',
+  4: '#C7D3FF',
+  5: '#B8F34A',
+};
+
+/** Pilihan bawaan (Indonesia). Komponen memakai versi sesuai bahasa aktif. */
+export const DEFAULT_MOOD_OPTIONS: MoodOption[] = uiText.id.moodSelector.options.map((option) => ({
+  ...option,
+  accentColor: MOOD_ACCENTS[option.value],
+}));
 
 export interface MoodSelectorProps {
   value: number;
@@ -31,12 +41,14 @@ export interface MoodSelectorProps {
 export function MoodSelector({
   value,
   onChange,
-  options = DEFAULT_MOOD_OPTIONS,
+  options,
   className = '',
 }: MoodSelectorProps) {
+  const t = useText(uiText).moodSelector;
+  const resolved: MoodOption[] = options ?? t.options.map((option) => ({ ...option, accentColor: MOOD_ACCENTS[option.value] }));
   return (
-    <div className={`grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 ${className}`} role="radiogroup" aria-label="Pilih suasana hati">
-      {options.map((m) => {
+    <div className={`grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 ${className}`} role="radiogroup" aria-label={t.aria}>
+      {resolved.map((m) => {
         const isSelected = value === m.value;
         const accent = m.accentColor || '#B8F34A';
         const Icon = m.icon ?? MOOD_ICONS_BY_VALUE[m.value];

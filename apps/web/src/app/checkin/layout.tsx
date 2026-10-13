@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 // Halaman ini komponen klien, jadi judul tab dan deskripsinya ditetapkan di sini.
 export const metadata: Metadata = {
-  title: 'Check-in harian',
+  title: 'Check-in',
   description: 'Catat suasana hati dan energimu hari ini. Tersimpan hanya di perangkat ini.',
 };
 

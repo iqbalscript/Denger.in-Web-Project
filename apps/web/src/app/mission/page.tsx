@@ -11,20 +11,23 @@ import {
 import { useConsentGuard } from '@/lib/useConsentGuard';
 import { useCrisisGuard } from '@/lib/useCrisisGuard';
 import { InlineCrisisCard, CrisisBlockedNote } from '@/components/InlineCrisisCard';
-import { DOMAIN_CONFIGS } from '@dengarin/config';
 import type { DailyMission, CelebrationData } from '@dengarin/types';
 import { PageContainer, ContentColumn, Button, Input, CelebrationToast, Reveal } from '@/components/ui';
 import { awardLangkah } from '@/lib/gamification';
 import { getLocalDateString } from '@/lib/calendar';
+import { useLanguage, useText } from '@/i18n';
+import { domainText, localizedMission } from '@/i18n/config';
+import { missionText } from '@/i18n/pages/mission';
 
 export default function MissionPage() {
   const { ready, session } = useConsentGuard();
   const crisis = useCrisisGuard(session?.ageBracket);
+  const t = useText(missionText);
+  const { lang } = useLanguage();
   const [mission, setMission] = useState<DailyMission | null>(null);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [reflectionText, setReflectionText] = useState<string>('');
   const [currentDay, setCurrentDay] = useState<number>(1);
-  const [domainLabel, setDomainLabel] = useState<string>('Umum');
   const [celebration, setCelebration] = useState<CelebrationData | null>(null);
 
   useEffect(() => {
@@ -36,11 +39,11 @@ export default function MissionPage() {
     setIsCompleted(isTodayMissionCompleted());
     setReflectionText(getTodayMissionReflection());
     setCurrentDay(session?.currentDay || 1);
-
-    if (DOMAIN_CONFIGS[domain]) {
-      setDomainLabel(DOMAIN_CONFIGS[domain].label);
-    }
   }, [ready, session]);
+
+  // Teks misi dan label fokus ikut bahasa antarmuka; data tersimpan tetap Indonesia.
+  const shownMission = mission ? localizedMission(mission, lang) : null;
+  const domainLabel = domainText(session?.primaryDomain || 'general', lang).label;
 
   const handleReflectionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value;
@@ -79,11 +82,11 @@ export default function MissionPage() {
     }
   };
 
-  if (!mission) {
+  if (!mission || !shownMission) {
     return (
       <PageContainer size="narrow">
         <ContentColumn size="md" className="space-y-6 py-4" role="status" aria-live="polite">
-          <span className="sr-only">Menyiapkan misi kecilmu...</span>
+          <span className="sr-only">{t.preparing}</span>
           <div className="h-9 w-56 rounded-[4px] bg-[#EFE8DC] animate-pulse" aria-hidden="true" />
           <div className="space-y-3" aria-hidden="true">
             <div className="h-6 w-40 rounded-[4px] bg-[#EFE8DC] animate-pulse" />
@@ -94,7 +97,7 @@ export default function MissionPage() {
             <div className="h-20 w-full rounded-[6px] bg-[#EFE8DC] animate-pulse" />
             <div className="h-20 w-full rounded-[6px] bg-[#EFE8DC] animate-pulse" />
           </div>
-          <p className="text-base text-[#59544D]" aria-hidden="true">Menyiapkan misi kecilmu...</p>
+          <p className="text-base text-[#59544D]" aria-hidden="true">{t.preparing}</p>
         </ContentColumn>
       </PageContainer>
     );
@@ -111,7 +114,7 @@ export default function MissionPage() {
             size="sm"
             icon={<ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />}
           >
-            Kembali ke beranda
+            {t.backHome}
           </Button>
         </div>
 
@@ -119,23 +122,23 @@ export default function MissionPage() {
         <header className="space-y-5 animate-reveal-up [animation-delay:80ms]">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-bold px-2.5 py-1 bg-cobalt text-white border-2 border-ink rounded shadow-hard-sm tabular-nums">
-              Misi hari ke-{currentDay} dari 14
+              {t.dayOf(currentDay)}
             </span>
             <span className="text-sm font-bold px-2.5 py-1 bg-white text-ink border border-borderSubtle rounded">
-              Fokus: {domainLabel}
+              {t.focus(domainLabel)}
             </span>
             <div className="flex items-center gap-1.5 text-sm text-ink font-bold sm:ml-auto">
               <Clock className="w-4 h-4 text-cobalt" aria-hidden="true" />
-              <span className="tabular-nums">Sekitar {mission.durationMinutes} menit</span>
+              <span className="tabular-nums">{t.duration(shownMission.durationMinutes)}</span>
             </div>
           </div>
 
           <h1 className="text-[2rem] sm:text-4xl lg:text-5xl font-bold text-ink tracking-[-0.03em] leading-[1.05]">
-            {mission.title}
+            {shownMission.title}
           </h1>
 
           <p className="text-base sm:text-lg text-[#4A453E] leading-relaxed max-w-[38rem]">
-            {mission.summary}
+            {shownMission.summary}
           </p>
         </header>
 
@@ -143,18 +146,18 @@ export default function MissionPage() {
         <section aria-labelledby="judul-langkah" className="space-y-5 animate-reveal-up [animation-delay:160ms]">
           <h2 id="judul-langkah" className="flex items-center gap-2 text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25]">
             <Sparkles className="w-5 h-5 text-cobalt" aria-hidden="true" />
-            <span>Lakukan pelan-pelan, satu langkah saja</span>
+            <span>{t.stepsTitle}</span>
           </h2>
 
           <ol className="space-y-3">
-            {mission.steps.map((step, idx) => (
+            {shownMission.steps.map((step, idx) => (
               <Reveal as="li" key={idx} delay={Math.min(idx, 5) * 70} className="p-5 sm:p-6 bg-white border border-borderSubtle rounded-lg flex items-start gap-4">
                 <div className="w-11 h-11 rounded-md bg-cobalt text-white font-bold text-lg flex items-center justify-center border-2 border-ink shrink-0 tabular-nums" aria-hidden="true">
                   {idx + 1}
                 </div>
                 <div className="space-y-1">
                   <span className="text-sm font-bold text-[#2B51E6] tabular-nums">
-                    Langkah {idx + 1}
+                    {t.stepLabel(idx + 1)}
                   </span>
                   <p className="text-lg text-ink leading-relaxed">
                     {step}
@@ -168,11 +171,11 @@ export default function MissionPage() {
         {/* Reflection Input Section */}
         <Reveal className="space-y-3 pt-8 border-t border-borderSubtle">
           <Input
-            label={`Refleksi singkat (boleh dikosongkan): ${mission.reflectionQuestion}`}
+            label={t.reflectionLabel(shownMission.reflectionQuestion)}
             value={reflectionText}
             onChange={handleReflectionChange}
             disabled={isCompleted}
-            placeholder="Kalau mau, tulis satu kalimat tentang apa yang kamu rasakan setelahnya..."
+            placeholder={t.reflectionPlaceholder}
           />
         </Reveal>
 
@@ -180,7 +183,7 @@ export default function MissionPage() {
           <InlineCrisisCard
             contacts={crisis.contacts}
             onAcknowledge={crisis.acknowledge}
-            blockedNote="Refleksimu tetap ada di sini dan misi belum kami tandai selesai."
+            blockedNote={t.blockedNote}
           />
         )}
 
@@ -191,9 +194,9 @@ export default function MissionPage() {
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-6 h-6 text-ink shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="space-y-1">
-                  <h2 className="text-lg font-bold text-ink leading-snug">Misi selesai untuk hari ini</h2>
+                  <h2 className="text-lg font-bold text-ink leading-snug">{t.doneTitle}</h2>
                   <p className="text-base text-ink leading-relaxed">
-                    Kamu sudah melakukan satu hal kecil untuk dirimu hari ini, dan itu berarti. Sekarang, silakan istirahat.
+                    {t.doneBody}
                   </p>
                 </div>
               </div>
@@ -205,7 +208,7 @@ export default function MissionPage() {
                 icon={<ArrowRight className="w-4 h-4" />}
                 className="shrink-0 w-full sm:w-auto"
               >
-                Kembali ke beranda
+                {t.backHome}
               </Button>
             </div>
           ) : (
@@ -219,7 +222,7 @@ export default function MissionPage() {
               onClick={handleComplete}
               icon={<CheckCircle2 className="w-5 h-5" aria-hidden="true" />}
             >
-              Tandai selesai dan simpan
+              {t.complete}
             </Button>
             {crisis.isCrisis && <CrisisBlockedNote id="misi-krisis-catatan" />}
             </div>
