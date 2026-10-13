@@ -96,11 +96,13 @@ export default function LandingPage() {
     <>
     <div className="space-y-20 sm:space-y-24 lg:space-y-32 pb-12 sm:pb-16">
       {/* Jarak antarbagian lebih lega khusus halaman depan (layar aplikasi tetap padat). */}
-      {/* 1. EDITORIAL HERO (PRD-DESIGN.md section 15) */}
-      <section className="pt-10 sm:pt-16 lg:pt-20" aria-labelledby="judul-utama">
+      {/* 1. EDITORIAL HERO (PRD-DESIGN.md section 15)
+          Jarak atas termasuk py PageContainer: 40px / 72px / 88px, supaya judul dan
+          kedua tombol selalu terlihat tanpa menggulir di laptop 1366x768. */}
+      <section className="pt-2 sm:pt-6 lg:pt-10" aria-labelledby="judul-utama">
         <PageContainer size="default">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            {/* Left Column: Hero Content */}
+            {/* Kolom kiri: satu pesan utama saja (lencana, judul, pengantar, dua tombol). */}
             <div className="lg:col-span-7 space-y-6 text-left">
               <div className="animate-reveal-up inline-flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-[#B8F34A] border-2 border-[#151515] text-[#151515] text-sm font-bold shadow-[2px_2px_0px_#151515]">
                 <ShieldCheck className="w-4 h-4 text-[#151515]" aria-hidden="true" />
@@ -143,15 +145,17 @@ export default function LandingPage() {
                   Bantuan darurat
                 </Button>
               </div>
+            </div>
 
-              {/* QUICK MOOD CHECK-IN WIDGET ON LANDING */}
-              <div className="animate-reveal-up [animation-delay:240ms] mt-2 p-4 sm:p-5 rounded-[6px] bg-white border-2 border-[#151515] shadow-[3px_3px_0px_#151515] space-y-3 max-w-xl" role="group" aria-labelledby="label-mood-cepat">
-                <div className="flex items-center justify-between">
-                  <span id="label-mood-cepat" className="text-base font-bold text-[#151515] flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-[#3357EE]" aria-hidden="true" />
-                    Apa kabar hatimu hari ini? Ketuk salah satu.
-                  </span>
-                </div>
+            {/* Kolom kanan: check-in suasana hati yang benar-benar berfungsi (bukan
+                tiruan tampilan). Nampan lime mengikat visual ini ke tombol utama. */}
+            <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-reveal-up [animation-delay:240ms]">
+              <div className="bezel bg-[#B8F34A] w-full max-w-xl lg:max-w-none shadow-[6px_6px_0px_#151515]">
+              <div className="bezel-core p-4 sm:p-5 bg-white space-y-3 text-left" role="group" aria-labelledby="label-mood-cepat">
+                <span id="label-mood-cepat" className="text-base font-bold text-[#151515] flex items-start gap-1.5">
+                  <Sparkles className="w-4 h-4 mt-1 text-[#3357EE] shrink-0" aria-hidden="true" />
+                  Apa kabar hatimu hari ini? Ketuk salah satu.
+                </span>
                 <p role="status" aria-live="polite" className="min-h-[1.5rem] text-sm font-bold text-[#151515]">
                   {moodSavedNotice && (
                     <span className="inline-flex items-center gap-1 bg-[#B8F34A] px-2 py-0.5 rounded-[2px] border border-[#151515]">
@@ -160,9 +164,12 @@ export default function LandingPage() {
                   )}
                 </p>
 
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-1">
-                  {moodOptions.map((m) => {
+                {/* Lima pilihan dalam dua baris (3 + 2) tanpa sel kosong; di tablet
+                    muat lima sejajar. Label tetap utuh, tidak terpotong di tengah kata. */}
+                <div className="grid grid-cols-6 sm:grid-cols-5 lg:grid-cols-6 gap-2 pt-1">
+                  {moodOptions.map((m, index) => {
                     const isSelected = selectedQuickMood === m.id;
+                    const span = index < 3 ? 'col-span-2 sm:col-span-1 lg:col-span-2' : 'col-span-3 sm:col-span-1 lg:col-span-3';
                     return (
                       <button
                         key={m.id}
@@ -172,7 +179,7 @@ export default function LandingPage() {
                         style={{
                           backgroundColor: isSelected ? m.color : '#FFFFFF',
                         }}
-                        className={`py-2.5 px-1.5 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[76px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${isSelected
+                        className={`${span} py-2.5 px-1.5 rounded-[4px] border-2 border-[#151515] flex flex-col items-center justify-center gap-1 transition-[transform,box-shadow,background-color] duration-200 ease-spring cursor-pointer min-h-[76px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2 ${isSelected
                             ? 'shadow-[2px_2px_0px_#151515] -translate-x-[1px] -translate-y-[1px]'
                             : 'hover:bg-[#FFF8EF] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[2px_2px_0px_#151515] active:translate-x-0 active:translate-y-0 active:shadow-none'
                           }`}
@@ -187,38 +194,6 @@ export default function LandingPage() {
                   <Lock className="w-4 h-4 text-[#2B51E6] shrink-0" aria-hidden="true" />
                   Pilihanmu hanya tersimpan di perangkat ini.
                 </p>
-              </div>
-
-            </div>
-
-            {/* Right Column: Abstract Colorful Neo-Brutalist Composition */}
-            <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-reveal-up [animation-delay:320ms]">
-              <div className="bezel w-full max-w-[348px] sm:max-w-[388px] shadow-[6px_6px_0px_#151515]">
-              <div className="bezel-core relative p-6 bg-[#3357EE] space-y-4 text-left text-white">
-                <div className="inline-block px-2.5 py-1 bg-[#B8F34A] text-[#151515] border-2 border-[#151515] font-bold text-sm rounded-[4px] shadow-[2px_2px_0px_#151515]">
-                  Ruang aman anonim
-                </div>
-
-                <p className="text-2xl sm:text-[1.75rem] font-bold tracking-[-0.02em] leading-[1.15]">
-                  Tenang. <br />
-                  Semua bisa <br />
-                  diurai perlahan.
-                </p>
-
-                <p className="text-base text-white leading-relaxed">
-                  Dengar.in bukan diagnosis medis, melainkan teman refleksi yang mendengarkan tanpa menghakimi dan menemanimu mengambil satu langkah kecil hari ini.
-                </p>
-
-                {/* Sub-card composition element */}
-                <div className="p-3.5 bg-white text-[#151515] border-2 border-[#151515] shadow-[3px_3px_0px_#151515] rounded-[4px] space-y-1 md:-mx-2 md:translate-y-1">
-                  <div className="flex items-center justify-between text-sm font-bold">
-                    <span>Misi hari ini</span>
-                    <span className="text-[#2B51E6] tabular-nums">5 menit</span>
-                  </div>
-                  <p className="text-base text-[#59544D] leading-relaxed">
-                    “Berhenti sejenak. Tarik napas 4 detik, embuskan pelan 4 detik. Tidak perlu terburu-buru.”
-                  </p>
-                </div>
               </div>
               </div>
             </div>
@@ -282,7 +257,7 @@ export default function LandingPage() {
                   </div>
 
                   <div className={`pt-4 border-t flex items-center justify-between text-sm font-semibold text-[#151515] ${surface.rule}`}>
-                    <span>{pillar.isSensitive ? 'Opsi lewati tersedia' : 'Misi mandiri harian'}</span>
+                    <span>{pillar.isSensitive ? 'Boleh dilewati kapan saja' : 'Misi mandiri harian'}</span>
                   </div>
                 </Reveal>
               );
@@ -323,10 +298,7 @@ export default function LandingPage() {
           <div className="bezel">
           <div className="bezel-core bg-[#FFEBEB] p-6 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-left">
             <div className="space-y-3 max-w-2xl">
-              <span className="inline-block text-sm font-bold text-white bg-[#D32F2F] px-2.5 py-1 rounded-[4px] border-2 border-[#151515] shadow-[1px_1px_0px_#151515]">
-                Pintu keamanan pertama
-              </span>
-              <h2 id="judul-krisis" className="text-2xl sm:text-[1.75rem] font-bold text-[#151515] tracking-[-0.01em] leading-[1.2] pt-1">
+              <h2 id="judul-krisis" className="text-2xl sm:text-[1.75rem] font-bold text-[#151515] tracking-[-0.01em] leading-[1.2]">
                 Kalau terasa terlalu berat, bantuan manusia langsung ada
               </h2>
               <p className="text-base sm:text-base text-[#4A453E] leading-relaxed">

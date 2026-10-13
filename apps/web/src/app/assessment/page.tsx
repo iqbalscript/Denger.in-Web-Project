@@ -162,7 +162,7 @@ export default function AssessmentPage() {
     if (severity === 'MILD') {
       summaryFeedback =
         'Terima kasih sudah meluangkan waktu untuk jujur pada dirimu. Beban pikiranmu saat ini terasa ringan dan masih bisa kamu kelola. Misi harian yang singkat dan jurnal bisa membantu menjaga ritme dan ketenanganmu.';
-      supportSpaces = ['Misi Harian Mandiri (3–7 Menit)', 'Jurnal Privat Lokal', 'Ruang Cerita Anonim'];
+      supportSpaces = ['Misi Harian Mandiri (3-7 Menit)', 'Jurnal Privat Lokal', 'Ruang Cerita Anonim'];
     } else if (severity === 'MODERATE') {
       summaryFeedback =
         'Terima kasih sudah bercerita. Sepertinya belakangan ini kamu memikul tekanan yang cukup menguras tenaga, dan itu wajar dirasakan. Latihan menenangkan diri, jurnal, dan ruang cerita bisa menemanimu. Berbicara dengan profesional juga pilihan yang baik kalau kamu mau.';

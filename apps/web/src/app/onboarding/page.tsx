@@ -97,7 +97,7 @@ export default function OnboardingPage() {
                 <span className="font-bold text-ink block text-base">Kenapa kami bertanya usia?</span>
                 <p className="leading-relaxed text-base">
                   Usia membantu Dengar.in menyesuaikan kosakata, nada bicara, serta perlindungan
-                  khusus (seperti hotline anak untuk usia 15–17). Kami{' '}
+                  khusus (seperti hotline anak untuk usia 15-17). Kami{' '}
                   <strong className="text-ink font-bold">tidak pernah</strong> meminta nama,
                   tanggal lahir, KTP, ataupun data pribadi lainnya.
                 </p>

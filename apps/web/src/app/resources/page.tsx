@@ -13,7 +13,7 @@ export default function ResourcesPage() {
     { id: 'all', label: 'Semua Layanan' },
     { id: 'national_emergency', label: 'Darurat Nasional' },
     { id: 'crisis_hotline', label: 'Pencegahan Krisis' },
-    { id: 'teen_protection', label: 'Khusus Remaja (15–17 Th)' },
+    { id: 'teen_protection', label: 'Khusus Remaja (15-17 Th)' },
     { id: 'financial_advocacy', label: 'Bantuan Soal Pinjol & Keuangan' },
   ];
 

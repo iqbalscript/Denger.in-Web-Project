@@ -142,7 +142,7 @@ export default function AssessmentResultPage() {
                   </div>
                   <h3 className="font-bold text-lg text-ink tracking-[-0.01em] leading-[1.25]">Masuk ke beranda</h3>
                   <p className="text-base text-[#4A453E] leading-relaxed">
-                    Mulai misi kecil harian 3–7 menit yang sesuai kemampuanmu.
+                    Mulai misi kecil harian 3-7 menit yang sesuai kemampuanmu.
                   </p>
                 </div>
                 <span className="text-base font-bold text-[#2B51E6] flex items-center gap-1.5 pt-2" aria-hidden="true">

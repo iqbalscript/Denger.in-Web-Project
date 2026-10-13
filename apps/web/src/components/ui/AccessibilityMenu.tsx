@@ -42,13 +42,19 @@ const TOGGLES: { key: Exclude<keyof Settings, 'textScale'>; label: string; hint:
 ];
 
 // Dijalankan di <head> sebelum render agar tidak ada kedipan ukuran/warna.
-export const ACCESSIBILITY_INIT_SCRIPT = `(function(){try{var s=JSON.parse(localStorage.getItem('${ACCESSIBILITY_STORAGE_KEY}')||'null');if(!s)return;var r=document.documentElement;if(s.textScale&&s.textScale!==100)r.style.fontSize=s.textScale+'%';${TOGGLES.map(
+export const ACCESSIBILITY_INIT_SCRIPT = `(function(){try{var s=JSON.parse(localStorage.getItem('${ACCESSIBILITY_STORAGE_KEY}')||'null');if(!s)return;var r=document.documentElement;if(s.textScale&&s.textScale!==100){r.style.fontSize=s.textScale+'%';r.classList.add('a11y-scaled','a11y-scale-'+Math.floor(s.textScale));}${TOGGLES.map(
   (t) => `if(s.${t.key})r.classList.add('${t.className}');`
 ).join('')}}catch(e){}})();`;
 
 function applySettings(settings: Settings) {
   const root = document.documentElement;
   root.style.fontSize = settings.textScale === 100 ? '' : `${settings.textScale}%`;
+  // Kelas skala menggeser breakpoint tata letak (lihat postcss/scale-breakpoints.js).
+  const scaleClass = `a11y-scale-${Math.floor(settings.textScale)}`;
+  for (const scale of TEXT_SCALES) {
+    root.classList.toggle(`a11y-scale-${Math.floor(scale.value)}`, `a11y-scale-${Math.floor(scale.value)}` === scaleClass && scale.value !== 100);
+  }
+  root.classList.toggle('a11y-scaled', settings.textScale !== 100);
   for (const toggle of TOGGLES) {
     root.classList.toggle(toggle.className, settings[toggle.key]);
   }
@@ -125,12 +131,15 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
         aria-expanded={open}
         aria-controls="panel-aksesibilitas"
         aria-label="Akses cepat: atur ukuran teks, kontras, dan animasi"
+        title="Akses cepat: atur ukuran teks, kontras, dan animasi"
         className={`relative inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-2.5 rounded-[4px] text-sm font-bold border-2 border-[#151515] shadow-[2px_2px_0px_#151515] transition-[transform,box-shadow,background-color] duration-200 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] ${
           open ? 'bg-[#FFD84D] text-[#151515]' : 'bg-white text-[#151515] hover:bg-[#FFD84D]/40'
         } ${focusRing}`}
       >
         <Accessibility className="w-5 h-5 shrink-0" aria-hidden="true" />
-        <span className="hidden 2xl:inline">Akses cepat</span>
+        {/* Label baru muat di baris navigasi mulai 1680px (bersama "Catatan Konsultasi"
+            dan "Bantuan darurat"); di bawah itu ikon + tooltip + aria-label. */}
+        <span className="hidden min-[1680px]:inline">Akses cepat</span>
         {isCustomised && (
           <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#3357EE] border-2 border-white" aria-hidden="true" />
         )}

@@ -183,7 +183,7 @@ export default function CheckinPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="tingkat-energi" className="text-lg font-bold text-ink leading-snug flex items-center gap-2">
                 <BatteryMedium className="w-5 h-5 text-ink" aria-hidden="true" />
-                <span>2. Tingkat energimu (1–10)</span>
+                <span>2. Tingkat energimu (1-10)</span>
               </label>
               <span aria-live="polite" className="text-base font-bold px-2.5 py-1 bg-yellow border-2 border-ink rounded shadow-hard-sm tabular-nums">
                 Energi: {energyLevel} dari 10

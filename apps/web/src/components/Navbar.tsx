@@ -81,7 +81,12 @@ export function Navbar() {
       {/* Permukaan kertas 92% + blur hanya pada header lengket (bukan konten bergulir);
           teks tinta tetap kontras > 12:1 di atasnya. */}
       <header className="sticky top-0 z-40 bg-[#FFF8EF] supports-[backdrop-filter]:bg-[#FFF8EF]/[0.92] supports-[backdrop-filter]:backdrop-blur-md border-b-2 border-[#151515]">
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        {/* Lebar baris (Space Grotesk 700, diukur dari berkas font):
+            lg 1024: logo 126 + 5 tautan 411 + Bantuan(ikon) 46 + Keluar Cepat 137 + Darurat 104 + Akses 44 + jarak 40 = ~910 dari 960.
+            xl 1280: + ikon tautan, label Bantuan, petunjuk Esc = ~1188 dari 1216.
+            2xl 1536: + Catatan Konsultasi dan "Bantuan darurat" = ~1440; karena itu wadah
+            dilepas dari batas 1280px (max-w-none) agar tersedia 1472px. */}
+        <div className="w-full max-w-7xl 2xl:max-w-none mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between min-h-[4.25rem] gap-2 xl:gap-4">
             {/* LEFT: Dengar.in logo & 100% ANONIM */}
             <div className="flex items-center gap-3 shrink-0">
@@ -114,7 +119,7 @@ export function Navbar() {
                     key={item.href}
                     href={item.href}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`${item.desktopClass ?? 'inline-flex'} items-center gap-1.5 px-3 min-h-[44px] text-sm font-bold whitespace-nowrap rounded-[4px] transition-colors duration-120 ${focusRing} ${
+                    className={`${item.desktopClass ?? 'inline-flex'} items-center gap-1.5 px-2.5 xl:px-3 min-h-[44px] text-sm font-bold whitespace-nowrap rounded-[4px] transition-colors duration-120 ${focusRing} ${
                       isActive
                         ? 'bg-[#B8F34A] text-[#151515] border-2 border-[#151515] shadow-[2px_2px_0px_#151515]'
                         : 'border-2 border-transparent text-[#151515] hover:text-[#3357EE] hover:bg-[#151515]/5 hover:underline underline-offset-4 decoration-2'

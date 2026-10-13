@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Key, BarChart3, Users } from 'lucide-react';
+import { ShieldCheck, Key } from 'lucide-react';
 
 const footerLink =
   'inline-flex items-center gap-1.5 min-h-[44px] text-base font-semibold text-[#151515] underline underline-offset-4 decoration-2 decoration-[#D8D3C9] hover:decoration-[#151515] transition-colors duration-200 ease-spring rounded-[4px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#3357EE] focus-visible:ring-offset-2';
@@ -66,14 +66,19 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/report" className={footerLink}>
-                  <BarChart3 className="w-4 h-4 text-[#3357EE]" aria-hidden="true" />
-                  <span>Refleksi Mingguan</span>
+                  Refleksi Mingguan
                 </Link>
               </li>
               <li>
                 <Link href="/forum" className={footerLink}>
-                  <Users className="w-4 h-4 text-[#3357EE]" aria-hidden="true" />
-                  <span>Ruang Cerita</span>
+                  Ruang Cerita
+                </Link>
+              </li>
+              <li>
+                {/* Di navigasi atas tautan ini baru tampil mulai 1536px; di sini
+                    selalu ada supaya tetap terjangkau di laptop. */}
+                <Link href="/care-passport" className={footerLink}>
+                  Catatan Konsultasi
                 </Link>
               </li>
             </ul>
