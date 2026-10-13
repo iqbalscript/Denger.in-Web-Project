@@ -40,6 +40,16 @@ export function Footer() {
             <h2 id="footer-akses" className="text-lg font-bold text-[#151515]">Akses mandiri</h2>
             <ul className="space-y-0.5">
               <li>
+                <Link href="/chat" className={footerLink}>
+                  Ngobrol: tulis pesan
+                </Link>
+              </li>
+              <li>
+                <Link href="/ruang-ngobrol" className={footerLink}>
+                  Ngobrol: pakai suara
+                </Link>
+              </li>
+              <li>
                 <Link href="/dashboard" className={footerLink}>
                   Beranda
                 </Link>

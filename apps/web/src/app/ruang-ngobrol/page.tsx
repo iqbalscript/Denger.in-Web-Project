@@ -14,7 +14,7 @@ import {
   isSpeechRecognitionSupported,
   isSpeechSynthesisSupported,
   selectIndonesianVoice,
-  speakOneAtATime,
+  speakExpressively,
   speechRecognitionErrorMessage,
   type BrowserSpeechRecognition,
 } from '@/lib/browserSpeech';
@@ -208,14 +208,10 @@ export default function RuangNgobrolPage() {
 
     stopRecognition(true);
     stopRoomAudio();
-    const utterance = new window.SpeechSynthesisUtterance(text);
-    utterance.lang = 'id-ID';
-    const voice = selectIndonesianVoice(window.speechSynthesis.getVoices());
-    if (voice) utterance.voice = voice;
     const speechGeneration = speechGenerationRef.current + 1;
     speechGenerationRef.current = speechGeneration;
 
-    utterance.onend = () => {
+    const handleEnd = () => {
       if (speechGeneration !== speechGenerationRef.current || generation !== generationRef.current) return;
       if (shouldResumeVoiceRoomListening({
         sessionActive: sessionActiveRef.current,
@@ -228,7 +224,7 @@ export default function RuangNgobrolPage() {
         transitionTo('IDLE');
       }
     };
-    utterance.onerror = () => {
+    const handleError = () => {
       if (speechGeneration !== speechGenerationRef.current || generation !== generationRef.current) return;
       setMuted(true);
       setStatusMessage('Respons aman tetap tersedia sebagai teks. Suara browser tidak dapat diputar; kamu dapat melanjutkan mendengarkan secara manual.');
@@ -236,7 +232,12 @@ export default function RuangNgobrolPage() {
     };
 
     if (!transitionTo('SPEAKING')) return;
-    speakOneAtATime(window.speechSynthesis, utterance);
+    // Cadangan suara browser: per kalimat dengan intonasi yang mengikuti isi.
+    speakExpressively(window.speechSynthesis, window.SpeechSynthesisUtterance, text, {
+      voice: selectIndonesianVoice(window.speechSynthesis.getVoices()),
+      onend: handleEnd,
+      onerror: handleError,
+    });
   }, [setMuted, stopRecognition, stopRoomAudio, transitionTo]);
 
   const playGeminiAudio = useCallback((payload: RoomAudioPayload, displayText: string, generation: number) => {

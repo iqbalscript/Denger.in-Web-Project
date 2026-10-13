@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -20,8 +20,99 @@ import {
   ClipboardList,
   Mic,
   X,
+  ChevronDown,
+  MessagesSquare,
 } from 'lucide-react';
 import { AccessibilityMenu, QuickExitButton } from './ui';
+
+// Dua cara ngobrol dengan Dengar.in, dikumpulkan dalam satu tombol agar navigasi
+// tetap satu baris: menulis (Teman Bicara) atau berbicara (Ruang Ngobrol suara).
+const NGOBROL_OPTIONS = [
+  { href: '/chat', title: 'Tulis', description: 'Ngobrol lewat pesan teks', icon: MessageSquare },
+  { href: '/ruang-ngobrol', title: 'Suara', description: 'Ngobrol dengan berbicara langsung', icon: Mic },
+];
+
+function NgobrolMenu({ pathname, focusRing }: { pathname: string; focusRing: string }) {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const isActive = NGOBROL_OPTIONS.some((option) => pathname === option.href);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
+
+  // Escape hanya menutup menu ini, tidak memicu Keluar Cepat.
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape' && open) {
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(false);
+      buttonRef.current?.focus();
+    }
+  };
+
+  return (
+    <div ref={wrapperRef} className="relative" onKeyDown={onKeyDown}>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-controls="menu-ngobrol"
+        className={`inline-flex items-center gap-1.5 px-2.5 xl:px-3 min-h-[44px] text-sm font-bold whitespace-nowrap rounded-[4px] border-2 border-[#151515] shadow-[2px_2px_0px_#151515] transition-[transform,box-shadow,background-color] duration-200 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#151515] ${focusRing} ${
+          isActive || open ? 'bg-[#B8F34A] text-[#151515]' : 'bg-white text-[#151515] hover:bg-[#B8F34A]/40'
+        }`}
+      >
+        <MessagesSquare className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+        <span>Ngobrol</span>
+        <ChevronDown className={`w-4 h-4 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div
+          id="menu-ngobrol"
+          role="group"
+          aria-label="Pilih cara ngobrol"
+          className="absolute left-0 top-full mt-2 z-50 w-72 bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515] p-2 space-y-1"
+        >
+          {NGOBROL_OPTIONS.map((option) => {
+            const Icon = option.icon;
+            const current = pathname === option.href;
+            return (
+              <Link
+                key={option.href}
+                href={option.href}
+                aria-current={current ? 'page' : undefined}
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 min-h-[52px] rounded-[4px] border-2 transition-colors duration-200 ${focusRing} ${
+                  current ? 'border-[#151515] bg-[#B8F34A]' : 'border-transparent hover:border-[#151515] hover:bg-[#FFF8EF]'
+                }`}
+              >
+                <span className="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-[4px] border-2 border-[#151515] bg-[#FFF8EF]" aria-hidden="true">
+                  <Icon className="w-5 h-5 text-[#151515]" />
+                </span>
+                <span>
+                  <span className="block text-sm font-bold text-[#151515]">{option.title}</span>
+                  <span className="block text-xs text-[#59544D]">{option.description}</span>
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Navbar() {
   const pathname = usePathname();
@@ -46,7 +137,9 @@ export function Navbar() {
     { href: '/mission', label: 'Misi', icon: CheckCircle2 },
     { href: '/checkin', label: 'Check-in', icon: Shield },
     { href: '/journal', label: 'Jurnal', icon: BookOpen },
-    { href: '/forum', label: 'Ruang Cerita', icon: Users },
+    // Tombol Ngobrol mengambil ruang di laptop 1024px; Ruang Cerita ikut baris atas
+    // mulai xl (tetap ada di footer dan menu seluler).
+    { href: '/forum', label: 'Ruang Cerita', icon: Users, desktopClass: 'hidden xl:inline-flex' },
     // Enam tautan + tombol kanan tidak muat di bawah 1536px; tautan ini ikut baris
     // atas mulai 2xl saja (tetap ada di menu seluler dan halaman lain).
     { href: '/care-passport', label: 'Catatan Konsultasi', icon: ClipboardList, desktopClass: 'hidden 2xl:inline-flex' },
@@ -54,9 +147,9 @@ export function Navbar() {
 
   // All links for mobile drawer
   const mobileNavLinks = [
+    { href: '/chat', label: 'Ngobrol: tulis pesan', icon: MessageSquare },
+    { href: '/ruang-ngobrol', label: 'Ngobrol: pakai suara', icon: Mic },
     ...centerLinks,
-    { href: '/chat', label: 'Teman Bicara (tulis)', icon: MessageSquare },
-    { href: '/ruang-ngobrol', label: 'Ruang Ngobrol (suara)', icon: Mic },
     { href: '/resources', label: 'Bantuan & Kontak Resmi', icon: HelpCircle },
   ];
 
@@ -111,8 +204,8 @@ export function Navbar() {
 
             {/* CENTER: Clean Navigation (Beranda, Misi, Check-in, Jurnal, Ruang Cerita) */}
             <nav className="hidden lg:flex items-center justify-center gap-1 xl:gap-2 flex-1" aria-label="Navigasi utama">
+              <NgobrolMenu pathname={pathname} focusRing={focusRing} />
               {centerLinks.map((item) => {
-                const Icon = item.icon;
                 const isActive = pathname === item.href;
                 return (
                   <Link
@@ -125,8 +218,7 @@ export function Navbar() {
                         : 'border-2 border-transparent text-[#151515] hover:text-[#3357EE] hover:bg-[#151515]/5 hover:underline underline-offset-4 decoration-2'
                     }`}
                   >
-                    {/* Ikon baru tampil mulai xl agar baris navigasi muat di laptop 1024px. */}
-                    <Icon className="hidden xl:block w-[18px] h-[18px] shrink-0 text-current" aria-hidden="true" />
+                    {/* Tautan tengah tanpa ikon agar tombol Ngobrol muat dalam satu baris. */}
                     <span>{item.label}</span>
                   </Link>
                 );

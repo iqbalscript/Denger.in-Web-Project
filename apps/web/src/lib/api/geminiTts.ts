@@ -8,6 +8,12 @@ export const GEMINI_TTS_MODEL = 'gemini-3.8-flash-lite-tts';
 export const GEMINI_TTS_VOICE = 'Vindemiatrix';
 export const GEMINI_TTS_MIME_TYPE = 'audio/wav';
 export const GEMINI_TTS_SAMPLE_RATE = 24_000;
+// Hangat dan ekspresif, bukan datar: intonasi mengikuti makna tiap kalimat.
+export const GEMINI_TTS_STYLE =
+  'warm, gentle, conversational Indonesian, like a caring friend who is listening; '
+  + 'natural expressive intonation that follows the meaning of each sentence, questions rise softly, '
+  + 'reassuring lines are slower and softer; relaxed pace with natural pauses at commas and full stops; '
+  + 'not monotone, not robotic, not overly cheerful';
 export const GEMINI_TTS_MAX_TEXT_CHARS = 400;
 export const GEMINI_TTS_MAX_AUDIO_BYTES = 1_500_000;
 export const GEMINI_TTS_MAX_BASE64_CHARS = Math.ceil(GEMINI_TTS_MAX_AUDIO_BYTES / 3) * 4;
@@ -102,7 +108,7 @@ export function createGeminiTtsProvider(
               content: [{
                 type: 'text',
                 text: safeText,
-                annotations: [{ type: 'speech_metadata', style: 'calm, clear, neutral delivery' }],
+                annotations: [{ type: 'speech_metadata', style: GEMINI_TTS_STYLE }],
               }],
             }],
             response_format: {

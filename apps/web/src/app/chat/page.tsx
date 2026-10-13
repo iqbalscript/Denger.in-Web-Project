@@ -37,7 +37,7 @@ import {
   isSpeechRecognitionSupported,
   isSpeechSynthesisSupported,
   selectIndonesianVoice,
-  speakOneAtATime,
+  speakExpressively,
   speechRecognitionErrorMessage,
   type BrowserSpeechRecognition,
 } from '@/lib/browserSpeech';
@@ -214,25 +214,20 @@ export default function ChatPage() {
     const Utterance = window.SpeechSynthesisUtterance;
     if (!Utterance || !window.speechSynthesis) return;
 
-    const utterance = new Utterance(message.text);
-    utterance.lang = 'id-ID';
-    const indonesianVoice = selectIndonesianVoice(window.speechSynthesis.getVoices());
-    if (indonesianVoice) utterance.voice = indonesianVoice;
+    const finish = () => {
+      if (activeSpeechMessageIdRef.current === message.id) {
+        activeSpeechMessageIdRef.current = null;
+        setSpeakingMessageId(null);
+      }
+    };
     activeSpeechMessageIdRef.current = message.id;
     setSpeakingMessageId(message.id);
-    utterance.onend = () => {
-      if (activeSpeechMessageIdRef.current === message.id) {
-        activeSpeechMessageIdRef.current = null;
-        setSpeakingMessageId(null);
-      }
-    };
-    utterance.onerror = () => {
-      if (activeSpeechMessageIdRef.current === message.id) {
-        activeSpeechMessageIdRef.current = null;
-        setSpeakingMessageId(null);
-      }
-    };
-    speakOneAtATime(window.speechSynthesis, utterance);
+    // Dibacakan per kalimat dengan nada dan tempo yang mengikuti isi, bukan datar.
+    speakExpressively(window.speechSynthesis, Utterance, message.text, {
+      voice: selectIndonesianVoice(window.speechSynthesis.getVoices()),
+      onend: finish,
+      onerror: finish,
+    });
   }, []);
 
   const handleResetChat = () => {
