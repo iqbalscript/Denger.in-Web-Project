@@ -156,7 +156,7 @@ export default function PerjalananPage() {
 
         <div className="lg:col-span-5 space-y-6 lg:space-y-8">
         {/* Ritme 7 Hari */}
-        <div className="animate-reveal-up [animation-delay:240ms] bg-white border border-[#D8D3C9] rounded-lg p-6 space-y-4 text-left">
+        <div className="animate-reveal-up [animation-delay:240ms] bg-white border border-[#D8D3C9] rounded-lg p-4 sm:p-6 space-y-4 text-left">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
             <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <Calendar className="w-4 h-4 text-cobalt" aria-hidden="true" />
@@ -180,7 +180,7 @@ export default function PerjalananPage() {
                 >
                   <span aria-hidden="true">{day.active ? '●' : '○'}</span>
                 </div>
-                <span className="text-sm font-semibold text-[#59544D]" aria-hidden="true">{weekdayLabel(day.weekday, lang)}</span>
+                <span className="text-xs sm:text-sm font-semibold text-[#59544D] max-w-full truncate" aria-hidden="true">{weekdayLabel(day.weekday, lang)}</span>
               </div>
             ))}
           </div>

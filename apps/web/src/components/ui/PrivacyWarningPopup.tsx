@@ -98,7 +98,7 @@ export function PrivacyWarningPopup() {
         aria-modal="true"
         aria-labelledby="privacy-warning-title"
         aria-describedby="privacy-warning-desc"
-        className={`fixed inset-0 z-[61] flex items-center justify-center p-3 sm:p-4 transition-[opacity,transform] duration-300 ${
+        className={`fixed inset-0 z-[61] flex items-center justify-center p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[opacity,transform] duration-300 ${
           isClosing
             ? 'opacity-0 scale-95'
             : 'opacity-100 scale-100'

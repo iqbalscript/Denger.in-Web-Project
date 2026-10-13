@@ -172,8 +172,9 @@ export default function DashboardPage() {
             </section>
           </div>
 
-          {/* RIGHT: CONTEXT WIDGETS (Check-in Status + Weekly Rhythm - 4 Cols) */}
-          <div className="lg:col-span-4 flex flex-col gap-4 animate-reveal-up [animation-delay:320ms]">
+          {/* RIGHT: CONTEXT WIDGETS (Check-in Status + Weekly Rhythm - 4 Cols).
+              Di tablet tegak (md) dua kartu ini berdampingan, bukan ditumpuk selebar layar. */}
+          <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 animate-reveal-up [animation-delay:320ms]">
             {/* Check-in Widget */}
             <section aria-labelledby="judul-checkin" className="bg-white border border-borderSubtle rounded-lg p-5 space-y-3 text-left">
               <div className="flex items-center justify-between border-b border-borderSubtle pb-2">

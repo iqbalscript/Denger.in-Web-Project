@@ -3,6 +3,12 @@ module.exports = {
   content: [
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  // Layar sentuh (HP, tablet) tidak punya hover: setiap `hover:` hanya berlaku di
+  // perangkat yang benar-benar bisa hover (@media (hover: hover) and (pointer: fine)).
+  // Tanpa ini, ketukan di iOS/Android meninggalkan tombol "terangkat" (sticky hover).
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       colors: {
@@ -129,8 +135,9 @@ module.exports = {
       },
       fontFamily: {
         // Teks biasa: font sistem perangkat. Judul: Schibsted Grotesk (lihat layout.tsx).
-        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif'],
-        display: ['var(--font-display)', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        // system-ui: SamsungOne/Roboto di Android, Segoe UI di Windows; -apple-system untuk iOS/macOS lama.
+        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif'],
+        display: ['var(--font-display)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
       },
     },
   },

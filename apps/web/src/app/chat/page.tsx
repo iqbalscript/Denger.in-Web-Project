@@ -519,8 +519,10 @@ export default function ChatPage() {
 
         <h1 className="sr-only">{t.pageTitle}</h1>
 
-        {/* Chat Container */}
-        <div className="animate-reveal-up [animation-delay:80ms] flex flex-col h-[calc(100dvh-240px)] min-h-[520px] max-h-[680px] sm:h-[680px] bg-white border-2 border-ink rounded-lg shadow-hard overflow-hidden text-left">
+        {/* Chat Container. Tinggi ikut dvh: di Android (interactive-widget=resizes-content)
+            dan iOS kotak tulis tetap terlihat saat keyboard layar terbuka; di HP pendek
+            tingginya dibatasi 480px dan halaman yang bergulir. */}
+        <div className="animate-reveal-up [animation-delay:80ms] flex flex-col h-[calc(100dvh-15rem)] min-h-[480px] max-h-[680px] sm:h-[680px] bg-white border-2 border-ink rounded-lg shadow-hard overflow-hidden text-left">
           {/* Chat Header */}
           <div className="p-3 sm:p-4 border-b-2 border-ink bg-paper space-y-3">
             <div className="flex items-center justify-between gap-2">
@@ -752,7 +754,8 @@ export default function ChatPage() {
                 lang={locale}
                 disabled={isTyping}
                 autoComplete="off"
-                className="min-h-[48px] flex-1 px-4 py-2.5 rounded-md border-2 border-ink text-base bg-white placeholder:text-[#6B665E] shadow-[2px_2px_0px_#151515] transition-shadow duration-200 ease-spring focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2 disabled:bg-[#D8D3C9]/40 disabled:cursor-not-allowed"
+                enterKeyHint="send"
+                className="min-h-[48px] flex-1 min-w-0 px-4 py-2.5 rounded-md border-2 border-ink text-base bg-white placeholder:text-[#6B665E] shadow-[2px_2px_0px_#151515] transition-shadow duration-200 ease-spring focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2 disabled:bg-[#D8D3C9]/40 disabled:cursor-not-allowed"
               />
               <div className="flex gap-2">
                 {speechRecognitionSupported && (

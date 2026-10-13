@@ -475,13 +475,14 @@ export default function ForumPage() {
         </div>
 
         {composer && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="reply-composer-title" onKeyDown={(event) => { if (event.key === 'Escape' && !replySubmitting) { composer.trigger?.focus(); setComposer(null); } }}>
-            <div className="animate-reveal-up bg-white w-full max-w-lg border-2 border-ink rounded-lg shadow-hard-lg p-5 space-y-3">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="reply-composer-title" onKeyDown={(event) => { if (event.key === 'Escape' && !replySubmitting) { composer.trigger?.focus(); setComposer(null); } }} onClick={(event) => { if (event.target === event.currentTarget && !replySubmitting) { composer.trigger?.focus(); setComposer(null); } }}>
+            {/* HP: lembar dari bawah; tablet/desktop: dialog di tengah. Isi bergulir sendiri saat keyboard atau teks besar. */}
+            <div className="animate-reveal-up bg-white w-full max-w-lg max-h-[calc(100dvh-1.5rem)] overflow-y-auto border-2 border-ink rounded-lg shadow-hard-lg p-5 space-y-3">
               <div className="flex items-center justify-between gap-3"><h2 id="reply-composer-title" className="font-bold text-lg tracking-[-0.01em]">{composer.parent ? t.replyToUser(composer.parent.authorAlias) : t.replyToStory}</h2><button type="button" aria-label={t.closeReply} onClick={() => { composer.trigger?.focus(); setComposer(null); }} className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-[4px] border-2 border-ink bg-white hover:bg-paper focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"><X className="w-5 h-5" aria-hidden="true" /></button></div>
               <p className="text-base text-[#59544D] leading-relaxed">{t.replyNote}</p>
               <form onSubmit={submitReply} className="space-y-3">
                 <label htmlFor="isi-balasan" className="block text-base font-bold text-ink">{t.yourReply}</label>
-                <textarea id="isi-balasan" autoFocus value={replyBody} onChange={(event) => setReplyBody(event.target.value)} minLength={3} maxLength={800} required aria-describedby="reply-limit reply-status" className="w-full min-h-28 border-2 border-ink rounded-[4px] p-3 text-base leading-relaxed shadow-[2px_2px_0px_#151515] placeholder:text-[#6B665E] focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2" placeholder={t.replyPlaceholder} />
+                <textarea id="isi-balasan" autoFocus value={replyBody} onChange={(event) => setReplyBody(event.target.value)} minLength={3} maxLength={800} required aria-describedby="reply-limit reply-status" enterKeyHint="enter" className="w-full min-h-28 border-2 border-ink rounded-[4px] p-3 text-base leading-relaxed shadow-[2px_2px_0px_#151515] placeholder:text-[#6B665E] focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2" placeholder={t.replyPlaceholder} />
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span id="reply-limit" className="text-[#59544D] tabular-nums">{t.charCount(replyBody.length, 800)}</span><button type="submit" disabled={replySubmitting || replyBody.trim().length < 3 || replyBody.trim().length > 800} className="min-h-[48px] px-5 border-2 border-ink rounded-[4px] bg-lime text-base font-bold shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:bg-[#D8D3C9] disabled:text-[#7A756D] disabled:border-[#7A756D] disabled:shadow-none disabled:transform-none disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">{replySubmitting ? t.sending : t.sendReply}</button></div>
                 <p id="reply-status" role="status" aria-live="polite" className="text-base font-semibold">{replyNotice}</p>
               </form>
@@ -490,8 +491,8 @@ export default function ForumPage() {
         )}
 
         {reportTarget && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="report-title" onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); reportTarget.trigger?.focus(); setReportTarget(null); } }}>
-            <form onSubmit={async (event) => { event.preventDefault(); const res = await fetch(`/api/forum/${reportTarget.storyId}/replies/${reportTarget.reply.id}/report`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: reportReason }) }); setReportNotice(res.ok ? t.reportReceived : t.reportFailed); if (res.ok) setTimeout(() => { reportTarget.trigger?.focus(); setReportTarget(null); }, 900); }} className="animate-reveal-up bg-white w-full max-w-md border-2 border-ink rounded-lg shadow-hard-lg p-5 space-y-3">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="report-title" onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); reportTarget.trigger?.focus(); setReportTarget(null); } }} onClick={(event) => { if (event.target === event.currentTarget) { reportTarget.trigger?.focus(); setReportTarget(null); } }}>
+            <form onSubmit={async (event) => { event.preventDefault(); const res = await fetch(`/api/forum/${reportTarget.storyId}/replies/${reportTarget.reply.id}/report`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: reportReason }) }); setReportNotice(res.ok ? t.reportReceived : t.reportFailed); if (res.ok) setTimeout(() => { reportTarget.trigger?.focus(); setReportTarget(null); }, 900); }} className="animate-reveal-up bg-white w-full max-w-md max-h-[calc(100dvh-1.5rem)] overflow-y-auto border-2 border-ink rounded-lg shadow-hard-lg p-5 space-y-3">
               <div className="flex justify-between items-center"><h2 id="report-title" className="font-bold text-lg tracking-[-0.01em]">{t.reportTitle}</h2><button type="button" aria-label={t.closeReport} onClick={() => { reportTarget.trigger?.focus(); setReportTarget(null); }} className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-[4px] border-2 border-ink bg-white hover:bg-paper focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2"><X className="w-5 h-5" aria-hidden="true" /></button></div>
               <label className="block text-base font-bold" htmlFor="report-reason">{t.reportReason}</label><select id="report-reason" value={reportReason} onChange={(event) => setReportReason(event.target.value)} className="w-full min-h-[48px] border-2 border-ink rounded-[4px] bg-white px-3 text-base shadow-[2px_2px_0px_#151515] focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">{REPORT_REASONS.map((reason) => <option key={reason} value={reason}>{t.reportReasons[reason]}</option>)}</select>
               <button type="submit" className="min-h-[48px] px-5 border-2 border-ink rounded-[4px] bg-yellow text-base font-bold shadow-hard-sm transition-[transform,box-shadow] duration-200 ease-spring hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-hard active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cobalt focus-visible:ring-offset-2">{t.sendReport}</button><p role="status" aria-live="polite" className="text-base font-semibold">{reportNotice}</p>
@@ -501,8 +502,8 @@ export default function ForumPage() {
 
         {/* Modal: Bagikan Cerita Anonim */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="share-story-title" onKeyDown={(event) => { if (event.key === 'Escape' && !submitting) { event.preventDefault(); setIsModalOpen(false); } }}>
-            <div className="animate-reveal-up bg-white rounded-[8px] border-2 border-ink shadow-hard-lg w-full max-w-lg p-5 sm:p-7 space-y-5 text-left relative max-h-[92dvh] overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="share-story-title" onKeyDown={(event) => { if (event.key === 'Escape' && !submitting) { event.preventDefault(); setIsModalOpen(false); } }} onClick={(event) => { if (event.target === event.currentTarget && !submitting) setIsModalOpen(false); }}>
+            <div className="animate-reveal-up bg-white rounded-[8px] border-2 border-ink shadow-hard-lg w-full max-w-lg p-5 sm:p-7 space-y-5 text-left relative max-h-[calc(100dvh-1.5rem)] overflow-y-auto">
               <div className="flex items-center justify-between pb-4 border-b border-[#D8D3C9]">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-[4px] bg-cobalt text-white border-2 border-ink flex items-center justify-center" aria-hidden="true">
@@ -562,6 +563,8 @@ export default function ForumPage() {
                     value={authorPseudonym}
                     onChange={(e) => setAuthorPseudonym(e.target.value)}
                     placeholder={t.pseudonymPlaceholder}
+                    autoComplete="off"
+                    enterKeyHint="next"
                     required
                   />
                 </div>
@@ -590,6 +593,8 @@ export default function ForumPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value.slice(0, 100))}
                     placeholder={t.titlePlaceholder}
+                    autoComplete="off"
+                    enterKeyHint="next"
                     required
                   />
                 </div>

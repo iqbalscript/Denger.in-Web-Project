@@ -41,6 +41,13 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: '#FFF8EF',
+  width: 'device-width',
+  initialScale: 1,
+  // Poni dan garis beranda: dock bawah dan lembar memakai env(safe-area-inset-*).
+  viewportFit: 'cover',
+  // Chrome Android: keyboard layar mengecilkan viewport (100dvh ikut mengecil),
+  // sehingga kotak tulis chat/jurnal tetap terlihat di atas keyboard.
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({

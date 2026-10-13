@@ -144,12 +144,13 @@ export default function LandingPage() {
                   )}
                 </p>
 
-                {/* Lima pilihan dalam dua baris (3 + 2) tanpa sel kosong; di tablet
-                    muat lima sejajar. Label tetap utuh, tidak terpotong di tengah kata. */}
-                <div className="grid grid-cols-6 sm:grid-cols-5 lg:grid-cols-6 gap-2 pt-1">
+                {/* Lima kotak dalam dua baris (3 + 2) tanpa sel kosong di semua lebar;
+                    lima sejajar di tablet membuat "Overwhelmed"/"Kewalahan" patah di tengah
+                    kata. Dengan teks 140% di HP, .mood-cell (globals.css) membaginya 2 + 2 + 1. */}
+                <div className="grid grid-cols-6 gap-2 pt-1">
                   {moodOptions.map((m, index) => {
                     const isSelected = selectedQuickMood === m.id;
-                    const span = index < 3 ? 'col-span-2 sm:col-span-1 lg:col-span-2' : 'col-span-3 sm:col-span-1 lg:col-span-3';
+                    const span = index < 3 ? 'mood-cell col-span-2' : 'mood-cell col-span-3';
                     return (
                       <button
                         key={m.id}
@@ -165,7 +166,7 @@ export default function LandingPage() {
                           }`}
                       >
                         <MoodIcon mood={m.id} className="w-7 h-7 text-[#151515]" />
-                        <span className="text-sm text-center font-bold leading-tight w-full text-[#151515] break-words">{m.label}</span>
+                        <span className="text-sm text-center font-bold leading-tight w-full text-[#151515]">{m.label}</span>
                       </button>
                     );
                   })}

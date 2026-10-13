@@ -82,6 +82,9 @@ export default function ResourcesPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.searchPlaceholder}
+            inputMode="search"
+            enterKeyHint="search"
+            autoComplete="off"
             className="w-full min-h-[52px] pl-11 pr-4 py-3 rounded-md border-2 border-ink text-base bg-white shadow-hard-sm placeholder:text-[#6B665E] transition-shadow duration-120 focus:outline-none focus:shadow-[3px_3px_0px_#3357EE] font-medium"
           />
         </div>

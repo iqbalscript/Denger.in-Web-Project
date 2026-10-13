@@ -69,7 +69,7 @@ export function CelebrationToast({ celebration, onDismiss }: CelebrationToastPro
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className={`fixed bottom-24 lg:bottom-6 right-4 z-50 max-w-xs
+      className={`fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] lg:bottom-6 right-4 z-50 max-w-xs
         bg-[#B8F34A] border-2 border-[#151515] rounded-[6px] shadow-[3px_3px_0px_#151515]
         px-4 py-3 space-y-1
         transition-all duration-200

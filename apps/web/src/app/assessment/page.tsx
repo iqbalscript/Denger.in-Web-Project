@@ -410,13 +410,16 @@ export default function AssessmentPage() {
 
         {/* Pause & Resume Modal */}
         {showPauseModal && (
-          <div className="fixed inset-0 z-50 bg-ink/50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 z-50 bg-ink/50 flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            onClick={(event) => { if (event.target === event.currentTarget) setShowPauseModal(false); }}
+          >
             <div
               role="dialog"
               aria-modal="true"
               aria-labelledby="judul-draf-tersimpan"
               onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); setShowPauseModal(false); } }}
-              className="animate-reveal-up bg-white rounded-lg p-6 sm:p-8 max-w-md w-full space-y-5 shadow-hard-lg border-2 border-ink text-left"
+              className="animate-reveal-up bg-white rounded-lg p-6 sm:p-8 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-5 shadow-hard-lg border-2 border-ink text-left"
             >
               <div className="w-10 h-10 rounded-md bg-yellow text-ink border-2 border-ink flex items-center justify-center" aria-hidden="true">
                 <BookmarkCheck className="w-5 h-5" />

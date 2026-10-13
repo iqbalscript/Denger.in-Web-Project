@@ -271,7 +271,8 @@ export default function ReportPage() {
         </div>
 
         {/* 3. 7-Day Mood Trend Visualization Chart */}
-        <div className="lg:col-span-8 lg:order-1 animate-reveal-up [animation-delay:160ms] bg-white border-2 border-ink rounded-lg p-6 sm:p-8 space-y-5 shadow-hard-sm text-left">
+        {/* Padding lebih tipis di HP supaya tujuh kolom hari tetap lega di 360px. */}
+        <div className="lg:col-span-8 lg:order-1 animate-reveal-up [animation-delay:160ms] bg-white border-2 border-ink rounded-lg p-4 sm:p-8 space-y-5 shadow-hard-sm text-left">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8D3C9] pb-3">
             <h2 className="text-lg sm:text-xl font-bold text-ink tracking-[-0.01em] leading-[1.25] flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-cobalt" aria-hidden="true" />
@@ -308,7 +309,7 @@ export default function ReportPage() {
                     )}
                   </div>
 
-                  <span className="text-sm text-ink font-semibold" aria-hidden="true">
+                  <span className="text-xs sm:text-sm text-ink font-semibold max-w-full truncate" aria-hidden="true">
                     {t.dayNames[slot.weekday]}
                   </span>
                 </div>

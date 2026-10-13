@@ -164,7 +164,10 @@ export function AccessibilityMenu({ className = '' }: { className?: string }) {
           role="dialog"
           aria-modal="false"
           aria-labelledby="judul-aksesibilitas"
-          className="fixed left-3 right-3 top-[4.5rem] sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[22rem] z-50 max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515] p-4 space-y-4 text-left"
+          // HP: lembar selebar layar di bawah baris atas; tablet/desktop: popover 22rem di
+          // pojok kanan. Tingginya berhenti di atas dock bawah (lg ke atas tanpa dock) dan
+          // isinya bergulir sendiri, termasuk saat teks 140%.
+          className="fixed left-3 right-3 top-[4.5rem] sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[22rem] z-50 max-h-[calc(100dvh-4.5rem-5.5rem-env(safe-area-inset-bottom))] lg:max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain bg-white border-2 border-[#151515] rounded-[6px] shadow-[4px_4px_0px_#151515] p-4 space-y-4 text-left"
         >
           <div className="flex items-start justify-between gap-3">
             <div>
